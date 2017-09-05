@@ -5,6 +5,8 @@
 #' million, WHO standard million. Created by using the download_standard_pops()
 #' function.
 #'
+#' @docType data
+#'
 #' @format A data frame with 234 rows and 5 columns
 #' \describe{
 #'   \item{age_cat}{factor, age group}
@@ -14,4 +16,5 @@
 #'   \item{age}{starting age of that age group}
 #' }
 #' @source \url{https://seer.cancer.gov/stdpopulations/stdpop.18ages.txt}
+#' @keywords datasets
 "std_pops"
