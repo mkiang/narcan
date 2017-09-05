@@ -2,7 +2,8 @@
 #'
 #' A data set containing a variety of common standard populations including:
 #' 2000 US standard million, 2000 US standard population, 1960 world standard
-#' million, WHO standard million.
+#' million, WHO standard million. Created by using the download_standard_pops()
+#' function.
 #'
 #' @format A data frame with 234 rows and 5 columns
 #' \describe{
