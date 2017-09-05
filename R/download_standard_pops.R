@@ -7,7 +7,6 @@
 #'
 #' @return Dataframe with SEER standard populations
 #' @export
-
 download_standard_pops <- function() {
     ## Download the 18 (0-4 year old) grouping
     pop_url <- "https://seer.cancer.gov/stdpopulations/stdpop.18ages.txt"

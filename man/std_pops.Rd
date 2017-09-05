@@ -9,7 +9,7 @@
   \item{age_cat}{factor, age group}
   \item{standard_cat}{factor, description of standard population}
   \item{pop_std}{count, population in that age group for that standard}
-  \item{stadard}{code, character code for that standard population}
+  \item{standard}{code, character code for that standard population}
   \item{age}{starting age of that age group}
 }}
 \source{

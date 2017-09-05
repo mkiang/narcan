@@ -4,7 +4,8 @@ Title: Helper functions for working with multiple cause of death data
 Version: 0.1.0
 Authors@R: as.person(c(
     "Mathew Kiang <mathew.kiang@gmail.com> [aut, cre]", 
-    "Monica Alexander <monicaalexander@berkeley.edu> [aut]"))
+    "Monica Alexander <monicaalexander@berkeley.edu> [aut]"
+    ))
 Description: Multiple cause of death (MCOD) data are required for calculating 
     opioid deaths (which are defined by both an underlying and contributory 
     cause). This package is designed to help with some of the downloading, 
@@ -18,4 +19,5 @@ LazyData: true
 Imports: 
     dplyr, 
     readr
+Depends: R (>= 2.10)
 RoxygenNote: 6.0.1.9000
