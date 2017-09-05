@@ -1,19 +1,14 @@
 #' Download Standard Populations
 #'
 #' Download a variety of common standard populations from the SEER website
+#' using the 18 age group coding. Performs minimal manipulation to make age
+#' and standard factors human readable. Note that one must dplyr::filter()
+#' to a single standard before performing dplyr::left_join() on age_cat.
 #'
 #' @return Dataframe with SEER standard populations
 #' @export
 
 download_standard_pops <- function() {
-    ## Downloads different standard populations from SEER website using the
-    ## 18 age group coding. Performs minimal manipulation to make age and
-    ## standard factors readable.
-    ##
-    ## NOTE: Stores all standards so you'll need to filter to a specific
-    ## standard and then left_join() on age_cat.
-
-
     ## Download the 18 (0-4 year old) grouping
     pop_url <- "https://seer.cancer.gov/stdpopulations/stdpop.18ages.txt"
 

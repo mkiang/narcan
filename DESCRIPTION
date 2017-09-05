@@ -18,3 +18,4 @@ LazyData: true
 Imports: 
     dplyr, 
     readr
+RoxygenNote: 6.0.1.9000
