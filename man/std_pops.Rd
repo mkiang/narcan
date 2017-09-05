@@ -3,8 +3,8 @@
 \docType{data}
 \name{std_pops}
 \alias{std_pops}
-\title{Dataframe of common standard populations in 18 age categories}
-\format{A data frame with 234 rows and 5 columns
+\title{Dataframe of common standard populations from SEER website.}
+\format{A data frame with 855 rows and 5 columns
 \describe{
   \item{age_cat}{factor, age group}
   \item{standard_cat}{factor, description of standard population}
@@ -21,7 +21,8 @@ std_pops
 \description{
 A data set containing a variety of common standard populations including:
 2000 US standard million, 2000 US standard population, 1960 world standard
-million, WHO standard million. Created by using the download_standard_pops()
-function.
+million, WHO standard million in 18 age groups, 19 age groups, single-year
+age to 85, and single-year age to 100 bins. Created by using the
+download_standard_pops() function.
 }
 \keyword{datasets}

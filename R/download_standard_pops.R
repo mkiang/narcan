@@ -1,20 +1,24 @@
 #' Download Standard Populations
 #'
-#' Download a variety of common standard populations from the SEER website
-#' using the 18 age group coding. Performs minimal manipulation to make age
-#' and standard factors human readable. Note that one must dplyr::filter()
+#' Download a variety of common standard populations from the SEER website.
+#' Performs minimal manipulation to make age and standard factors human
+#' readable and consistent across standards. Note that one must dplyr::filter()
 #' to a single standard before performing dplyr::left_join() on age_cat.
 #'
 #' @return Dataframe with SEER standard populations
 #' @source https://seer.cancer.gov/stdpopulations/
+#' @importFrom readr read_fwf fwf_widths
+#' @importFrom dplyr mutate select case_when everything
 #' @export
 download_standard_pops <- function() {
-    ## Download the 18 (0-4 year old) grouping
-    pop_url <- "https://seer.cancer.gov/stdpopulations/stdpop.18ages.txt"
+    ## Define URLS
+    base_url <- "https://seer.cancer.gov/stdpopulations/"
+    pop_18   <- "stdpop.18ages.txt"
+    pop_19   <- "stdpop.19ages.txt"
+    pop_85   <- "stdpop.singleagesthru84.txt"
+    pop_100  <- "stdpop.singleagesthru99.txt"
 
     ## Make a dictionary for factor values of standard population
-    ## This includes codes for the 19 age group coding -- keep them in case
-    ## we decide to use that instead.
     standards_dict <- list(
         s6   = "World (Segi 1960) Std Million (19 age groups)",
         s7   = "1991 Canadian Std Million (19 age groups)",
@@ -48,27 +52,60 @@ download_standard_pops <- function() {
         s204 = "2000 US Std Population (18 age groups - Census P25-1130)")
 
     ## Download
-    standard_pop <- readr::read_fwf(pop_url,
-                                    readr::fwf_widths(c(3, 3, 8),
-                                                      c("standard", "age",
-                                                        "pop")),
-                                    col_types = "iii")
+    col_widths <- fwf_widths(c(3, 3, 8),
+                             c("standard", "age","pop"))
 
-    ## Create standard codes and better age groups
-    standard_pop <- standard_pop %>%
-        dplyr::mutate(standard = paste0("s", standard),
-                      standard_cat = factor(standard,
-                                            levels = names(standards_dict),
-                                            labels = unname(unlist(standards_dict)),
-                                            ordered = TRUE),
-                      age = (age - 1) * 5,
-                      age_cat = factor(age,
-                                       levels = seq(0, 85, 5),
-                                       labels = c(paste0(seq(0, 84, 5), "-",
-                                                         seq(4, 84, 5)), "85+"),
-                                       ordered = TRUE)) %>%
-        dplyr::select(age_cat, standard_cat, pop_std = pop,
-                      dplyr::everything())
+    df_18  <- read_fwf(sprintf("%s%s", base_url, pop_18),
+                       col_widths, col_types = "iii")
+    df_19  <- read_fwf(sprintf("%s%s", base_url, pop_19),
+                       col_widths, col_types = "iii")
+    df_85  <- read_fwf(sprintf("%s%s", base_url, pop_85),
+                       col_widths, col_types = "iii")
+    df_100 <- read_fwf(sprintf("%s%s", base_url, pop_100),
+                       col_widths, col_types = "iii")
 
-    return(standard_pop)
+    ## Make age groups consistent across standards
+    df_18 <- df_18 %>%
+        mutate(age = (age - 1) * 5,
+               age_cat = factor(age,
+                                levels = seq(0, 85, 5),
+                                labels = c(paste0(seq(0, 84, 5), "-",
+                                                  seq(4, 84, 5)), "85+"),
+                                ordered = TRUE))
+
+    df_19 <- df_19 %>%
+        mutate(age = case_when(age >= 2 ~ as.integer((age - 1) * 5),
+                               TRUE ~ age),
+               age_cat = factor(age,
+                                levels = c(0, 1, seq(5, 85, 5)),
+                                labels = c("0", "1-4",
+                                           paste0(seq(5, 84, 5), "-",
+                                                  seq(9, 84, 5)), "85+"),
+                                ordered = TRUE))
+
+    df_85 <- df_85 %>%
+        mutate(age_cat = factor(age,
+                                levels = 0:85,
+                                labels = c(0:84, "85+"),
+                                ordered = TRUE))
+
+    df_100 <- df_100 %>%
+        mutate(age_cat = factor(age,
+                                levels = 0:100,
+                                labels = c(0:99, "100+"),
+                                ordered = TRUE))
+
+    ## Create better standards variable
+    standard_pops <- rbind(df_18, df_19, df_85, df_100)
+    standard_pops <- standard_pops %>%
+        mutate(standard = paste0("s", standard),
+               standard_cat = factor(standard,
+                                     levels = names(standards_dict),
+                                     labels = unname(unlist(standards_dict))))
+
+    ## Reorder columns
+    standard_pops <- standard_pops %>%
+        select(age_cat, standard_cat, pop_std = pop, everything())
+
+    return(standard_pops)
 }

@@ -13,8 +13,8 @@ download_standard_pops()
 Dataframe with SEER standard populations
 }
 \description{
-Download a variety of common standard populations from the SEER website
-using the 18 age group coding. Performs minimal manipulation to make age
-and standard factors human readable. Note that one must dplyr::filter()
+Download a variety of common standard populations from the SEER website.
+Performs minimal manipulation to make age and standard factors human
+readable and consistent across standards. Note that one must dplyr::filter()
 to a single standard before performing dplyr::left_join() on age_cat.
 }
