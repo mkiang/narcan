@@ -3,6 +3,9 @@
 \name{download_standard_pops}
 \alias{download_standard_pops}
 \title{Download Standard Populations}
+\source{
+https://seer.cancer.gov/stdpopulations/
+}
 \usage{
 download_standard_pops()
 }

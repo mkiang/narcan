@@ -6,6 +6,7 @@
 #' to a single standard before performing dplyr::left_join() on age_cat.
 #'
 #' @return Dataframe with SEER standard populations
+#' @source https://seer.cancer.gov/stdpopulations/
 #' @export
 download_standard_pops <- function() {
     ## Download the 18 (0-4 year old) grouping
@@ -71,5 +72,3 @@ download_standard_pops <- function() {
 
     return(standard_pop)
 }
-
-
