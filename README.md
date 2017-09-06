@@ -9,8 +9,20 @@ This simple package aims to make common operations---such as downloading, mungin
 
 Additionally, this package includes data necessary for calculating rates. Specifically, standard populations and annual US population counts from 1979 to 2015.
 
+## Installation
+Use `devtools::install_github("mkiang/narcan")` to install the current version. We have no plans of submitting this package to CRAN. 
+
 ## Usage
-TODO
+### Downloading MCOD Data
+
+### Population Data
+Standard populations are held in the `std_pops` dataframe while annual population estimates (by race, sex, and age) from 1979 to 2015 are held in the `pop_est` dataframe.
+
+```
+library(narcan)
+population_estimates <- narcan::pop_est
+standard_populations <- narcan::std_pops
+```
 
 ## Sources
 ### Multiple Cause of Death
