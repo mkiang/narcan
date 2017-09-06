@@ -9,8 +9,8 @@
 #' @source https://seer.cancer.gov/stdpopulations/
 #' @importFrom readr read_fwf fwf_widths
 #' @importFrom dplyr mutate select case_when everything
-#' @export
-download_standard_pops <- function() {
+
+.download_standard_pops <- function() {
     ## Define URLS
     base_url <- "https://seer.cancer.gov/stdpopulations/"
     pop_18   <- "stdpop.18ages.txt"

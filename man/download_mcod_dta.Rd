@@ -18,5 +18,7 @@ download_mcod_dta(year, download_dir = "./raw_data")
 none
 }
 \description{
-Download the multiple cause of death data as a DTA file
+NBER hosts publicly available multiple cause of death data in several
+formats (see source). This function downloads the specified year to the
+specified folder in the DTA (Stata) format.
 }

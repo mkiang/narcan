@@ -1,10 +1,15 @@
 #' Download the multiple cause of death data as a DTA file
 #'
+#' NBER hosts publicly available multiple cause of death data in several
+#' formats (see source). This function downloads the specified year to the
+#' specified folder in the DTA (Stata) format.
+#'
 #' @param year year to download (as integer)
 #' @param download_dir file path to save downlaoded data
 #'
 #' @return none
 #' @export
+#' @importFrom utils count.fields download.file zip
 #' @source http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
 
 download_mcod_dta <- function(year, download_dir = './raw_data') {

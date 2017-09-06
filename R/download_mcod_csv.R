@@ -1,10 +1,15 @@
 #' Download the multiple cause of death data as a CSV file
 #'
+#' NBER hosts publicly available multiple cause of death data in several
+#' formats (see source). This function downloads the specified year to the
+#' specified folder in the CSV format.
+#'
 #' @param year year to download (as integer)
 #' @param download_dir file path to save downlaoded data
 #'
 #' @return none
 #' @export
+#' @importFrom utils unzip download.file
 #' @source http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
 
 download_mcod_csv <- function(year, download_dir = './raw_data') {
