@@ -5,9 +5,11 @@ An R package for working with [multiple cause of death micro-data](https://wonde
 ## Introduction
 Certain types of deaths, including drug overdoses or opioid-related deaths, are defined by an [ICD code](http://www.who.int/classifications/icd/en/) in both the underlying cause field and one of the twenty possible contributory cause fields. Therefore, in order to tabulate these deaths, researches cannot use [compressed mortality files (CMF)](https://www.cdc.gov/nchs/data_access/cmf.htm) (which contain only underlying cause of death), but rather must use [multiple cause of death (MCOD)](https://wonder.cdc.gov/mcd.html) data.
 
-This simple package aims to make common operations---such as downloading, munging, and cleaning---on MCOD data easier. 
+This simple package aims to make common operations --- such as downloading, munging, and cleaning --- on MCOD data easier. 
 
 Additionally, this package includes data necessary for calculating rates. Specifically, standard populations and annual US population counts from 1979 to 2015.
+
+This package is largely the result of our internal code getting reused for multiple papers --- therefore, the scope and usefulness of the code is likely limited. We're releasing it publicly just in the hopes that other researchers will learn from our mistakes.
 
 ## Installation
 Use `devtools::install_github("mkiang/narcan")` to install the current version. We have no plans of submitting this package to CRAN. 
@@ -23,6 +25,17 @@ library(narcan)
 population_estimates <- narcan::pop_est
 standard_populations <- narcan::std_pops
 ```
+
+## Irregularlities in MCOD Data
+It is worth noting that there are several important irregularities in the data. This package addresses some while others are simply the way the data are.
+
+- From 1979 to 1998, data are coded using the ICD-9 classification.
+- From 1999 to 2015, data are coded using the ICD-10 classification.
+- For years using the ICD-9 classification, the `rnifla_` column indicates a nature of injury flag for the corresponding `record_` column. A `1` indicates an `N` code (nature of injury) while a `0` represents all other codes (e.g., `E` for external causes or `V` coeds).
+- Some years call the nature of injury flag column `rnifla_` while others call it `rniflag_`. 
+- Early year `ascii` and `csv` files from NBER contain encoding errors. We suggest downloading files as `dta` for ICD-9 years and `csv` files for ICD-10 years.
+- Hispanic origin is not recorded until 1989.
+- Race codes changed across years.
 
 ## Sources
 ### Multiple Cause of Death
