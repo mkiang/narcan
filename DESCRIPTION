@@ -21,5 +21,6 @@ Depends:
     R (>= 2.10), 
     dplyr, 
     readr, 
-    tidyr
+    tidyr, 
+    tibble
 RoxygenNote: 6.0.1.9000

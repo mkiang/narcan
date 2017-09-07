@@ -25,4 +25,16 @@ if(getRversion() >= "2.15.1") {
                              "popestimate2010", "popestimate2011",
                              "popestimate2015", "race_original", "region",
                              "sex", "state", "sumlev"))
+
+    utils::globalVariables(c("record_1",  "record_2",  "record_3",  "record_4",
+                             "record_5",  "record_6",  "record_7",  "record_8",
+                             "record_9",  "record_10", "record_11", "record_12",
+                             "record_13", "record_14", "record_15", "record_16",
+                             "record_17", "record_18", "record_19", "record_20",
+                             "rnifla_1",  "rnifla_2",  "rnifla_3",  "rnifla_4",
+                             "rnifla_5",  "rnifla_6",  "rnifla_7",  "rnifla_8",
+                             "rnifla_9",  "rnifla_10", "rnifla_11", "rnifla_12",
+                             "rnifla_13", "rnifla_14", "rnifla_15", "rnifla_16",
+                             "rnifla_17", "rnifla_18", "rnifla_19", "rnifla_20",
+                             "ager27", "ucod", "f_records_all"))
 }

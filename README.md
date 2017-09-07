@@ -70,3 +70,6 @@ For example, all functions used to download and create the standard populations 
 - `narcan:::.download_2000s_pop_data()`
 - `narcan:::.download_2010s_pop_data()`
 - `narcan:::.download_all_pop_data()`
+- `narcan:::.remap_race_1979_1988()`
+- `narcan:::.remap_race_1989_1991()`
+- `narcan:::.remap_race_1992_2015()`
