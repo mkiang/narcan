@@ -2,6 +2,9 @@
 
 An R package for working with [multiple cause of death micro-data](https://wonder.cdc.gov/mcd.html). 
 
+## Warning
+**This package is in the alpha stage.** We cannot emphasize this enough. Nothing is guaranteed to work. Submit an issue if you find a bug. 
+
 ## Introduction
 Certain types of deaths, including drug overdoses or opioid-related deaths, are defined by an [ICD code](http://www.who.int/classifications/icd/en/) in both the underlying cause field and one of the twenty possible contributory cause fields. Therefore, in order to tabulate these deaths, researches cannot use [compressed mortality files (CMF)](https://www.cdc.gov/nchs/data_access/cmf.htm) (which contain only underlying cause of death), but rather must use [multiple cause of death (MCOD)](https://wonder.cdc.gov/mcd.html) data.
 
