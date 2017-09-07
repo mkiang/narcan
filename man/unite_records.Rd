@@ -2,19 +2,20 @@
 % Please edit documentation in R/unite_records.R
 \name{unite_records}
 \alias{unite_records}
-\title{Unite the 20 record columns from ICD-9 dataframe into a single column}
+\title{Unite the 20 record columns from MCOD dataframe into a single column}
 \usage{
-unite_records(icd9_df)
+unite_records(icd_df, year = NULL)
 }
 \arguments{
-\item{icd9_df}{an ICD-9 dataframe}
+\item{icd_df}{an ICD dataframe}
+
+\item{year}{the year of this dataframe -- if NULL, will attempt to detect}
 }
 \value{
 dataframe
 }
 \description{
-ICD-9 dataframes contain 20 record columns (contributory causes) along with
-20 flag columns that denote if the contributory cause is an N code or an
-E code. This function collapses the 20 columns into a single column with
-all codes (and their appropriate prefix) to make regex'ing easier.
+This function collapses the 20 contributory cause columns into a single
+column for easier regex'ing. ICD-9 dataframes will also get appropriate
+prefixes before collapsing.
 }

@@ -14,11 +14,7 @@
 remap_race <- function(icd_df, year = NULL) {
     ## Extract year
     if (is.null(year)) {
-        year <- unique(icd_df$year)
-
-        if (length(year) > 1) {
-            stop("Too many years.")
-        }
+        year <- .extract_year(icd_df)
     }
 
     ## Run appropriate function depending on year
