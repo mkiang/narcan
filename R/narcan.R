@@ -26,6 +26,7 @@ if(getRversion() >= "2.15.1") {
                              "popestimate2015", "race_original", "region",
                              "sex", "state", "sumlev"))
 
+    ## Globals for cleaning MCOD files
     utils::globalVariables(c("record_1",  "record_2",  "record_3",  "record_4",
                              "record_5",  "record_6",  "record_7",  "record_8",
                              "record_9",  "record_10", "record_11", "record_12",
