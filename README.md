@@ -17,7 +17,7 @@ Use `devtools::install_github("mkiang/narcan")` to install the current version. 
 ## Usage
 ### Downloading MCOD Data
 
-### Population Data
+### Accessing Population Data
 Standard populations are held in the `std_pops` dataframe while annual population estimates (by race, sex, and age) from 1979 to 2015 are held in the `pop_est` dataframe.
 
 ```
@@ -25,6 +25,14 @@ library(narcan)
 population_estimates <- narcan::pop_est
 standard_populations <- narcan::std_pops
 ```
+
+### More information
+There are also several wiki examples on how to use `narcan`
+
+- [ICD-9 / dta](https://github.com/mkiang/narcan/wiki/ICD-9-download-to-clean-example-(dta)): Download, select, filter, and clean the ICD-9 data in `dta` format.
+- Make one for ICD 10 csv
+- Make one using two years with two separate race variables
+- Make one showing `rnifla_` and `rniflag`
 
 ## Irregularlities in MCOD Data
 It is worth noting that there are several important irregularities in the data. This package addresses some while others are simply the way the data are.
