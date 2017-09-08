@@ -1,5 +1,4 @@
 ## Regex helpers
-
 .regex_drug_icd9 <- function(n_codes = FALSE, e_codes = TRUE) {
     ## Just returns the regex for all drug deaths as defined by the ISW7
     ##

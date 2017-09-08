@@ -38,4 +38,10 @@ if(getRversion() >= "2.15.1") {
                              "rnifla_13", "rnifla_14", "rnifla_15", "rnifla_16",
                              "rnifla_17", "rnifla_18", "rnifla_19", "rnifla_20",
                              "ager27", "ucod", "f_records_all"))
+
+    ## Globals for flagging opioid types
+    utils::globalVariables(c("heroin_present", "methadone_present",
+                             "num_opioids", "opium_present",
+                             "other_natural_present", "other_op_present",
+                             "other_synth_present", "unspecified_op_present"))
 }

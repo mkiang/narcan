@@ -15,5 +15,7 @@ flag_opioid_types(processed_df, year = NULL)
 a new dataframe with 9 additional columns
 }
 \description{
-Take a processed MCOD dataframe and create indicators for opioid types
+Creates 9 indicators for all opioid deaths. 7 for type of opioid (opium,
+heroin, natural, methadone, synethtic, other, unknown), 1 column for
+the number of opioids, and 1 column to indicate presence of more than one opioid.
 }
