@@ -44,4 +44,10 @@ if(getRversion() >= "2.15.1") {
                              "num_opioids", "opium_present",
                              "other_natural_present", "other_op_present",
                              "other_synth_present", "unspecified_op_present"))
+
+    ## Globals for subsetting function
+    utils::globalVariables(c("restatus"))
+
+    ## Globals for adding population data
+    utils::globalVariables(c("pop_std"))
 }

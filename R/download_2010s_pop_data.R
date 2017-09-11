@@ -5,6 +5,8 @@
 #' a little different and thus must be munged before being combined
 #' into the total pop_est dataframe.
 #'
+#' @param filter_race Subset to white, nhw, black, and total (default: TRUE)
+#'
 #' @return Dataframe with population counts by age and sex
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom readr read_csv

@@ -5,13 +5,16 @@
 #' a little different and thus must be munged before being combined
 #' into the total pop_est dataframe.
 #'
+#' @param raw_folder location to store downloaded files
+#' @param filter_race Subset to white, nhw, black, and total (default: TRUE)
+#'
 #' @return Dataframe with population counts by age and sex
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom readr read_fwf fwf_positions
 #' @importFrom dplyr mutate select
 #' @importFrom tidyr gather
 .download_1980s_pop_data <- function(raw_folder = "./raw_data",
-                                    filter_race = TRUE) {
+                                     filter_race = TRUE) {
     ## Files can be found at the `base_url` defined below.
     ##
     ## Documentation is here: paste0('https://www2.census.gov/programs-surveys',
