@@ -49,5 +49,5 @@ if(getRversion() >= "2.15.1") {
     utils::globalVariables(c("restatus"))
 
     ## Globals for adding population data
-    utils::globalVariables(c("pop_std"))
+    utils::globalVariables(c("pop_std", "unit_w"))
 }

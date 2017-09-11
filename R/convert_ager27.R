@@ -6,7 +6,7 @@
 #' @return dataframe
 #' @importFrom dplyr mutate select
 #' @export
-convert_age27 <- function(icd_df, remove_age27 = TRUE) {
+convert_ager27 <- function(icd_df, remove_age27 = TRUE) {
     df <- icd_df %>%
         mutate(ager27 = ifelse(ager27 == 27, NA, ager27),
                age = (findInterval(ager27, c(0, 7:23, 100)) - 1) * 5)
