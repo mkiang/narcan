@@ -50,4 +50,12 @@ if(getRversion() >= "2.15.1") {
 
     ## Globals for adding population data
     utils::globalVariables(c("pop_std", "unit_w"))
+
+    ## Globals for state_abbrev_to_fips examples
+    utils::globalVariables(c("AK", "AL", "MA", "CA",
+                             "AK202", "AL001", "MA101", "CA321"))
+
+    ## Globals for import_restricted_data
+    utils::globalVariables(c("staters", "countyrs", "exstares", "statbth",
+                             "statbthr"))
 }

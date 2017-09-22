@@ -21,6 +21,7 @@ Imports:
     haven, 
     readr, 
     rlang, 
+    stringr, 
     tibble, 
     tidyr
 Depends: 
