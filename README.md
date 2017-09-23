@@ -3,14 +3,14 @@
 An R package for working with [multiple cause of death micro-data](https://wonder.cdc.gov/mcd.html). 
 
 ## Warning
-**This package is in the alpha stage.** We cannot emphasize this enough. Nothing is guaranteed to work. Submit an issue if you find a bug. 
+**This package is in the alpha stage.** We cannot emphasize this enough. Nothing is guaranteed to work. [Submit an issue](https://github.com/mkiang/narcan/issues) if you find a bug. 
 
 ## Introduction
 Certain types of deaths, including drug overdoses or opioid-related deaths, are defined by an [ICD code](http://www.who.int/classifications/icd/en/) in both the underlying cause field and one of the twenty possible contributory cause fields. Therefore, in order to tabulate these deaths, researches cannot use [compressed mortality files (CMF)](https://www.cdc.gov/nchs/data_access/cmf.htm) (which contain only underlying cause of death), but rather must use [multiple cause of death (MCOD)](https://wonder.cdc.gov/mcd.html) data.
 
-This simple package aims to make common operations --- such as downloading, munging, and cleaning --- on MCOD data easier. 
+This simple package aims to make common operations --- such as downloading, munging, and cleaning --- on (inherently messy) MCOD data easier. 
 
-Additionally, this package includes data necessary for calculating rates. Specifically, standard populations and annual US population counts from 1979 to 2015.
+Additionally, this package includes data necessary for calculating rates. Specifically, standard populations and annual US population counts from 1979 to 2015. Note that if you are only using 1990 to current, the [NVSS Bridged Race](https://www.cdc.gov/nchs/nvss/bridged_race.htm) files are preferred.
 
 This package is largely the result of our internal code getting reused for multiple papers --- therefore, the scope and usefulness of the code is likely limited. We're releasing it publicly just in the hopes that other researchers will learn from our mistakes.
 
@@ -19,6 +19,8 @@ Use `devtools::install_github("mkiang/narcan")` to install the current version. 
 
 ## Usage
 ### Downloading MCOD Data
+
+**TODO**
 
 ### Accessing Population Data
 Standard populations are held in the `std_pops` dataframe while annual population estimates (by race, sex, and age) from 1979 to 2015 are held in the `pop_est` dataframe.
@@ -33,9 +35,9 @@ standard_populations <- narcan::std_pops
 There are also several wiki examples on how to use `narcan`
 
 - [ICD-9 / dta](https://github.com/mkiang/narcan/wiki/ICD-9-download-to-clean-example-(dta)): Download, select, filter, and clean the ICD-9 data in `dta` format.
-- Make one for ICD 10 csv
-- Make one using two years with two separate race variables
-- Make one showing `rnifla_` and `rniflag`
+- **TODO** Make one for ICD 10 csv
+- **TODO** Make one using two years with two separate race variables
+- **TODO** Make one showing `rnifla_` and `rniflag`
 
 ## Irregularlities in MCOD Data
 It is worth noting that there are several important irregularities in the data. This package addresses some while others are simply the way the data are.
@@ -47,6 +49,8 @@ It is worth noting that there are several important irregularities in the data. 
 - Early year `ascii` and `csv` files from NBER contain encoding errors. We suggest downloading files as `dta` for ICD-9 years and `csv` files for ICD-10 years.
 - Hispanic origin is not recorded until 1989.
 - Race codes changed across years.
+- Some years code sex as `M`/`F` and others as `1`/`0` or `1`/`2` .
+- In the restricted files, the documentation suggests state variables are coded as FIPS; however, they are actually coded as state abbreviations. 
 
 ## Sources
 ### Multiple Cause of Death
@@ -61,9 +65,10 @@ Standard populations are stored on the [Surveillance, Epidemiology, and End Resu
 THe annual US population estimates come from the United States Census Bureau's [Population Estimates Program (PEP)](https://www.census.gov/programs-surveys/popest.html).
 
 ## Papers using `narcan`
-- **Put `opioid_disparities` paper here when submitted.**
-- **Put `opioid_intent` paper here when submitted.**
-- **Potentially `opioid_age`.**
+- **TODO** Put `opioid_disparities` paper here when submitted.
+- **TODO** Put `opioid_intent` paper here when submitted.
+- **TODO** Put `opioid_spatial` paper here when submitted.
+- **TODO** Potentially `opioid_age`.
 
 ## Authors
 [Mathew Kiang](https://mathewkiang.com) ([`mkiang`](https://github.com/mkiang)) and [Monica Alexander](http://monicaalexander.com/) ([`MJAlexander`](https://github.com/mjalexander))
@@ -72,15 +77,7 @@ THe annual US population estimates come from the United States Census Bureau's [
 ### Hidden Functions
 This package contains several functions that are **not** user-facing. This functions begin with a period (`.`) and can be accessed using the triple colon syntax (`:::`). 
 
-For example, all functions used to download and create the standard populations and population estimates datasets are hidden from the user. Accessing the data directly is preferable (e.g., `narcan::std_pops`); however, for completeness, we document hidden functions here. Note that each "chunk" of population data requires different munging and is thus kept in a different function. Functions themselves contain further documentation.
+### Hidden Data
 
-- `narcan:::.download_standard_pops()`
-- `narcan:::.download_1979_pop_data()`
-- `narcan:::.download_1980s_pop_data()`
-- `narcan:::.download_1990s_pop_data()`
-- `narcan:::.download_2000s_pop_data()`
-- `narcan:::.download_2010s_pop_data()`
-- `narcan:::.download_all_pop_data()`
-- `narcan:::.remap_race_1979_1988()`
-- `narcan:::.remap_race_1989_1991()`
-- `narcan:::.remap_race_1992_2015()`
+**TODO** 
+

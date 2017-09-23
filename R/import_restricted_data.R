@@ -25,11 +25,10 @@
         ## to FIPS.
         if (fix_states) {
             df <- df %>%
-                mutate(staters  = state_abbrev_to_fips(staters),
-                       countyrs = state_abbrev_to_fips(countyrs),
-                       exstares = state_abbrev_to_fips(exstares),
-                       statbth  = state_abbrev_to_fips(statbth),
-                       statbthr = state_abbrev_to_fips(statbthr))
+                mutate_at(vars(one_of("countyoc", "exstatoc", "staters",
+                                      "countyrs", "exstares", "statbth",
+                                      "statbthr")),
+                          state_abbrev_to_fips)
         }
 
     }
