@@ -1,7 +1,7 @@
 #' Calculate age-specific rates and variance
 #'
 #' Given a bare (unquoted) column of counts and population, will return the
-#' rate in 100,000 as well as the variance.
+#' rate in 100,000 as well as the variance (using Poisson approximation).
 #'
 #' @param df processed MCOD dataframe
 #' @param new_name bare prefix of the new column names (e.g., opioid)
@@ -26,7 +26,7 @@ calc_asrate_var <- function(df, new_name, death_col, pop_col = pop) {
     new_df <- df %>%
         mutate(
             !!rate_name := ((!!death_col) / (!!pop_col)) * 10^5,
-            !!var_name  := ((((!!death_col) / (!!pop_col)) * 10^5) /
+            !!var_name  := ((((!!death_col) / (!!pop_col)) * 10^5)^2 /
                                 (!!death_col))
         )
 
