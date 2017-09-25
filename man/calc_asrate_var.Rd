@@ -20,5 +20,5 @@ dataframe with two new columns
 }
 \description{
 Given a bare (unquoted) column of counts and population, will return the
-rate in 100,000 as well as the variance.
+rate in 100,000 as well as the variance (using Poisson approximation).
 }
