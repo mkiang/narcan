@@ -13,7 +13,7 @@
 zap_dta_data <- function(dta_df) {
     ## ZAP EVERYTHING! Also change all NaNs to NA.
     dta_df <- dta_df %>%
-        dplyr::mutate_if(is.character, haven::zap_empty) %>%
+        dplyr::mutate_if(is.character, funs(haven::zap_empty(.))) %>%
         haven::zap_formats(.) %>%
         haven::zap_labels(.) %>%
         haven::zap_missing(.) %>%
