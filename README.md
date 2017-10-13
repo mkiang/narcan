@@ -65,9 +65,9 @@ Standard populations are stored on the [Surveillance, Epidemiology, and End Resu
 THe annual US population estimates come from the United States Census Bureau's [Population Estimates Program (PEP)](https://www.census.gov/programs-surveys/popest.html).
 
 ## Papers using `narcan`
-- **TODO** Put `opioid_disparities` paper here when submitted.
+- **TODO** Forthcoming [`opioid_trends`](https://github.com/mkiang/opioid_trends) paper.
 - **TODO** Put `opioid_intent` paper here when submitted.
-- **TODO** Put `opioid_spatial` paper here when submitted.
+- **TODO** Forthcoming [`opioid_spatial`](https://github.com/mkiang/opioid_spatial) paper.
 - **TODO** Potentially `opioid_age`.
 
 ## Authors
