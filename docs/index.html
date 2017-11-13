@@ -85,11 +85,26 @@ devtools::install_github("mkiang/narcan")</a></code></pre>
 <div id="usage" class="section level2">
 <h2 class="hasAnchor">
 <a href="#usage" class="anchor"></a>Usage</h2>
-<div id="downloading-mcod-data" class="section level3">
-<h3 class="hasAnchor">
-<a href="#downloading-mcod-data" class="anchor"></a>Downloading MCOD Data</h3>
-<p><strong>TODO</strong></p>
-</div>
+<p>Ten lines of code to load packages, download the <code>csv</code> file, load it, and calculate the number of US residents who died from opioids, by sex, in 2015.</p>
+<pre><code>library(tidyverse)
+library(narcan)
+
+download_mcod_csv(2015, "./temp_data")
+mcod_2015 &lt;- read_csv("./temp_data/mort2015.csv.zip")
+
+mcod_2015 %&gt;% 
+    subset_residents() %&gt;% 
+    unite_records() %&gt;% 
+    flag_opioid_deaths() %&gt;% 
+    group_by(sex) %&gt;% 
+    summarize(deaths_involving_opioids = sum(opioid_death))
+
+# # A tibble: 2 x 2
+#     sex deaths_involving_opioids
+#   &lt;chr&gt;                    &lt;dbl&gt;
+# 1     F                    11420
+# 2     M                    21671</code></pre>
+<p>More examples soon.</p>
 <div id="accessing-population-data" class="section level3">
 <h3 class="hasAnchor">
 <a href="#accessing-population-data" class="anchor"></a>Accessing Population Data</h3>

@@ -25,9 +25,30 @@ devtools::install_github("mkiang/narcan")
 ```
 
 ## Usage
-### Downloading MCOD Data
 
-**TODO**
+Ten lines of code to load packages, download the `csv` file, load it, and calculate the number of US residents who died from opioids, by sex, in 2015.
+```
+library(tidyverse)
+library(narcan)
+
+download_mcod_csv(2015, "./temp_data")
+mcod_2015 <- read_csv("./temp_data/mort2015.csv.zip")
+
+mcod_2015 %>% 
+    subset_residents() %>% 
+    unite_records() %>% 
+    flag_opioid_deaths() %>% 
+    group_by(sex) %>% 
+    summarize(deaths_involving_opioids = sum(opioid_death))
+
+# # A tibble: 2 x 2
+#     sex deaths_involving_opioids
+#   <chr>                    <dbl>
+# 1     F                    11420
+# 2     M                    21671
+```
+
+More examples soon.
 
 ### Accessing Population Data
 Standard populations are held in the `std_pops` dataframe while annual population estimates (by race, sex, and age) from 1979 to 2015 are held in the `pop_est` dataframe.
