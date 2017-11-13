@@ -1,4 +1,6 @@
-# `narcan` [![Build Status](https://travis-ci.com/mkiang/narcan.svg?token=3q3DFBRyXorCzLQs97qL&branch=master)](https://travis-ci.com/mkiang/narcan)
+# `narcan` 
+
+[![Travis-CI Build Status](https://travis-ci.org/mkiang/narcan.svg?branch=master)](https://travis-ci.org/mkiang/narcan)
 
 An R package for working with [multiple cause of death micro-data](https://wonder.cdc.gov/mcd.html). 
 
