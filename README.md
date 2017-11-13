@@ -3,7 +3,9 @@
 An R package for working with [multiple cause of death micro-data](https://wonder.cdc.gov/mcd.html). 
 
 ## Warning
-**This package is in the alpha stage.** We cannot emphasize this enough. Nothing is guaranteed to work. [Submit an issue](https://github.com/mkiang/narcan/issues) if you find a bug. 
+**This package is still in the alpha stage.** 
+
+We cannot emphasize this enough. Nothing is guaranteed to work. [Please submit an issue](https://github.com/mkiang/narcan/issues) if you find a bug. 
 
 ## Introduction
 Certain types of deaths, including drug overdoses or opioid-related deaths, are defined by an [ICD code](http://www.who.int/classifications/icd/en/) in both the underlying cause field and one of the twenty possible contributory cause fields. Therefore, in order to tabulate these deaths, researches cannot use [compressed mortality files (CMF)](https://www.cdc.gov/nchs/data_access/cmf.htm) (which contain only underlying cause of death), but rather must use [multiple cause of death (MCOD)](https://wonder.cdc.gov/mcd.html) data.
@@ -12,10 +14,15 @@ This simple package aims to make common operations --- such as downloading, mung
 
 Additionally, this package includes data necessary for calculating rates. Specifically, standard populations and annual US population counts from 1979 to 2015. Note that if you are only using 1990 to current, the [NVSS Bridged Race](https://www.cdc.gov/nchs/nvss/bridged_race.htm) files are preferred.
 
-This package is largely the result of our internal code getting reused for multiple papers --- therefore, the scope and usefulness of the code is likely limited. We're releasing it publicly just in the hopes that other researchers will learn from our mistakes.
+This package is largely the result of our internal code getting reused for multiple papers --- therefore, the scope and usefulness of the code is likely limited. We're releasing it publicly in the hopes that other researchers will learn from our mistakes.
 
 ## Installation
-Use `devtools::install_github("mkiang/narcan")` to install the current version. We have no plans of submitting this package to CRAN. 
+This package is not available on CRAN. Use `devtools` to install:
+
+```
+# install.packages("devtools")
+devtools::install_github("mkiang/narcan")
+```
 
 ## Usage
 ### Downloading MCOD Data
@@ -72,12 +79,3 @@ THe annual US population estimates come from the United States Census Bureau's [
 
 ## Authors
 [Mathew Kiang](https://mathewkiang.com) ([`mkiang`](https://github.com/mkiang)) and [Monica Alexander](http://monicaalexander.com/) ([`MJAlexander`](https://github.com/mjalexander))
-
-## Technical Notes
-### Hidden Functions
-This package contains several functions that are **not** user-facing. This functions begin with a period (`.`) and can be accessed using the triple colon syntax (`:::`). 
-
-### Hidden Data
-
-**TODO** 
-
