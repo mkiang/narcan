@@ -6,3 +6,4 @@ LICENSE.md
 ^docs$
 _pkgdown.yml
 ^_pkgdown\.yml$
+^appveyor\.yml$
