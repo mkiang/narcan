@@ -13,6 +13,7 @@
 #' @importFrom readr read_fwf fwf_positions
 #' @importFrom dplyr mutate select
 #' @importFrom tidyr gather
+#' @importFrom utils count.fields unzip
 .download_1980s_pop_data <- function(raw_folder = "./raw_data",
                                      filter_race = TRUE) {
     ## Files can be found at the `base_url` defined below.

@@ -5,11 +5,11 @@
 #' specified folder in the DTA (Stata) format.
 #'
 #' @param year year to download (as integer)
-#' @param download_dir file path to save downlaoded data
+#' @param download_dir file path to save downloaded data
 #'
 #' @return none
 #' @export
-#' @importFrom utils count.fields download.file zip
+#' @importFrom utils download.file
 #' @source http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
 
 download_mcod_dta <- function(year, download_dir = './raw_data') {

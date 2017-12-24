@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Download the multiple cause of death data as a CSV file — download_mcod_csv • narcan</title>
+<title>A dictionary of year:URL key:value pairs for the CDC FTP MCOD files — cdc_dict • narcan</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -80,48 +80,37 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Download the multiple cause of death data as a CSV file</h1>
+    <h1>A dictionary of year:URL key:value pairs for the CDC FTP MCOD files</h1>
     </div>
 
     
-    <p>NBER hosts publicly available multiple cause of death data in several
-formats (see source). This function downloads the specified year to the
-specified folder in the CSV format.</p>
+    <p>The CDC stores their multiple cause of death files on an FTP in fixed-width
+format. However, the naming convention changes slightly from year to year.
+This dictionary just contains the file name and the year as 12/24/2017.</p>
     
 
-    <pre class="usage"><span class='fu'>download_mcod_csv</span>(<span class='no'>year</span>, <span class='kw'>download_dir</span> <span class='kw'>=</span> <span class='st'>"./raw_data"</span>)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>year</th>
-      <td><p>year to download (as integer)</p></td>
-    </tr>
-    <tr>
-      <th>download_dir</th>
-      <td><p>file path to save dowhlo data</p></td>
-    </tr>
-    </table>
+    <pre class="usage"><span class='no'>cdc_dict</span></pre>
+        
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+
+    <p>A dictionary</p><dl class='dl-horizontal'>
+  <dt>key</dt><dd><p>chr, year of file</p></dd>
+  <dt>value</dt><dd><p>chr, URL of file</p></dd>
+</dl>
     
     <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
 
-    <p>http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html</p>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>none</p>
+    <p><a href='ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/'>ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/</a></p>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
       
-      <li><a href="#source">Source</a></li>
+      <li><a href="#format">Format</a></li>
 
-      <li><a href="#value">Value</a></li>
+      <li><a href="#source">Source</a></li>
           </ul>
 
   </div>

@@ -12,7 +12,7 @@ download_mcod_csv(year, download_dir = "./raw_data")
 \arguments{
 \item{year}{year to download (as integer)}
 
-\item{download_dir}{file path to save downlaoded data}
+\item{download_dir}{file path to save dowhlo data}
 }
 \value{
 none

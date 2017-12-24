@@ -5,11 +5,11 @@
 #' specified folder in the CSV format.
 #'
 #' @param year year to download (as integer)
-#' @param download_dir file path to save downlaoded data
+#' @param download_dir file path to save dowhlo data
 #'
 #' @return none
 #' @export
-#' @importFrom utils unzip download.file
+#' @importFrom utils download.file
 #' @source http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
 
 download_mcod_csv <- function(year, download_dir = './raw_data') {
@@ -29,6 +29,6 @@ download_mcod_csv <- function(year, download_dir = './raw_data') {
         dir.create(download_dir, showWarnings = FALSE)
     }
 
-    ## Get, unzip
+    ## Get
     utils::download.file(file_url, dest_file)
 }
