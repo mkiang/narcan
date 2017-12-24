@@ -4,17 +4,21 @@
 \alias{flag_opioid_deaths}
 \title{Flag opioid deaths according to ISW7 rules}
 \usage{
-flag_opioid_deaths(processed_df, year = NULL)
+flag_opioid_deaths(processed_df, year = NULL, keep_cols = FALSE)
 }
 \arguments{
 \item{processed_df}{processed dataframe}
 
 \item{year}{if NULL, will attempt to detect}
+
+\item{keep_cols}{keep intermediate columns (if they were created)}
 }
 \value{
 new dataframe with an opioid_death column
 }
 \description{
 Given an MCOD dataframe, will apply ISW7 rules to flag opioid deaths for
-both ICD9 and ICD10 codes.
+both ICD9 and ICD10 codes. Expects you to run unite_records() first. If you
+don't, it will do so, but will remove that columns by default. Change
+keep_cols = TRUE to keep it.
 }
