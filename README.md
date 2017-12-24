@@ -1,8 +1,6 @@
 # `narcan` 
 
-[![Travis-CI Build Status](https://travis-ci.org/mkiang/narcan.svg?branch=master)](https://travis-ci.org/mkiang/narcan)
-
-[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mkiang/narcan?branch=master&svg=true)](https://ci.appveyor.com/project/mkiang/narcan)
+[![Travis-CI Build Status](https://travis-ci.org/mkiang/narcan.svg?branch=master)](https://travis-ci.org/mkiang/narcan) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mkiang/narcan?branch=master&svg=true)](https://ci.appveyor.com/project/mkiang/narcan)
 
 An R package for working with [multiple cause of death micro-data](https://wonder.cdc.gov/mcd.html). 
 
