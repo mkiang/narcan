@@ -7,3 +7,4 @@ LICENSE.md
 _pkgdown.yml
 ^_pkgdown\.yml$
 ^appveyor\.yml$
+.gitattributes.R

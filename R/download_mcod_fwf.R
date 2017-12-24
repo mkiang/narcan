@@ -9,11 +9,9 @@
 #' @param download_dir file path to save downloaded data
 #'
 #' @return none
-#' @export
 #' @importFrom utils download.file
 #' @source ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/
-
-download_mcod_fwf <- function(year, download_dir = './raw_data') {
+.download_mcod_fwf <- function(year, download_dir = './raw_data') {
     ## Downloads the raw MCOD data (as FWF text) for specified year
     ##
     ## Source: print(paste0('https://www.cdc.gov/nchs/nvss/',
