@@ -50,7 +50,8 @@ flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     ## if TRUE and also that we made them in the first place so we aren't
     ## deleting columns the user specifically made.
     if (keep_cols & intermediate_cols_made) {
-        df <- dplyr::select(df, -f_records_all)
+        df <- df %>%
+            dplyr::select(df, -f_records_all)
     }
 
     return(df)
