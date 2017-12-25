@@ -4,12 +4,14 @@
 \alias{flag_drug_deaths}
 \title{Flag drug deaths according to ISW7 rules}
 \usage{
-flag_drug_deaths(processed_df, year = NULL)
+flag_drug_deaths(processed_df, year = NULL, keep_cols = FALSE)
 }
 \arguments{
 \item{processed_df}{processed dataframe}
 
 \item{year}{if NULL, will attempt to detect}
+
+\item{keep_cols}{keep intermediate columns}
 }
 \value{
 new dataframe with a drug_death column

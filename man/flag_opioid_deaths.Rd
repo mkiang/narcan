@@ -11,10 +11,10 @@ flag_opioid_deaths(processed_df, year = NULL, keep_cols = FALSE)
 
 \item{year}{if NULL, will attempt to detect}
 
-\item{keep_cols}{keep intermediate columns (if they were created)}
+\item{keep_cols}{keep intermediate columns}
 }
 \value{
-new dataframe with an opioid_death column
+new dataframe with a binary opioid_death column
 }
 \description{
 Given an MCOD dataframe, will apply ISW7 rules to flag opioid deaths for
