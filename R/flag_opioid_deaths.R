@@ -10,7 +10,7 @@
 #' @param keep_cols keep intermediate columns (if they were created)
 #'
 #' @return new dataframe with an opioid_death column
-#' @importFrom dplyr select
+#' @importFrom dplyr select one_of
 #' @importFrom tibble has_name
 #' @export
 flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
@@ -25,10 +25,10 @@ flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     }
 
     ## Check if already preprocessed with necessary columns
-    intermediate_cols_made <- FALSE
+    original_cols <- names(processed_df)
     if (!(tibble::has_name(processed_df, "f_records_all"))) {
-        processed_df <- processed_df %>% unite_records(year = year)
-        intermediate_cols_made <- TRUE
+        processed_df <- processed_df %>%
+            unite_records(year = year)
     }
 
     ## Flag opioid deaths according to ICD definition
@@ -49,9 +49,8 @@ flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     ## Check to make sure both that the option to keep intermediate columns
     ## if TRUE and also that we made them in the first place so we aren't
     ## deleting columns the user specifically made.
-    if (keep_cols & intermediate_cols_made) {
-        df <- df %>%
-            dplyr::select(df, -f_records_all)
+    if (!keep_cols) {
+        df <- dplyr::select(df, one_of(c(original_cols, "opioid_death")))
     }
 
     return(df)
