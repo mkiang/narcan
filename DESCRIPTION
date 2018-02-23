@@ -1,7 +1,7 @@
 Package: narcan
 Type: Package
 Title: Helper functions for working with multiple cause of death data
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: as.person(c(
     "Mathew Kiang <mathew.kiang@gmail.com> [aut, cre]", 
     "Monica Alexander <monicaalexander@berkeley.edu> [aut]"
