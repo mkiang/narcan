@@ -45,9 +45,12 @@ flag_maternal_deaths <- function (processed_df, year = NULL,
 
 
     }
-
     if (!keep_cols) {
-        df <- dplyr::select(df, one_of(c(original_cols, "maternal_death")))
+        df <- suppressMessages(suppressWarnings(
+            dplyr::select(
+                df, dplyr::one_of(c(original_cols, "maternal_death"))
+            )
+        ))
     }
 
     return(df)

@@ -1,7 +1,9 @@
 #' Flag drug deaths according to ISW7 rules
 #'
 #' Given an MCOD dataframe, will apply ISW7 rules to flag drug deaths for
-#' both ICD9 and ICD10 codes.
+#' both ICD9 and ICD10 codes.For ICD9, it is true if any poison code is in any
+#' record field. For ICD10, it is true if there is a specific UCOD code
+#' **and** at least one specified T-code.
 #'
 #' @param processed_df processed dataframe
 #' @param year if NULL, will attempt to detect
@@ -12,12 +14,6 @@
 #' @importFrom tibble has_name
 #' @export
 flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
-    ## Make a new column called `drug_death` that is true for ICD9 if any poison
-    ## code is in any record field and true for ICD10 if contains specified
-    ## UCOD **and** at least one specified T code.
-    ##
-    ## Returns a new tibble.
-
     ## Extract year
     if (is.null(year)) {
         year <- .extract_year(processed_df)
@@ -50,7 +46,6 @@ flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
             dplyr::select(df, one_of(c(original_cols, "drug_death")))
         ))
     }
-
 
     return(df)
 }

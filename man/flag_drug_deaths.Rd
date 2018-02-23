@@ -18,5 +18,7 @@ new dataframe with a drug_death column
 }
 \description{
 Given an MCOD dataframe, will apply ISW7 rules to flag drug deaths for
-both ICD9 and ICD10 codes.
+both ICD9 and ICD10 codes.For ICD9, it is true if any poison code is in any
+record field. For ICD10, it is true if there is a specific UCOD code
+**and** at least one specified T-code.
 }
