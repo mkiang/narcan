@@ -26,7 +26,6 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
     vcol_name  <- paste0(quo_name(asvar_col))
 
     new_df <- df %>%
-        group_by(year, race) %>%
         group_by(!!!add_grps, add = TRUE) %>%
         summarize(!!rcol_name := weighted.mean(!!asrate_col, !!weight_col,
                                                na.rm = TRUE),
