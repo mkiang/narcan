@@ -37,15 +37,13 @@ flag_maternal_deaths_late <- function (processed_df, year = NULL,
                     "Generating this column automatically.\n",
                     "As a result, all `record_` columns will be dropped.\n",
                     "See help(unite_records) for more information.")
-            df <- df %>%
-                unite_records(year = year) %>%
-                mutate(maternal_death_late = case_when(
-                    grepl(.regex_maternal_icd10(include_late = TRUE),
-                          f_records_all) ~ 1,
-                    TRUE ~ maternal_death_late))
+            df <- df %>% unite_records(year = year)
         }
-
-
+        df <- df %>%
+            mutate(maternal_death_late = case_when(
+                grepl(.regex_maternal_icd10(include_late = TRUE),
+                      f_records_all) ~ 1,
+                TRUE ~ maternal_death_late))
     }
 
     if (!keep_cols) {

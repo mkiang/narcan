@@ -2,7 +2,7 @@
 % Please edit documentation in R/flag_other_op_present.R
 \name{flag_other_op_present}
 \alias{flag_other_op_present}
-\title{Creates a column `other_op_present` for deaths with other uspecified opioid}
+\title{Creates a column `other_op_present` for deaths with other unspecified opioid}
 \usage{
 flag_other_op_present(processed_df, year = NULL)
 }

@@ -36,15 +36,14 @@ flag_maternal_deaths <- function (processed_df, year = NULL,
                     "Generating this column automatically.\n",
                     "As a result, all `record_` columns will be dropped.\n",
                     "See help(unite_records) for more information.")
-            df <- df %>%
-                unite_records(year = year) %>%
-                mutate(maternal_death = case_when(
-                    grepl(.regex_maternal_icd10(), f_records_all) ~ 1,
-                    TRUE ~ maternal_death))
+            df <- df %>% unite_records(year = year)
         }
-
-
+        df <- df %>%
+            mutate(maternal_death = case_when(
+                grepl(.regex_maternal_icd10(), f_records_all) ~ 1,
+                TRUE ~ maternal_death))
     }
+
     if (!keep_cols) {
         df <- suppressMessages(suppressWarnings(
             dplyr::select(
