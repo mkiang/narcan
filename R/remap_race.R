@@ -22,7 +22,7 @@ remap_race <- function(icd_df, year = NULL) {
         icd_df$race <- .remap_race_1979_1988(icd_df$race)
     } else if (year >= 1989 & year <= 1991) {
         icd_df$race <- .remap_race_1989_1991(icd_df$race)
-    } else if (year >= 1992 & year <= 2015) {
+    } else if (year >= 1992) {
         icd_df$race <- .remap_race_1992_2015(icd_df$race)
     } else {
         break
