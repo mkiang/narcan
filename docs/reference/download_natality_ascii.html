@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Creates a column `other_op_present` for deaths with other unspecified opioid — flag_other_op_present • narcan</title>
+<title>Download NCHS Natality (Live Births) Data from the CDC FTP (ASCII) — download_natality_ascii • narcan</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -80,31 +80,36 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Creates a column `other_op_present` for deaths with other unspecified opioid</h1>
+    <h1>Download NCHS Natality (Live Births) Data from the CDC FTP (ASCII)</h1>
     </div>
 
     
-    <p>This function flags all opioid deaths that involved other unspecified opioid</p>
+    <p>Fair warning: These files are very large when uncompressed. They range
+between 3 and 5 GB uncompressed with a compression ratio of around 90<!-- %. --></p>
     
 
-    <pre class="usage"><span class='fu'>flag_other_op_present</span>(<span class='no'>processed_df</span>, <span class='kw'>year</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>download_natality_ascii</span>(<span class='no'>year</span>, <span class='kw'>download_dir</span> <span class='kw'>=</span> <span class='st'>"./raw_data"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>processed_df</th>
-      <td><p>MCOD dataframe already processed</p></td>
+      <th>year</th>
+      <td><p>year to download (as integer)</p></td>
     </tr>
     <tr>
-      <th>year</th>
-      <td><p>if NULL, will attempt to detect</p></td>
+      <th>download_dir</th>
+      <td><p>file path to save dowhlo data</p></td>
     </tr>
     </table>
     
+    <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
+
+    <p>https://www.cdc.gov/nchs/data_access/vitalstatsonline.htm</p>
+    
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a new dataframe with 1 additional column</p>
+    <p>none</p>
     
 
   </div>
@@ -113,6 +118,8 @@
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
       
+      <li><a href="#source">Source</a></li>
+
       <li><a href="#value">Value</a></li>
           </ul>
 
