@@ -48,10 +48,12 @@
     col_ends <- col_start + (col_width - 1)
 
     ## Now convert the column types to types `readr` understands
-    col_types <- substr(
-        unlist(lapply(text_split, FUN = function(x) {
-            ifelse(x[2] == ")", x[5], x[4])
-        })), 3, 3)
+    col_types <- sub("[^[:alpha:]]+", "",
+                     unlist(lapply(text_split,
+                                   FUN = function(x) {
+                                       ifelse(x[2] == ")",
+                                              x[5], x[4])
+                                       })))
     col_types <- gsub("s", "c", col_types)
     col_types <- gsub("f", "n", col_types)
 
