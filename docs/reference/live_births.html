@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Download NCHS Natality (Live Births) Data from the CDC FTP (ASCII) — download_natality_ascii • narcan</title>
+<title>Dataframe of live births in the US from 2003-2016 by race/ethnicity and age. — live_births • narcan</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -80,63 +80,38 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Download NCHS Natality (Live Births) Data from the CDC FTP (ASCII)</h1>
+    <h1>Dataframe of live births in the US from 2003-2016 by race/ethnicity and age.</h1>
     </div>
 
     
-    <p>Fair warning: These files are very large when uncompressed. They range
-between 3 and 5 GB uncompressed with a compression ratio of around 90<!-- %. -->
-Also, it appears the CDC rate limits downloads so I do not export this
-function. To use it, you'll need to use the triple colon:
-`narcan:::download_natality_ascii()`.</p>
+    <p>A data set containing number of live births in the US from 2003 to 2016 by
+race/ethnicity and five-year age group (&lt;15, 15-19, ... &gt;50).</p>
     
 
-    <pre class="usage"><span class='fu'>download_natality_ascii</span>(<span class='no'>year</span>, <span class='kw'>download_dir</span> <span class='kw'>=</span> <span class='st'>"./raw_data"</span>,
-  <span class='kw'>return_path</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>year</th>
-      <td><p>year to download (as integer)</p></td>
-    </tr>
-    <tr>
-      <th>download_dir</th>
-      <td><p>file path to save downloaded data</p></td>
-    </tr>
-    <tr>
-      <th>return_path</th>
-      <td><p>return the path of the file that was downloaded</p></td>
-    </tr>
-    </table>
+    <pre class="usage"><span class='no'>live_births</span></pre>
+        
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+
+    <p>A data frame with 1134 rows and 4 columns</p><dl class='dl-horizontal'>
+  <dt>mother_age</dt><dd><p>int, first year of five-year age bin for the mother</p></dd>
+  <dt>births</dt><dd><p>int, number o</p></dd>f births
+  <dt>m_race_eth</dt><dd><p>factor, mother's race/ethnicity</p></dd>
+  <dt>year</dt><dd><p>int, year of observation</p></dd>
+</dl>
     
     <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
 
-    <p>https://www.cdc.gov/nchs/data_access/vitalstatsonline.htm</p>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>none</p>
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>Further, the unzip() function in R will not unzip files that are larger
-than 4GB so this needs to be unzipped using a system call or external
-program.</p>
+    <p><a href='https://www.cdc.gov/nchs/fastats/births.htm'>https://www.cdc.gov/nchs/fastats/births.htm</a></p>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
       
+      <li><a href="#format">Format</a></li>
+
       <li><a href="#source">Source</a></li>
-
-      <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
           </ul>
 
   </div>
