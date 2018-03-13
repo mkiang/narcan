@@ -5,7 +5,9 @@
 #' designations to simplify comparing counties across long time periods. This
 #' dataframe comes from the appendix of Dwyer-Lindgren L, et al. US
 #' County-Level Trends in Mortality Rates for Major Causes of Death, 1980-2014.
-#' JAMA. 2016;316(22):2385–2401. doi:10.1001/jama.2016.13645
+#' JAMA. 2016;316(22):2385–2401. doi:10.1001/jama.2016.13645 and allows a
+#' mapping of original FIPS codes to temporally-stable ones using grep() or
+#' str_replace_all().
 #'
 #' @docType data
 #'
