@@ -137,3 +137,25 @@
 
     return(paste0(search_term, collapse = "|"))
 }
+
+.regex_maternal_icd10 <- function(include_late = FALSE) {
+    ## `include_late` will add the ICD-10 codes that occur *after* 42 days (
+    ## but less than 1 year), which are not technically maternal mortality
+    ## deaths by the WHO definition.
+    ##
+    ## These are ICD10 maternal mortality codes as defined by the WHO.
+    ## Source: http://www.who.int/reproductivehealth/publications/monitoring/maternal-mortality-2015/en/
+
+    u_1 <- "\\<A34\\d{0,1}\\>"
+    u_2 <- "\\<O[012345678]{1}[0-9]{1}\\d{0,1}\\>"
+    u_3 <- "\\<O9[01234589]{1}\\d{0,1}\\>"
+
+    search_term <- c(u_1, u_2, u_3)
+
+    if (include_late) {
+        u_4 <- "\\<O9[67]{1}\\d{0,1}\\>"
+        search_term <- c(search_term, u_4)
+    }
+
+    return(paste0(search_term, collapse = "|"))
+}

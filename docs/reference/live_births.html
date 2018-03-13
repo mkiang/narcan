@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Download the multiple cause of death data as an ASCII file from the CDC — download_mcod_fwf • narcan</title>
+<title>Dataframe of live births in the US from 2003-2016 by race/ethnicity and age. — live_births • narcan</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -80,49 +80,38 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Download the multiple cause of death data as an ASCII file from the CDC</h1>
+    <h1>Dataframe of live births in the US from 2003-2016 by race/ethnicity and age.</h1>
     </div>
 
     
-    <p>The CDC hosts publicly available multiple cause of death data as a fixed-
-width text file. This function downloads that file as a zip. Note that the
-CDC FTP is very slow--downloading from NBER via the download_mcod_dta() or
-download_mcod_csv() functions is strongly suggested.</p>
+    <p>A data set containing number of live births in the US from 2003 to 2016 by
+race/ethnicity and five-year age group (&lt;15, 15-19, ... &gt;50).</p>
     
 
-    <pre class="usage"><span class='fu'>download_mcod_fwf</span>(<span class='no'>year</span>, <span class='kw'>download_dir</span> <span class='kw'>=</span> <span class='st'>"./raw_data"</span>)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>year</th>
-      <td><p>year to download (as integer)</p></td>
-    </tr>
-    <tr>
-      <th>download_dir</th>
-      <td><p>file path to save downloaded data</p></td>
-    </tr>
-    </table>
+    <pre class="usage"><span class='no'>live_births</span></pre>
+        
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+
+    <p>A data frame with 1134 rows and 4 columns</p><dl class='dl-horizontal'>
+  <dt>mother_age</dt><dd><p>int, first year of five-year age bin for the mother</p></dd>
+  <dt>births</dt><dd><p>int, number o</p></dd>f births
+  <dt>m_race_eth</dt><dd><p>factor, mother's race/ethnicity</p></dd>
+  <dt>year</dt><dd><p>int, year of observation</p></dd>
+</dl>
     
     <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
 
-    <p>ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/</p>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>none</p>
+    <p><a href='https://www.cdc.gov/nchs/fastats/births.htm'>https://www.cdc.gov/nchs/fastats/births.htm</a></p>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
       
-      <li><a href="#source">Source</a></li>
+      <li><a href="#format">Format</a></li>
 
-      <li><a href="#value">Value</a></li>
+      <li><a href="#source">Source</a></li>
           </ul>
 
   </div>

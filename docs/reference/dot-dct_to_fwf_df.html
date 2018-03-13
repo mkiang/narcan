@@ -84,13 +84,13 @@
     </div>
 
     
-    <p>The NBER has Stata dictionary files for each of the MCOD public use datasets.
-This function downloads the dictionary file and converts it to a dataframe
-with column name, column start position, column end position, and column
-time (in readr::col() format).</p>
+    <p>The NBER has Stata dictionary files for each of the MCOD public use datasets
+or Natality public use datasets. This function downloads the dictionary file
+and converts it to a dataframe with column name, column start position,
+column end position, and column time (in readr::col() format).</p>
     
 
-    <pre class="usage"><span class='fu'>.dct_to_fwf_df</span>(<span class='no'>year</span>)</pre>
+    <pre class="usage"><span class='fu'>.dct_to_fwf_df</span>(<span class='no'>year</span>, <span class='kw'>natality</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -99,11 +99,16 @@ time (in readr::col() format).</p>
       <th>year</th>
       <td><p>year of the dictionary you want to convert</p></td>
     </tr>
+    <tr>
+      <th>natality</th>
+      <td><p>set to TRUE if you want to download natality dictionaries</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
 
     <p>http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html</p>
+<p>http://www.nber.org/data/vital-statistics-natality-data.html</p>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 

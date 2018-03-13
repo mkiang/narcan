@@ -4,15 +4,17 @@
 \alias{flag_heroin_present}
 \title{Creates a new column called heroin_present if opioid death involved heroin}
 \usage{
-flag_heroin_present(processed_df, year = NULL)
+flag_heroin_present(processed_df, year = NULL, keep_cols = FALSE)
 }
 \arguments{
 \item{processed_df}{MCOD dataframe already processed}
 
 \item{year}{if NULL, will attempt to detect}
+
+\item{keep_cols}{keep intermediate columns}
 }
 \value{
-a new dataframe with 1 additional column
+a new dataframe with a binary heroin_present column
 }
 \description{
 Heroin deaths were recorded in both ICD-9 and ICD-10 years. This creates

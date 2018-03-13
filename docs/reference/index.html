@@ -82,7 +82,7 @@
     <div class="page-header">
       <h1>
         Reference
-        <small>version&nbsp;0.1.0</small>
+        <small>version&nbsp;0.1.1</small>
       </h1>
     </div>
 
@@ -255,6 +255,12 @@ if more than one.</p></td>
         </tr><tr>
           <!--  -->
           <td>
+            <p><code><a href="download_natality_ascii.html">download_natality_ascii</a></code> </p>
+          </td>
+          <td><p>Download NCHS Natality (Live Births) Data from the CDC FTP (ASCII)</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
             <p><code><a href="flag_drug_deaths.html">flag_drug_deaths</a></code> </p>
           </td>
           <td><p>Flag drug deaths according to ISW7 rules</p></td>
@@ -264,6 +270,18 @@ if more than one.</p></td>
             <p><code><a href="flag_heroin_present.html">flag_heroin_present</a></code> </p>
           </td>
           <td><p>Creates a new column called heroin_present if opioid death involved heroin</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="flag_maternal_deaths_late.html">flag_maternal_deaths_late</a></code> </p>
+          </td>
+          <td><p>Creates a new column called maternal_death with 1 if maternal death (late)</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="flag_maternal_deaths.html">flag_maternal_deaths</a></code> </p>
+          </td>
+          <td><p>Creates a new column called maternal_death with 1 if maternal death</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -323,7 +341,7 @@ if more than one.</p></td>
           <td>
             <p><code><a href="flag_other_op_present.html">flag_other_op_present</a></code> </p>
           </td>
-          <td><p>Creates a column `other_op_present` for deaths with other uspecified opioid</p></td>
+          <td><p>Creates a column `other_op_present` for deaths with other unspecified opioid</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -375,6 +393,12 @@ if more than one.</p></td>
         </tr><tr>
           <!--  -->
           <td>
+            <p><code><a href="ihme_fips.html">ihme_fips</a></code> </p>
+          </td>
+          <td><p>Mapping original FIPS codes to temporally stable FIPS codes from IHME</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
             <p><code><a href="label_od_intent.html">label_od_intent</a></code> </p>
           </td>
           <td><p>Label intent from underlying cause column for overdose drugs</p></td>
@@ -384,6 +408,12 @@ if more than one.</p></td>
             <p><code><a href="label_suicide_type.html">label_suicide_type</a></code> </p>
           </td>
           <td><p>Create a new column with labels for suicide type</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="live_births.html">live_births</a></code> </p>
+          </td>
+          <td><p>Dataframe of live births in the US from 2003-2016 by race/ethnicity and age.</p></td>
         </tr><tr>
           <!--  -->
           <td>

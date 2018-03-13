@@ -1,4 +1,4 @@
-#' Creates a column `other_op_present` for deaths with other uspecified opioid
+#' Creates a column `other_op_present` for deaths with other unspecified opioid
 #'
 #' This function flags all opioid deaths that involved other unspecified opioid
 #'

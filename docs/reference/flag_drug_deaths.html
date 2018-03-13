@@ -85,10 +85,12 @@
 
     
     <p>Given an MCOD dataframe, will apply ISW7 rules to flag drug deaths for
-both ICD9 and ICD10 codes.</p>
+both ICD9 and ICD10 codes.For ICD9, it is true if any poison code is in any
+record field. For ICD10, it is true if there is a specific UCOD code
+**and** at least one specified T-code.</p>
     
 
-    <pre class="usage"><span class='fu'>flag_drug_deaths</span>(<span class='no'>processed_df</span>, <span class='kw'>year</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>flag_drug_deaths</span>(<span class='no'>processed_df</span>, <span class='kw'>year</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep_cols</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -100,6 +102,10 @@ both ICD9 and ICD10 codes.</p>
     <tr>
       <th>year</th>
       <td><p>if NULL, will attempt to detect</p></td>
+    </tr>
+    <tr>
+      <th>keep_cols</th>
+      <td><p>keep intermediate columns</p></td>
     </tr>
     </table>
     

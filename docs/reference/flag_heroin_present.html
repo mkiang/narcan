@@ -89,7 +89,7 @@ a new column to flag when that death involved heroin and was an opioid
 death as defined by flag_opioid_death().</p>
     
 
-    <pre class="usage"><span class='fu'>flag_heroin_present</span>(<span class='no'>processed_df</span>, <span class='kw'>year</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>flag_heroin_present</span>(<span class='no'>processed_df</span>, <span class='kw'>year</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>keep_cols</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -102,11 +102,15 @@ death as defined by flag_opioid_death().</p>
       <th>year</th>
       <td><p>if NULL, will attempt to detect</p></td>
     </tr>
+    <tr>
+      <th>keep_cols</th>
+      <td><p>keep intermediate columns</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a new dataframe with 1 additional column</p>
+    <p>a new dataframe with a binary heroin_present column</p>
     
 
   </div>

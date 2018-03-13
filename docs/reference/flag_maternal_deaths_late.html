@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Creates a column `other_op_present` for deaths with other unspecified opioid — flag_other_op_present • narcan</title>
+<title>Creates a new column called maternal_death with 1 if maternal death (late) — flag_maternal_deaths_late • narcan</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -80,14 +80,15 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Creates a column `other_op_present` for deaths with other unspecified opioid</h1>
+    <h1>Creates a new column called maternal_death with 1 if maternal death (late)</h1>
     </div>
 
     
-    <p>This function flags all opioid deaths that involved other unspecified opioid</p>
+    <p>Maternal deaths (including late) according to ICD-10 codes.</p>
     
 
-    <pre class="usage"><span class='fu'>flag_other_op_present</span>(<span class='no'>processed_df</span>, <span class='kw'>year</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>flag_maternal_deaths_late</span>(<span class='no'>processed_df</span>, <span class='kw'>year</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ucod_only</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>keep_cols</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -100,11 +101,19 @@
       <th>year</th>
       <td><p>if NULL, will attempt to detect</p></td>
     </tr>
+    <tr>
+      <th>ucod_only</th>
+      <td><p>if TRUE, only flag maternal deaths in underlying cause</p></td>
+    </tr>
+    <tr>
+      <th>keep_cols</th>
+      <td><p>keep intermediate columns</p></td>
+    </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a new dataframe with 1 additional column</p>
+    <p>a new dataframe with a binary maternal_death column</p>
     
 
   </div>

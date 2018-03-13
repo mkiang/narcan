@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-Copyright © 2017 Mathew Kiang and Monica Alexander.
+Copyright © 2018 Mathew Kiang and Monica Alexander.
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
