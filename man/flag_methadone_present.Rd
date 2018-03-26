@@ -4,12 +4,14 @@
 \alias{flag_methadone_present}
 \title{Creates a column `methadone_present` if opioid death involved methadone}
 \usage{
-flag_methadone_present(processed_df, year = NULL)
+flag_methadone_present(processed_df, year = NULL, keep_cols = FALSE)
 }
 \arguments{
 \item{processed_df}{MCOD dataframe already processed}
 
 \item{year}{if NULL, will attempt to detect}
+
+\item{keep_cols}{keep intermediate columns}
 }
 \value{
 a new dataframe with 1 additional column
