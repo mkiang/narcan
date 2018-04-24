@@ -41,8 +41,9 @@ flag_methadone_present <- function(processed_df, year = NULL,
 
     ## Drop all intermediate columns?
     if (!keep_cols) {
-        df <- suppressMessages(suppressWarnings(
-            dplyr::select(df, one_of(c(original_cols, "methadone_present")))
+        new_df <- suppressMessages(suppressWarnings(
+            dplyr::select(new_df,
+                          one_of(c(original_cols, "methadone_present")))
         ))
     }
 
