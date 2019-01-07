@@ -16,14 +16,14 @@
 
 .download_2010s_pop_data <- function(filter_race = TRUE) {
     ## Source: paste0("https://www2.census.gov/programs-surveys/",
-    ##                "popest/datasets/2010-2016/state/asrh/")
+    ##                "popest/datasets/2010-2017/state/asrh/")
     ##
     ## Documentation: paste0("https://www2.census.gov/programs-surveys",
     ##                       "/popest/datasets/2010-2015/state/asrh/",
     ##                       "sc-est2015-alldata6.pdf")
     file_url <- paste0("https://www2.census.gov/programs-surveys/",
-                       "popest/datasets/2010-2016/state/asrh/",
-                       "sc-est2016-alldata6.csv")
+                       "popest/datasets/2010-2017/state/asrh/",
+                       "sc-est2017-alldata6.csv")
 
     ## Download and make column names lowercase
     pop_raw <- read_csv(file_url) %>%

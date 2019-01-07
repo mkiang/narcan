@@ -15,7 +15,7 @@
 .dct_to_fwf_df <- function(year, natality = FALSE) {
     ## Create URL
     if (natality) {
-        base_url <- "http://www.nber.org/natality/"
+        base_url <- "http://www.nber.org/natality"
         dct_url  <- sprintf("%s/%s/natl%s.dct", base_url, year, year)
     } else {
         base_url <- "http://www.nber.org/mortality"
