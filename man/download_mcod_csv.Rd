@@ -7,7 +7,8 @@
 http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
 }
 \usage{
-download_mcod_csv(year, download_dir = "./raw_data", territories = FALSE)
+download_mcod_csv(year, download_dir = "./raw_data",
+  territories = FALSE)
 }
 \arguments{
 \item{year}{year to download (as integer)}
