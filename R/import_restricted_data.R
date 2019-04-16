@@ -16,7 +16,7 @@
     if (year < 2003) {
         df <- readr::read_fwf(file = file, col_positions = fwf_1999,
                               col_types = ctype_1999,  na = c("", "NA", " "))
-    } else if (year >= 2003 & year <= 2016) {
+    } else if (year >= 2003 & year <= 2017) {
         df <- readr::read_fwf(file = file, col_positions = fwf_2003,
                               col_types = ctype_2003,  na = c("", "NA", " "))
 
