@@ -4,13 +4,15 @@
 \name{ihme_fips}
 \alias{ihme_fips}
 \title{Mapping original FIPS codes to temporally stable FIPS codes from IHME}
-\format{A data frame with 77 rows and 4 columns
+\format{
+A data frame with 77 rows and 4 columns
 \describe{
   \item{state}{character, name of state}
   \item{group}{character, grouping of FIPS characters to be collapsed}
   \item{orig_fips}{character, FIPS code from the US Census}
   \item{ihme_fips}{character, temporally stable FIPS code from IHME}
-}}
+}
+}
 \source{
 \url{http://jamanetwork.com/journals/jama/fullarticle/2592499}
 }

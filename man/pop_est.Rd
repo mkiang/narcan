@@ -4,7 +4,8 @@
 \name{pop_est}
 \alias{pop_est}
 \title{Dataframe of annual population counts by age and race, 1979-2015}
-\format{A data frame with 7992 rows and 6 columns
+\format{
+A data frame with 7992 rows and 6 columns
 \describe{
   \item{year}{year of observation (int)}
   \item{age}{starting age for that age category}
@@ -12,7 +13,8 @@
   \item{sex}{male, female, or both}
   \item{race}{race/ethnicity group}
   \item{pop}{number of people for year/age/race/sex combination}
-}}
+}
+}
 \source{
 \url{https://www.census.gov/programs-surveys/popest.html}
 }

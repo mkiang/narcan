@@ -4,11 +4,13 @@
 \name{cdc_dict}
 \alias{cdc_dict}
 \title{A dictionary of year:URL key:value pairs for the CDC FTP MCOD files}
-\format{A dictionary
+\format{
+A dictionary
 \describe{
   \item{key}{chr, year of file}
   \item{value}{chr, URL of file}
-}}
+}
+}
 \source{
 \url{ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/}
 }

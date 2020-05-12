@@ -4,7 +4,8 @@
 \name{appalachia_fips}
 \alias{appalachia_fips}
 \title{Dataframe of Appalachian counties with name and FIPS codes}
-\format{A data frame with 420 rows and 7 columns
+\format{
+A data frame with 420 rows and 7 columns
 \describe{
   \item{st_abbrev}{chr, state abbreviation}
   \item{state}{chr, full state name}
@@ -13,7 +14,8 @@
   \item{state_fips}{chr, two character state FIPS code}
   \item{county_fips}{chr, three character county FIPS code}
   \item{fipschar}{chr, five character full FIPS code}
-}}
+}
+}
 \source{
 \url{https://github.com/davemistich/election-appalachia/}
 }

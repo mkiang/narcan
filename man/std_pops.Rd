@@ -4,14 +4,16 @@
 \name{std_pops}
 \alias{std_pops}
 \title{Dataframe of common standard populations from SEER website.}
-\format{A data frame with 855 rows and 5 columns
+\format{
+A data frame with 855 rows and 5 columns
 \describe{
   \item{age_cat}{factor, age group}
   \item{standard_cat}{factor, description of standard population}
   \item{pop_std}{count, population in that age group for that standard}
   \item{standard}{code, character code for that standard population}
   \item{age}{starting age of that age group}
-}}
+}
+}
 \source{
 \url{https://seer.cancer.gov/stdpopulations/stdpop.18ages.txt}
 }

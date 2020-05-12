@@ -7,8 +7,7 @@
 https://www.cdc.gov/nchs/data_access/vitalstatsonline.htm
 }
 \usage{
-download_natality_ascii(year, download_dir = "./raw_data",
-  return_path = FALSE)
+download_natality_ascii(year, download_dir = "./raw_data", return_path = FALSE)
 }
 \arguments{
 \item{year}{year to download (as integer)}

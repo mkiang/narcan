@@ -3,8 +3,4 @@
 \docType{package}
 \name{narcan}
 \alias{narcan}
-\alias{narcan-package}
 \title{narcan R package for working with multiple cause of death data}
-\description{
-narcan R package for working with multiple cause of death data
-}

@@ -25,7 +25,7 @@ remap_race <- function(icd_df, year = NULL) {
     } else if (year >= 1992) {
         icd_df$race <- .remap_race_1992_2015(icd_df$race)
     } else {
-        break
+        warning("Invalid year")
     }
 
     return(icd_df)

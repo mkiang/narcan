@@ -4,8 +4,12 @@
 \alias{flag_maternal_deaths_late}
 \title{Creates a new column called maternal_death with 1 if maternal death (late)}
 \usage{
-flag_maternal_deaths_late(processed_df, year = NULL, ucod_only = FALSE,
-  keep_cols = FALSE)
+flag_maternal_deaths_late(
+  processed_df,
+  year = NULL,
+  ucod_only = FALSE,
+  keep_cols = FALSE
+)
 }
 \arguments{
 \item{processed_df}{MCOD dataframe already processed}

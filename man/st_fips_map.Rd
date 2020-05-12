@@ -4,12 +4,14 @@
 \name{st_fips_map}
 \alias{st_fips_map}
 \title{Mapping of state/territory name to abbreviation to FIPS code}
-\format{A data frame with 60 rows and 3 columns
+\format{
+A data frame with 60 rows and 3 columns
 \describe{
   \item{name}{character, name of territory}
   \item{abbrev}{character, abbreviation}
   \item{fips}{character, FIPS code}
-}}
+}
+}
 \source{
 \url{https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code}
 }
