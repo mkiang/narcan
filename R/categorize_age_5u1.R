@@ -5,22 +5,21 @@
 #' tidyr::complete() even when some age/year/race combinations have no
 #' observations.
 #'
-#' @param age_column age column created from convert_ager27()
+#' @param ageu1_column age column created from convert_ager27u1()
 #'
 #' @return factor
 #' @export
 #'
 #' @examples
-#' categorize_age_5(seq(0, 70, 5))
-categorize_age_5 <- function(age_column) {
+#' categorize_age_5u1(c(0, 1, seq(5, 85, 5)))
+categorize_age_5u1 <- function(ageu1_column) {
     ## Just categorizes the age column into 5-year bins
     ## so we can use tidyr::complete()
-    x <- factor(
-        age_column,
-        levels = seq(0, 85, 5),
-        labels = c(paste0(seq(0, 84, 5), "-",
-                          seq(4, 84, 5)), "85+"),
-        ordered = TRUE
-    )
+    x <- factor(ageu1_column,
+                levels = c(0, 1, seq(5, 85, 5)),
+                labels = c("<1", "1-4",
+                           paste0(seq(5, 84, 5), "-",
+                                  seq(9, 84, 5)), "85+"),
+                ordered = TRUE)
     return(x)
 }

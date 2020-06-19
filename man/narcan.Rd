@@ -4,3 +4,6 @@
 \name{narcan}
 \alias{narcan}
 \title{narcan R package for working with multiple cause of death data}
+\description{
+R package for working with multiple cause of death data
+}
