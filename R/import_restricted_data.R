@@ -12,25 +12,39 @@
 #' @return dataframe
 #' @importFrom readr read_fwf fwf_positions
 #' @importFrom dplyr mutate
-.import_restricted_data <- function(file, year, fix_states = TRUE) {
-    if (year < 2003) {
-        df <- readr::read_fwf(file = file, col_positions = fwf_1999,
-                              col_types = ctype_1999,  na = c("", "NA", " "))
-    } else if (year >= 2003) {
-        df <- readr::read_fwf(file = file, col_positions = fwf_2003,
-                              col_types = ctype_2003,  na = c("", "NA", " "))
+.import_restricted_data <- function(file, year_x, fix_states = TRUE) {
 
-        ## The restricted data and documentation indicate the state should be
-        ## encoded as a FIPS code, but they are actually abbreviation. Convert
-        ## to FIPS.
-        if (fix_states) {
-            df <- df %>%
-                mutate_at(vars(one_of("countyoc", "exstatoc", "staters",
-                                      "countyrs", "exstares", "statbth",
-                                      "statbthr")),
-                          state_abbrev_to_fips)
-        }
+    fwf_col_pos <- mcod_fwf_dicts %>%
+        filter(year == year_x) %>%
+        select(begin = start,
+               end,
+               col_names = name)
 
+    c_types <- mcod_fwf_dicts %>%
+        filter(year == year_x) %>%
+        pull(type) %>%
+        paste(collapse = "")
+
+    df <- readr::read_fwf(file = file, col_positions = fwf_col_pos,
+                          col_types = c_types,  na = c("", "NA", " "))
+
+    ## The restricted data and documentation indicate the state should be
+    ## encoded as a FIPS code, but they are actually abbreviation. Convert
+    ## to FIPS.
+    if (fix_states) {
+        df <- df %>%
+            mutate_at(vars(
+                one_of(
+                    "countyoc",
+                    "exstatoc",
+                    "staters",
+                    "countyrs",
+                    "exstares",
+                    "statbth",
+                    "statbthr"
+                )
+            ),
+            state_abbrev_to_fips)
     }
     return(df)
 }

@@ -4,14 +4,14 @@
 \alias{.import_restricted_data}
 \title{Wrapper for importing restricted MCOD data}
 \usage{
-.import_restricted_data(file, year, fix_states = TRUE)
+.import_restricted_data(file, year_x, fix_states = TRUE)
 }
 \arguments{
 \item{file}{path to restricted MCOD plaintext file}
 
-\item{year}{year of MCOD data}
-
 \item{fix_states}{recode state abbreviations to their FIPS code}
+
+\item{year}{year of MCOD data}
 }
 \value{
 dataframe
