@@ -8,5 +8,6 @@ appalachia_fips <- readr::read_csv(paste0("./inst/extdata/",
            fipschar = geoid) %>%
     ungroup()
 
-devtools::use_data(appalachia_fips, overwrite = TRUE)
+usethis::use_data(appalachia_fips,
+                   overwrite = TRUE)
 

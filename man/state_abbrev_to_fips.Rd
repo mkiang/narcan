@@ -15,7 +15,3 @@ a new vector with state FIPS
 \description{
 Replace state abbreviations with their corresponding FIPS code
 }
-\examples{
-state_abbrev_to_fips(c("AK", "AL", "MA", "CA"))
-state_abbrev_to_fips(c("AK202", "AL001", "MA101", "CA321"))
-}

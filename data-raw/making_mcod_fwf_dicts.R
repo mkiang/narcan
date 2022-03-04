@@ -2,3 +2,4 @@
 mcod_fwf_dicts  <- narcan:::.download_mcod_fwf_dicts()
 
 usethis::use_data(mcod_fwf_dicts, overwrite = TRUE)
+usethis::use_data(mcod_fwf_dicts, internal = TRUE, overwrite = TRUE)

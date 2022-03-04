@@ -6,45 +6,32 @@
 #' text files with known dictionaries.
 #'
 #' @param file path to restricted MCOD plaintext file
-#' @param year year of MCOD data
-#' @param fix_states recode state abbreviations to their FIPS code
+#' @param year_x year of MCOD data
 #'
 #' @return dataframe
 #' @importFrom readr read_fwf fwf_positions
 #' @importFrom dplyr mutate
-.import_restricted_data <- function(file, year_x, fix_states = TRUE) {
-
-    fwf_col_pos <- mcod_fwf_dicts %>%
+.import_restricted_data <- function(file, year_x) {
+    fwf_col_pos <- narcan::mcod_fwf_dicts %>%
         filter(year == year_x) %>%
-        select(begin = start,
-               end,
-               col_names = name)
+        select("start",
+               "end",
+               "col_names" = "name")
 
     c_types <- mcod_fwf_dicts %>%
         filter(year == year_x) %>%
-        pull(type) %>%
+        pull("type") %>%
         paste(collapse = "")
 
-    df <- readr::read_fwf(file = file, col_positions = fwf_col_pos,
-                          col_types = c_types,  na = c("", "NA", " "))
-
-    ## The restricted data and documentation indicate the state should be
-    ## encoded as a FIPS code, but they are actually abbreviation. Convert
-    ## to FIPS.
-    if (fix_states) {
-        df <- df %>%
-            mutate_at(vars(
-                one_of(
-                    "countyoc",
-                    "exstatoc",
-                    "staters",
-                    "countyrs",
-                    "exstares",
-                    "statbth",
-                    "statbthr"
-                )
-            ),
-            state_abbrev_to_fips)
-    }
+    df <- readr::read_fwf(
+        file = file,
+        col_positions = readr::fwf_positions(
+            start = fwf_col_pos$start,
+            end = fwf_col_pos$end,
+            col_names = fwf_col_pos$col_names
+        ),
+        col_types = c_types,
+        na = c("", "NA", " ")
+    )
     return(df)
 }

@@ -13,6 +13,6 @@ https://www.nber.org/research/data/mortality-data-vital-statistics-nchs-multiple
 Dataframe with MCOD fixed width format data
 }
 \description{
-Download the fixed width format dictionaries from NBER for 1979 to 2018,
-then add 2020 manually (2020 added occupation) and duplicate 2018 to 2019.
+Download the fixed width format dictionaries from NBER for 1979 to 2004,
+then add the rest manually (including occupation which started in 2020).
 }

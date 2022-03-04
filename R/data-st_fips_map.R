@@ -7,6 +7,7 @@
 #'   \item{name}{character, name of territory}
 #'   \item{abbrev}{character, abbreviation}
 #'   \item{fips}{character, FIPS code}
+#'   \item{nchs}{character, NCHS state code}
 #' }
 #' @source \url{https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code}
 #' @keywords datasets

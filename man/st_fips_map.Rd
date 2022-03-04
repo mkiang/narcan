@@ -10,6 +10,7 @@ A data frame with 60 rows and 3 columns
   \item{name}{character, name of territory}
   \item{abbrev}{character, abbreviation}
   \item{fips}{character, FIPS code}
+  \item{nchs}{character, NCHS state code}
 }
 }
 \source{

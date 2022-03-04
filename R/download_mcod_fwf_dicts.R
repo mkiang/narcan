@@ -1,7 +1,7 @@
 #' Download Fixed Width Format Dictionaries
 #'
-#' Download the fixed width format dictionaries from NBER for 1979 to 2018,
-#' then add 2020 manually (2020 added occupation) and duplicate 2018 to 2019.
+#' Download the fixed width format dictionaries from NBER for 1979 to 2004,
+#' then add the rest manually (including occupation which started in 2020).
 #'
 #' @return Dataframe with MCOD fixed width format data
 #' @source https://www.nber.org/research/data/mortality-data-vital-statistics-nchs-multiple-cause-death-data
@@ -12,26 +12,34 @@
 
 .download_mcod_fwf_dicts <- function() {
 
-    ## Download from NBER 1979 to 2018 FWF files
-    fwf_dicts <- map_dfr(.x = 1979:2018,
+    ## Download from NBER 1979 to 2004 FWF files
+    fwf_dicts <- map_dfr(.x = 1979:2004,
                          .f = ~ .dct_to_fwf_df(.x) %>%
                              mutate(year = .x))
 
-    ## 2018 also has race recode 40 but the NBER file doesn't have it so add it
-    fwf_dicts <- fwf_dicts %>%
-        add_case(name = "racer40",
-                 type = "n",
-                 start = 489,
-                 end = 490,
-                 year = 2018)
-
-    ## Add 2019 which is just a duplicate of 2018
+    ## Starting in 2005, they added race recode 40 and the public files
+    ## dropped geographic information so we will just repeat.
     fwf_dicts <- bind_rows(
         fwf_dicts,
         fwf_dicts %>%
-            filter(year == 2018) %>%
-            mutate(year = 2019)
+            filter(year == 2004) %>%
+            mutate(year = 2005) %>%
+            add_case(
+                name = "racer40",
+                type = "n",
+                start = 489,
+                end = 490,
+                year = 2005
+            )
     )
+    for (y in 2006:2019) {
+        fwf_dicts <- fwf_dicts %>%
+          bind_rows(
+              fwf_dicts %>%
+                  filter(year == 2005) %>%
+                  mutate(year = y)
+          )
+    }
 
     ## Add 2020 which has occupation
     fwf_dicts <- fwf_dicts %>%
