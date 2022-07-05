@@ -30,6 +30,20 @@
                 start = 489,
                 end = 490,
                 year = 2005
+            ) %>%
+            add_case(
+                name = "tobacco_use",
+                type = "c",
+                start = 142,
+                end = 142,
+                year = 2005
+            ) %>%
+            add_case(
+                name = "pregnancy_status",
+                type = "n",
+                start = 143,
+                end = 143,
+                year = 2005
             )
     )
     for (y in 2006:2019) {
