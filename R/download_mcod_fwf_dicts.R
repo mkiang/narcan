@@ -60,24 +60,49 @@
         bind_rows(
             fwf_dicts %>%
                 filter(year == 2019) %>%
-                add_case(name = "occupation",
-                         type = "c",
-                         start = 806,
-                         end = 809) %>%
-                add_case(name = "occupationr",
-                         type = "c",
-                         start = 810,
-                         end = 811) %>%
-                add_case(name = "industry",
-                         type = "c",
-                         start = 812,
-                         end = 815) %>%
-                add_case(name = "industryr",
-                         type = "c",
-                         start = 816,
-                         end = 817) %>%
+                add_case(
+                    name = "occupation",
+                    type = "c",
+                    start = 806,
+                    end = 809
+                ) %>%
+                add_case(
+                    name = "occupationr",
+                    type = "c",
+                    start = 810,
+                    end = 811
+                ) %>%
+                add_case(
+                    name = "industry",
+                    type = "c",
+                    start = 812,
+                    end = 815
+                ) %>%
+                add_case(
+                    name = "industryr",
+                    type = "c",
+                    start = 816,
+                    end = 817
+                ) %>%
+                mutate(year = 2020) %>%
+                add_case(
+                    name = "certifier",
+                    type = "c",
+                    start = 110,
+                    end = 110
+                ) %>%
                 mutate(year = 2020)
         )
+
+    ## Repeat 2020 for 2021
+    for (y in 2021) {
+        fwf_dicts <- fwf_dicts %>%
+            bind_rows(
+                fwf_dicts %>%
+                    filter(year == 2020) %>%
+                    mutate(year = y)
+            )
+    }
 
     return(fwf_dicts)
 }
