@@ -21,6 +21,11 @@ if (!file_exists(here("inst", "extdata", "fwf_dicts_1979_2004.RDS"))) {
 ## Starting in 2005, they added race recode 40 and the public files
 ## dropped geographic information so we will just repeat. They also added
 ## a few columns we will add here.
+##
+## NOTE: The race recode 40 variable exists in the 2005-2011 data BUT IT
+## DOES NOT DO ANYTHING. The variable isn't actually available until 2012 so
+## this core removes it from the FWF dictionary  (at the end of the file)
+## just to avoid the confusion.
 mcod_fwf_dicts <- bind_rows(
     fwf_dicts_1979_2004,
     fwf_dicts_1979_2004 %>%
@@ -269,6 +274,11 @@ mcod_fwf_dicts <- mcod_fwf_dicts %>%
         ) %>%
             mutate(year = 2021)
 )
+
+## Remove racer40 from 2005 to 2011 because the variable exists (i.e., it is
+## in the data dictionary) but does not actually contain the values until 2012.
+mcod_fwf_dicts <- mcod_fwf_dicts[-which(mcod_fwf_dicts$year < 2012 &
+                          mcod_fwf_dicts$name == "racer40"), ]
 
 mcod_fwf_dicts <- mcod_fwf_dicts %>%
     arrange(year, start)
