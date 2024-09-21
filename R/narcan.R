@@ -1,7 +1,7 @@
 #' narcan R package for working with multiple cause of death data
 #'
 #' @description R package for working with multiple cause of death data
-#' @docType package
+#' @docType _PACKAGE
 #' @name narcan
 #' @importFrom dplyr %>%
 NULL
