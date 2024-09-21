@@ -1,10 +1,9 @@
 #' narcan R package for working with multiple cause of death data
 #'
 #' @description R package for working with multiple cause of death data
-#' @docType _PACKAGE
 #' @name narcan
 #' @importFrom dplyr %>%
-NULL
+"_PACKAGE"
 
 ## These are just here to declare globals so I don't get notes on R CMD check
 if(getRversion() >= "2.15.1") {
@@ -59,4 +58,8 @@ if(getRversion() >= "2.15.1") {
     ## Globals for import_restricted_data
     utils::globalVariables(c("staters", "countyrs", "exstares", "statbth",
                              "statbthr"))
+
+    ## Globals for add_county_fips
+    utils::globalVariables(c("state_substr", "fips", "nchs", "st_fips",
+                             "county_substr"))
 }
