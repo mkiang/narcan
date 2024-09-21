@@ -282,7 +282,10 @@ mcod_fwf_dicts <- bind_rows(
     mcod_fwf_dicts,
     mcod_fwf_dicts %>%
         filter(year == 2020) %>%
-        mutate(year = 2021)
+        mutate(year = 2021),
+    mcod_fwf_dicts %>%
+        filter(year == 2020) %>%
+        mutate(year = 2022)
 )
 
 ## Remove racer40 from 2005 to 2011 because the variable exists (i.e., it is
