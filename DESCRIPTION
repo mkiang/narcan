@@ -1,7 +1,7 @@
 Package: narcan
 Type: Package
 Title: Helper functions for working with multiple cause of death data
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: as.person(c(
     "Mathew Kiang <mathew.kiang@gmail.com> [aut, cre]", 
     "Monica Alexander <monicaalexander@berkeley.edu> [aut]"
@@ -25,6 +25,10 @@ Imports:
     tibble, 
     tidyr,
     purrr
-Depends: 
+Depends:
     R (>= 3.5)
-RoxygenNote: 7.3.2
+Suggests:
+    testthat (>= 3.0.0),
+    withr
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3

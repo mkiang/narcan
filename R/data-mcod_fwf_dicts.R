@@ -1,15 +1,41 @@
-#' Dataframe of fixed width format information for MCOD files
+#' Fixed-width column dictionary for RESTRICTED-use MCOD files
+#'
+#' Byte positions for parsing the NCHS Multiple Cause of Death restricted-use
+#' (All-County) fixed-width files, one set of rows per data year (1979-2024).
+#' Positions were verified against the raw NCHS bytes (see the narcan_c
+#' verification pipeline). Some geography fields are intentionally nested/
+#' overlapping (e.g. `stateoc` 21-22 sits inside `countyoc` 21-25; `staters`/
+#' `statersr` inside `countyrs`) -- `readr::read_fwf()` tolerates this via
+#' explicit `fwf_positions()`.
 #'
 #' @docType data
 #'
 #' @format A data frame with 5 columns
 #' \describe{
-#'   \item{name}{string, variable name}
-#'   \item{type}{string, variable type (i.e., numeric, character, etc.)}
-#'   \item{start}{integer, starting position of this column}
-#'   \item{end}{integer, ending position of this column}
-#'   \item{year}{integer, year of this dictionary}
+#'   \item{name}{string, variable name (NBER short names, kept stable for
+#'     backward compatibility)}
+#'   \item{type}{string, single-letter readr column type ("c" character, "n" numeric)}
+#'   \item{start}{integer, 1-indexed starting byte position}
+#'   \item{end}{integer, ending byte position}
+#'   \item{year}{integer, data year of this dictionary}
 #' }
+#'
+#' @section Position notes:
+#' A few columns keep their historical NBER names but change meaning across a
+#' coding-era boundary -- the name is stable, the semantics are not:
+#' \itemize{
+#'   \item `ucr130` is a general all-ages recode in 1999-2001 and becomes
+#'     infant-only only from data year 2002; do not filter it as infant-only for
+#'     1999-2001.
+#'   \item `racer5` at byte 450 holds the bridged Race Recode 5 through 2020 but
+#'     the single-race (1997-OMB) Race Recode 6 from 2022; the two are not
+#'     comparable across the 2021 boundary.
+#'   \item `hspanicr` (Hispanic Origin/Race Recode) is 1 byte at 488 through 2020
+#'     and 2 bytes at 487-488 from 2022 (14-category scheme).
+#'   \item `racer40` (single-race detail) is documented-but-empty before 2012.
+#' }
+#'
 #' @source \url{https://www.cdc.gov/nchs/nvss/mortality_public_use_data.htm}
+#' @seealso [mcod_public_fwf_dicts] for the public-use tier.
 #' @keywords datasets
 "mcod_fwf_dicts"

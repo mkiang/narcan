@@ -20,3 +20,6 @@ that the public-use files do not contain. Further, restricted files come as
 plaintext, fixed-width files. This helper function simply imports these
 text files with known dictionaries.
 }
+\seealso{
+[import_mcod_fwf()] for the public (and exported) entry point.
+}

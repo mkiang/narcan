@@ -4,7 +4,7 @@
 \alias{.download_mcod_fwf}
 \title{Download the multiple cause of death data as an ASCII file from the CDC}
 \source{
-ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/
+https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/
 }
 \usage{
 .download_mcod_fwf(year, download_dir = "./raw_data")
@@ -20,6 +20,7 @@ none
 \description{
 The CDC hosts publicly available multiple cause of death data as a fixed-
 width text file. This function downloads that file as a zip. Note that the
-CDC FTP is very slow--downloading from NBER via the download_mcod_dta() or
-download_mcod_csv() functions is strongly suggested.
+CDC server can be slow--downloading from NBER via the download_mcod_dta() or
+download_mcod_csv() functions is strongly suggested. Coverage in
+\code{cdc_dict} runs through the most recent public-use year (currently 2024).
 }

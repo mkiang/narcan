@@ -16,11 +16,11 @@ cdc_filelist <- scan("./inst/extdata/cdc_filelist.txt", what = "char")
 cdc_filelist <- cdc_filelist[grepl("[0-9]{4}us\\.", cdc_filelist)]
 
 ## Extract the year
-years <- tidyr::extract_numeric(cdc_filelist)
+years <- readr::parse_number(cdc_filelist)
 
 ## Make the dictionary
 cdc_dict <- as.list(cdc_filelist)
 names(cdc_dict) <- years
 
 ## Export it
-devtools::use_data(cdc_dict, overwrite = TRUE)
+usethis::use_data(cdc_dict, overwrite = TRUE)

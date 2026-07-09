@@ -2,23 +2,25 @@
 #'
 #' The CDC hosts publicly available multiple cause of death data as a fixed-
 #' width text file. This function downloads that file as a zip. Note that the
-#' CDC FTP is very slow--downloading from NBER via the download_mcod_dta() or
-#' download_mcod_csv() functions is strongly suggested.
+#' CDC server can be slow--downloading from NBER via the download_mcod_dta() or
+#' download_mcod_csv() functions is strongly suggested. Coverage in
+#' \code{cdc_dict} runs through the most recent public-use year (currently 2024).
 #'
 #' @param year year to download (as integer)
 #' @param download_dir file path to save downloaded data
 #'
 #' @return none
 #' @importFrom utils download.file
-#' @source ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/
+#' @source https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/
 .download_mcod_fwf <- function(year, download_dir = './raw_data') {
     ## Downloads the raw MCOD data (as FWF text) for specified year
     ##
     ## Source: print(paste0('https://www.cdc.gov/nchs/nvss/',
     ##                      'mortality_public_use_data.htm'))
 
-    ## Create URL
-    base_url  <- paste0("ftp://ftp.cdc.gov/pub/Health_Statistics/",
+    ## Create URL (the ftp.cdc.gov host now serves over HTTPS; the old
+    ## ftp:// scheme was decommissioned)
+    base_url  <- paste0("https://ftp.cdc.gov/pub/Health_Statistics/",
                         "NCHS/Datasets/DVS/mortality")
     file_name <- narcan::cdc_dict[[as.character(year)]]
     file_url  <- sprintf("%s/%s", base_url, file_name)
