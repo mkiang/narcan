@@ -9,26 +9,18 @@
 #' @param pop_col column of population for denominator of rate
 #'
 #' @return dataframe with two new columns
-#' @importFrom rlang := !! !!! enquo quo quo_name
+#' @importFrom dplyr mutate
+#' @importFrom rlang :=
 #' @export
 calc_asrate_var <- function(df, new_name, death_col, pop_col = pop) {
-    ## Returns the age-specific mortality rate of `death_col` and the variance
-    ## in new columns `new_name_rate` and `new_name_var`.
-    ## For some reason, cannot call !!rate_name inside of !!var_name so
-    ## just repeat calculation.
-
-    death_col <- enquo(death_col)
-    pop_col   <- enquo(pop_col)
-    new_name  <- enquo(new_name)
-    rate_name <- paste0(quo_name(new_name), "_rate")
-    var_name  <- paste0(quo_name(new_name), "_var")
-
-    new_df <- df |>
+    ## Returns the age-specific mortality rate of `death_col` and its
+    ## Poisson-approximation variance in new columns `{new_name}_rate` and
+    ## `{new_name}_var`. The rate cannot be reused inside the variance within a
+    ## single mutate(), so the ratio is recomputed.
+    df |>
         mutate(
-            !!rate_name := ((!!death_col) / (!!pop_col)) * 10^5,
-            !!var_name  := ((((!!death_col) / (!!pop_col)) * 10^5)^2 /
-                                (!!death_col))
+            "{{ new_name }}_rate" := ({{ death_col }} / {{ pop_col }}) * 10^5,
+            "{{ new_name }}_var" :=
+                (({{ death_col }} / {{ pop_col }}) * 10^5)^2 / {{ death_col }}
         )
-
-    return(new_df)
 }
