@@ -7,7 +7,9 @@
 #' @export
 
 state_abbrev_to_fips <- function(column) {
-    rep_pattern <- as.character(narcan::st_fips_map$fips)
+    ## Zero-pad to two digits so the result matches add_county_fips() (e.g. CA
+    ## -> "06", not "6").
+    rep_pattern <- sprintf("%02d", narcan::st_fips_map$fips)
     names(rep_pattern) <- narcan::st_fips_map$abbrev
 
     new_col <- stringr::str_replace_all(column, pattern = rep_pattern)

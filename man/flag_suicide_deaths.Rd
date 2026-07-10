@@ -4,14 +4,18 @@
 \alias{flag_suicide_deaths}
 \title{Flag suicide deaths (no accidental poisoning)}
 \usage{
-flag_suicide_deaths(df)
+flag_suicide_deaths(df, year = NULL)
 }
 \arguments{
 \item{df}{processed MCOD dataframe}
+
+\item{year}{if NULL, detected from `year`/`datayear`; used only to warn on
+pre-1999 (ICD-9) data}
 }
 \value{
 new dataframe
 }
 \description{
-TODO: Make this also work with ICD-9
+ICD-10 only. Pre-1999 (ICD-9) data returns all zeros and emits a warning;
+ICD-9 suicide detection is a future work item.
 }

@@ -1,13 +1,17 @@
 #' Flag suicide deaths (no accidental poisoning)
 #'
-#' TODO: Make this also work with ICD-9
+#' ICD-10 only. Pre-1999 (ICD-9) data returns all zeros and emits a warning;
+#' ICD-9 suicide detection is a future work item.
 #'
 #' @param df processed MCOD dataframe
+#' @param year if NULL, detected from `year`/`datayear`; used only to warn on
+#'   pre-1999 (ICD-9) data
 #'
 #' @return new dataframe
 #' @importFrom dplyr mutate
 #' @export
-flag_suicide_deaths <- function(df) {
+flag_suicide_deaths <- function(df, year = NULL) {
+    .warn_icd9_only(.detect_year_safe(df, year), "flag_suicide_deaths")
     new_df <- df %>%
         mutate(suicide_death = grepl("U03|X[67]\\d{1}|X8[01234]|Y870",
                                    ucod) + 0)

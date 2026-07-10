@@ -4,14 +4,17 @@
 \alias{flag_suicide_poison}
 \title{Flag suicide by poison}
 \usage{
-flag_suicide_poison(df)
+flag_suicide_poison(df, year = NULL)
 }
 \arguments{
 \item{df}{a processed MCOD dataframe}
+
+\item{year}{optional; warns if explicitly < 1999}
 }
 \value{
 dataframe
 }
 \description{
-TODO: MAKE WORK WITH ICD-9
+ICD-10 only (see flag_suicide_types). Warns if an explicit pre-1999 `year`
+is supplied.
 }

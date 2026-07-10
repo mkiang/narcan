@@ -4,17 +4,17 @@
 \alias{flag_suicide_other}
 \title{Flag suicide by other (not poison, fall, firearm, suffocation)}
 \usage{
-flag_suicide_other(df)
+flag_suicide_other(df, year = NULL)
 }
 \arguments{
 \item{df}{a processed MCOD dataframe}
+
+\item{year}{optional; warns if explicitly < 1999}
 }
 \value{
 dataframe
 }
 \description{
-ICD-10 codes: U03, X71, X75-X79, X81-X84, Y870
-}
-\details{
-TODO: MAKE WORK WITH ICD-9
+ICD-10 codes: U03, X71, X75-X79, X81-X84, Y870. ICD-10 only (see
+flag_suicide_types). Warns if an explicit pre-1999 `year` is supplied.
 }

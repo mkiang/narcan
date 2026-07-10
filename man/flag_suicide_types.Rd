@@ -4,14 +4,20 @@
 \alias{flag_suicide_types}
 \title{Flag suicide five types: firearm, poisoning, fall, suffocation, or other}
 \usage{
-flag_suicide_types(df)
+flag_suicide_types(df, year = NULL)
 }
 \arguments{
 \item{df}{processed MCOD dataframe}
+
+\item{year}{if NULL, detected from `year`/`datayear`; used only to warn on
+pre-1999 (ICD-9) data}
 }
 \value{
 new dataframe
 }
 \description{
-TODO: Make this also work with ICD-9
+ICD-10 only. Pre-1999 (ICD-9) data returns all zeros and emits a single
+warning; ICD-9 detection is a future work item. The subtype helpers below
+warn only when a pre-1999 `year` is passed explicitly, so calling this
+orchestrator does not emit duplicate warnings.
 }
