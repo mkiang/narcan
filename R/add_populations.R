@@ -4,6 +4,13 @@
 #' estimates by age, sex, and race. See narcan::pop_est for columns and
 #' possible values of each matching variable
 #'
+#' @note Denominators are bridged-race population estimates, which NCHS
+#'   discontinued after Vintage 2020. Rates for data year 2021 onward require
+#'   single-race population estimates (and the 2003 numeric->M/F `sex` recode must
+#'   be reconciled). Do not divide single-race death counts (see remap_race() for
+#'   2022+) by these bridged-race denominators. Single-race denominator support is
+#'   a separate, future work item.
+#'
 #' @param df MCOD dataframe
 #' @param by_vars variables to match on
 #'

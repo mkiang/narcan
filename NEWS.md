@@ -1,3 +1,51 @@
+# narcan 0.2.1
+
+## Coding-aware race/Hispanic recode functions
+
+The recode/label helpers previously hardcoded a single coding scheme and applied
+it to every year, silently mislabeling data for years where NCHS coding changed.
+They are now year-aware. Values verified against the NCHS public-use mortality
+file documentation.
+
+### Changed (behavior)
+
+* **`categorize_hspanicr(hspanicr_column, year = NULL)`** gains a `year` argument
+  (a scalar or a vector aligned to the data column). It applies the 9-category
+  scheme through 2020, returns `NA` for the reserved 2021 field, and applies the
+  expanded 14-category (single-race, 1997 OMB) scheme from 2022. Values before
+  1989 (not recorded) are `NA`. When `year` is omitted the pre-2022 9-category
+  scheme is assumed **with a warning** -- existing calls keep working but should
+  pass `year` to label 2022+ data correctly.
+* **`remap_race(icd_df, year)`** now dispatches three ways: bridged detailed
+  `race` through 2020 (unchanged), `NA` for the 2021 transition gap (bridged race
+  dropped, single-race recodes not yet populated), and the single-race Race
+  Recode 6 (`racer5`) from 2022 mapped to a non-colliding code space (101-106).
+  The internal `.remap_race_1992_2015` helper is renamed `.remap_race_1992_2020`.
+* **`categorize_race()`** labels the single-race codes 101-106 (`white_only`,
+  `black_only`, `american_indian_only`, `asian_only`, `nhopi_only`,
+  `multiracial`) in addition to the bridged codes; the factor levels adapt to the
+  scheme(s) present, so pre-2021 output is unchanged.
+* Bridged (<=2020) and single-race (2022+) race/Hispanic categories are **not
+  comparable**; `remap_race()` and `categorize_race()` warn when the single-race
+  path is used, and the two must not be chained into a single trend.
+
+### New
+
+* **`import_mcod_fwf()` now guarantees a canonical `year` column** (from its
+  `year` argument), so downstream year dispatch works on every era including
+  stacked multi-year data. 1979-1995 files retain their original `datayear`
+  column as well.
+* `.extract_year()` falls back to `datayear` (used by 1979-1995 files) when no
+  `year` column is present.
+
+### Notes
+
+* Rates for 2021+ single-race deaths need single-race population denominators;
+  `add_pop_counts()` joins bridged-race `pop_est` only (discontinued by NCHS after
+  Vintage 2020). See `?add_pop_counts`. Single-race denominators are future work.
+* New `testthat` coverage for the recode functions is built from a small random
+  sample of **real** public MCOD data spanning every coding era.
+
 # narcan 0.2.0
 
 ## Byte-verified fixed-width layouts (1979-2024)

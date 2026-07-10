@@ -5,7 +5,10 @@ test_that("restricted import round-trips values and column classes", {
     df <- .import_mcod_data(f, 2050L, tier = "restricted",
                             dict = dict, restricted_dict = dict)
 
-    expect_equal(names(df), c("cty", "st", "sex", "age", "ucod"))
+    ## importer guarantees a canonical `year` column (appended when the dict has
+    ## no year/datayear field of its own)
+    expect_equal(names(df), c("cty", "st", "sex", "age", "ucod", "year"))
+    expect_equal(df$year, c(2050, 2050))
     expect_type(df$cty, "character")
     expect_type(df$age, "double")     # readr "n" -> double
     expect_type(df$ucod, "character")
@@ -24,8 +27,9 @@ test_that("public import keeps suppressed columns as typed all-NA with parity", 
     pub <- .import_mcod_data(f, 2050L, tier = "public",
                              dict = pdict, restricted_dict = rdict)
 
-    ## same columns, same order as the restricted layout
-    expect_equal(names(pub), mini_restricted_dict()$name)
+    ## same columns, same order as the restricted layout, plus the canonical year
+    expect_equal(names(pub), c(mini_restricted_dict()$name, "year"))
+    expect_equal(pub$year, c(2050, 2050))
     ## suppressed geography is all-NA of the right type
     expect_true(all(is.na(pub$cty)))
     expect_true(all(is.na(pub$st)))

@@ -15,7 +15,8 @@ import_mcod_fwf(file, year, tier = c("restricted", "public"))
 }
 \value{
 a tibble with one row per death and columns in the restricted layout
-  order for that year
+  order for that year, plus a canonical \code{year} column (1979-1995 files
+  also retain their original \code{datayear} column)
 }
 \description{
 Reads a raw NCHS Multiple Cause of Death fixed-width file into a data frame

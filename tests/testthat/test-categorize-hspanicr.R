@@ -1,0 +1,78 @@
+## Fixtures are a small random sample of REAL public MCOD data spanning every
+## Hispanic-origin coding era (built by verify_fwf/scripts/70_build_recode_fixtures.R).
+fx <- readRDS(test_path("fixtures", "recode_public_sample.rds"))
+
+test_that("categorize_hspanicr labels real 2023 data with the 14-category scheme", {
+    s <- fx[fx$year == 2023, ]
+    lab <- categorize_hspanicr(s$hspanicr, year = 2023)
+    map <- c("1" = "mexican", "8" = "nonhispanic_white", "9" = "nonhispanic_black",
+             "10" = "nonhispanic_aian", "11" = "nonhispanic_asian",
+             "13" = "nonhispanic_multi")
+    for (code in names(map)) {
+        got <- unique(as.character(lab[s$hspanicr == as.integer(code)]))
+        expect_equal(got, unname(map[code]))
+    }
+})
+
+test_that("categorize_hspanicr labels real pre-2021 data with the 9-category scheme", {
+    s <- fx[fx$year == 2020, ]
+    lab <- categorize_hspanicr(s$hspanicr, year = 2020)
+    map <- c("1" = "mexican", "6" = "nonhispanic_white", "7" = "nonhispanic_black",
+             "8" = "nonhispanic_other", "9" = "hispanic_unknown")
+    for (code in names(map)) {
+        got <- unique(as.character(lab[s$hspanicr == as.integer(code)]))
+        expect_equal(got, unname(map[code]))
+    }
+})
+
+test_that("categorize_hspanicr labels a mixed-year stacked column by each row's year", {
+    ## The real failure mode: the same code means different things across 2022.
+    ## In real data, code 8 = Non-Hispanic other (2020) vs Non-Hispanic White (2023);
+    ## code 9 = Hispanic unknown (2020) vs Non-Hispanic Black (2023).
+    mixed <- rbind(fx[fx$year == 2020, ], fx[fx$year == 2023, ])
+    lab <- categorize_hspanicr(mixed$hspanicr, year = mixed$year)
+
+    expect_equal(unique(as.character(lab[mixed$year == 2020 & mixed$hspanicr == 8])),
+                 "nonhispanic_other")
+    expect_equal(unique(as.character(lab[mixed$year == 2023 & mixed$hspanicr == 8])),
+                 "nonhispanic_white")
+    expect_equal(unique(as.character(lab[mixed$year == 2020 & mixed$hspanicr == 9])),
+                 "hispanic_unknown")
+    expect_equal(unique(as.character(lab[mixed$year == 2023 & mixed$hspanicr == 9])),
+                 "nonhispanic_black")
+})
+
+test_that("categorize_hspanicr returns NA for the 2021 reserved gap (with warning)", {
+    s <- fx[fx$year == 2021, ]
+    expect_warning(lab <- categorize_hspanicr(s$hspanicr, year = 2021), "reserved")
+    expect_true(all(is.na(lab)))
+})
+
+test_that("categorize_hspanicr returns NA before 1989 (not recorded)", {
+    s <- fx[fx$year == 1985, ]
+    lab <- categorize_hspanicr(s$hspanicr, year = 1985)
+    expect_true(all(is.na(lab)))
+})
+
+test_that("categorize_hspanicr preserves the legacy 9-category factor (backward compat)", {
+    lab <- categorize_hspanicr(1:9, year = 2000)
+    expect_equal(levels(lab),
+                 c("mexican", "puerto_rican", "cuban", "central_south_america",
+                   "other_hispanic", "nonhispanic_white", "nonhispanic_black",
+                   "nonhispanic_other", "hispanic_unknown"))
+    expect_true(is.ordered(lab))
+})
+
+test_that("categorize_hspanicr warns and assumes the legacy scheme when year is omitted", {
+    expect_warning(lab <- categorize_hspanicr(1:9), "year")
+    expect_equal(as.character(lab)[1], "mexican")
+})
+
+test_that("categorize_hspanicr returns NA for out-of-domain codes", {
+    expect_true(all(is.na(categorize_hspanicr(c(0, 10, NA, 15), year = 2000))))
+    expect_true(all(is.na(categorize_hspanicr(c(0, 15, NA), year = 2023))))
+})
+
+test_that("categorize_hspanicr errors on a mismatched year length", {
+    expect_error(categorize_hspanicr(1:3, year = c(2000, 2023)), "length")
+})

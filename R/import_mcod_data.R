@@ -13,7 +13,8 @@
 #' @param tier \code{"restricted"} (default) or \code{"public"}
 #'
 #' @return a tibble with one row per death and columns in the restricted layout
-#'   order for that year
+#'   order for that year, plus a canonical \code{year} column (1979-1995 files
+#'   also retain their original \code{datayear} column)
 #' @importFrom readr read_fwf fwf_positions
 #' @export
 #'
@@ -93,7 +94,15 @@ import_mcod_fwf <- function(file, year, tier = c("restricted", "public")) {
 
     ## guard against a silent drop/extra, then reorder to canonical order
     stopifnot(setequal(names(df), canon_names))
-    df[, canon_names, drop = FALSE]
+    df <- df[, canon_names, drop = FALSE]
+
+    ## guarantee a canonical `year` column from the authoritative year argument
+    ## (redundant for 1996+ files that already carry `year`; additive for
+    ## 1979-1995 files, which name it `datayear`) so downstream year dispatch is
+    ## reliable across every era, including stacked multi-year data
+    df$year <- year_x
+
+    df
 }
 
 utils::globalVariables(c("mcod_fwf_dicts", "mcod_public_fwf_dicts"))

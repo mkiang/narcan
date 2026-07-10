@@ -2,21 +2,30 @@
 % Please edit documentation in R/remap_race.R
 \name{remap_race}
 \alias{remap_race}
-\title{Remaps the race column to a single standard across 1979-2015}
+\title{Remaps the race column to a standardized code across data years}
 \usage{
 remap_race(icd_df, year = NULL)
 }
 \arguments{
-\item{icd_df}{an MCOD dataframe}
+\item{icd_df}{an MCOD dataframe (a single data year)}
 
-\item{year}{year of file, if NULL will try to extract year automatically}
+\item{year}{year of file; if NULL will try to extract year automatically}
 }
 \value{
-dataframe
+dataframe with a standardized `race` column
 }
 \description{
-The race column in MCOD data underwent several changes from 1979-2015.
-This function standardizes the race column and can (should) be used with
-categorize_race() to result in a single set of consist race codes across
-all files.
+The race coding in MCOD data changed repeatedly. Through 2020 the bridged-race
+detailed `race` column is standardized to a common set (white, black, American
+Indian, and the Asian/Pacific Islander subgroups, with the remainder collapsed
+to 99). From 2022 the bridged race column is gone; this reads the single-race
+Race Recode 6 (`racer5`) instead and maps it to a non-colliding code space
+(101-106) so bridged and single-race values can share one column without being
+confused. Data year 2021 is a transition gap -- the bridged race fields are
+dropped and the single-race recodes are not yet populated -- so `race` is set
+to NA.
+}
+\details{
+Bridged (2020 and earlier) and single-race (2022+) codes are NOT comparable
+and must not be chained into a single trend. Use with categorize_race().
 }
