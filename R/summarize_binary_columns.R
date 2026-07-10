@@ -14,14 +14,14 @@ summarize_binary_columns <- function(df, ...) {
     ## summarizes them over age and year and whatever other bare (unquoted)
     ## variable is given in the ...
     add_groups <- quos(...)
-    df <- df %>%
-        group_by(year, age, age_cat) %>%
+    df <- df |>
+        group_by(year, age, age_cat) |>
         group_by(!!!add_groups, .add = TRUE)
 
     o_df <- summarize(df, across(everything(), sum))
 
-    n_df <- df %>%
-        summarize(deaths = n()) %>%
+    n_df <- df |>
+        summarize(deaths = n()) |>
         left_join(o_df, by = group_vars(df))
 
     return(n_df)

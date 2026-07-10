@@ -7,7 +7,7 @@
 #' @importFrom dplyr mutate select case_when between
 #' @export
 convert_ager27u1 <- function(icd_df, remove_age27 = TRUE) {
-    df <- icd_df %>%
+    df <- icd_df |>
         mutate(ager27 = ifelse(ager27 == 27, NA, ager27),
                age = case_when(between(ager27, 1, 2) ~ 0,
                                between(ager27, 3, 6) ~ 1,

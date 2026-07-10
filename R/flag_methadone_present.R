@@ -7,7 +7,7 @@
 #' @param keep_cols keep intermediate columns
 #'
 #' @return a new dataframe with 1 additional column
-#' @importFrom dplyr mutate case_when select "%>%" any_of
+#' @importFrom dplyr mutate case_when select any_of
 #' @importFrom tibble has_name
 #' @export
 flag_methadone_present <- function(processed_df, year = NULL,
@@ -19,12 +19,12 @@ flag_methadone_present <- function(processed_df, year = NULL,
 
     original_cols <- names(processed_df)
     if (!(tibble::has_name(processed_df, "f_records_all"))) {
-        processed_df <- processed_df %>%
+        processed_df <- processed_df |>
             unite_records(year = year)
         }
 
     if (year >= 1979 & year <= 1998) {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(methadone_present =
                        case_when(grepl(ucod, pattern = "E8501") &
                                      opioid_death == 1 ~ 1,
@@ -32,7 +32,7 @@ flag_methadone_present <- function(processed_df, year = NULL,
                                      opioid_death == 1 ~ 1,
                                  TRUE ~ 0))
     } else {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(methadone_present =
                        case_when(grepl(f_records_all, pattern = "T403") &
                                      opioid_death == 1 ~ 1,

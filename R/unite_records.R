@@ -23,7 +23,7 @@ unite_records <- function(icd_df, year = NULL) {
     ## For ICD-9 dataframes
     if (year >= 1979 & year <= 1998) {
         ## Make sure record columns are appropriate prefixed
-        df <- icd_df %>%
+        df <- icd_df |>
             mutate(f_record_1  = prefix_to_record(record_1,  rnifla_1),
                    f_record_2  = prefix_to_record(record_2,  rnifla_2),
                    f_record_3  = prefix_to_record(record_3,  rnifla_3),
@@ -43,22 +43,22 @@ unite_records <- function(icd_df, year = NULL) {
                    f_record_17 = prefix_to_record(record_17, rnifla_17),
                    f_record_18 = prefix_to_record(record_18, rnifla_18),
                    f_record_19 = prefix_to_record(record_19, rnifla_19),
-                   f_record_20 = prefix_to_record(record_20, rnifla_20)) %>%
+                   f_record_20 = prefix_to_record(record_20, rnifla_20)) |>
             select(-starts_with("record_"), -starts_with("rnifla_"))
 
         ## Unite f_record_ columns
-        df <- df %>%
-            unite(f_records_all, starts_with("f_record_"), sep = " ") %>%
+        df <- df |>
+            unite(f_records_all, starts_with("f_record_"), sep = " ") |>
             mutate(f_records_all = gsub(f_records_all,
                                         pattern = " NA", replacement = ""))
     } else if (year >= 1999) {
         ## NOTE: Some random ICD10 years will still have an rnifla_ column even
         ##      though they are all blank. We drop them here to keep them
         ##      conformable with all other years.
-        df <- icd_df %>%
-            unite(f_records_all, starts_with("record_"), sep = " ") %>%
+        df <- icd_df |>
+            unite(f_records_all, starts_with("record_"), sep = " ") |>
             mutate(f_records_all = gsub(f_records_all,
-                                        pattern = " NA", replacement = "")) %>%
+                                        pattern = " NA", replacement = "")) |>
             select(-starts_with("rnifla"))
     }
 

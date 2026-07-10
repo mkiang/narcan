@@ -22,12 +22,12 @@ add_county_fips <- function(df, county_vector) {
         rep_pattern <- as.character(sprintf("%02d", narcan::st_fips_map$fips))
         names(rep_pattern) <- narcan::st_fips_map$abbrev
 
-        df <- df %>%
+        df <- df |>
             dplyr::mutate(st_fips = stringr::str_replace_all(state_substr, pattern = rep_pattern))
 
     } else if (all(c("03", "07", "14", "43") %in% substr_codes)) {
         ## NCHS state codes
-        df <- df %>%
+        df <- df |>
             dplyr::left_join(narcan::st_fips_map |>
                                  transmute(
                                      st_fips = sprintf("%02d", fips),
@@ -36,7 +36,7 @@ add_county_fips <- function(df, county_vector) {
                              by = "state_substr")
 
     } else if (all(c("53", "54", "55", "56") %in% substr_codes)) {
-        df <- df %>%
+        df <- df |>
             dplyr::mutate(st_fips = state_substr)
 
     } else {

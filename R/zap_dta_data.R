@@ -12,12 +12,12 @@
 #' @export
 zap_dta_data <- function(dta_df) {
     ## ZAP EVERYTHING! Also change all NaNs to NA.
-    dta_df <- dta_df %>%
+    dta_df <- dta_df |>
         dplyr::mutate(dplyr::across(dplyr::where(is.character),
-                                    \(x) haven::zap_empty(x))) %>%
-        haven::zap_formats(.) %>%
-        haven::zap_labels(.) %>%
-        haven::zap_missing(.) %>%
+                                    \(x) haven::zap_empty(x))) |>
+        haven::zap_formats() |>
+        haven::zap_labels() |>
+        haven::zap_missing() |>
         dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
                                     \(x) ifelse(is.nan(x), NA_real_, x)))
 

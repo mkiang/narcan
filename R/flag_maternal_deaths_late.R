@@ -8,7 +8,7 @@
 #' @param keep_cols keep intermediate columns
 #'
 #' @return a new dataframe with a binary maternal_death column
-#' @importFrom dplyr select any_of "%>%" mutate
+#' @importFrom dplyr select any_of mutate
 #' @importFrom tibble has_name
 #' @export
 flag_maternal_deaths_late <- function (processed_df, year = NULL,
@@ -26,7 +26,7 @@ flag_maternal_deaths_late <- function (processed_df, year = NULL,
     original_cols <- names(processed_df)
 
     ## First flag columns based only on underlying cause
-    df <- processed_df %>%
+    df <- processed_df |>
         mutate(maternal_death_late = (
             grepl(.regex_maternal_icd10(include_late = TRUE), ucod)) + 0)
 
@@ -37,9 +37,9 @@ flag_maternal_deaths_late <- function (processed_df, year = NULL,
                     "Generating this column automatically.\n",
                     "As a result, all `record_` columns will be dropped.\n",
                     "See help(unite_records) for more information.")
-            df <- df %>% unite_records(year = year)
+            df <- df |> unite_records(year = year)
         }
-        df <- df %>%
+        df <- df |>
             mutate(maternal_death_late = case_when(
                 grepl(.regex_maternal_icd10(include_late = TRUE),
                       f_records_all) ~ 1,

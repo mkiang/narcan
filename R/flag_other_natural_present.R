@@ -20,10 +20,10 @@ flag_other_natural_present <- function(processed_df, year = NULL,
     }
 
     if (year >= 1979 & year <= 1998) {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(other_natural_present = missing_val)
     } else {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(other_natural_present =
                        case_when(grepl(f_records_all, pattern = "T402") &
                                      opioid_death == 1 ~ 1,

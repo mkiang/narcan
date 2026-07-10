@@ -13,7 +13,7 @@ flag_nonopioid_drug_deaths <- function(processed_df) {
     ## This assumes you already ran flag_drug_deaths() and flag_opioid_deaths()
     ## Returns a new tibble with a `nonop_drug_death` representing drug deaths
     ## due to something other than opioid.
-    df <- processed_df %>%
+    df <- processed_df |>
         mutate(nonop_drug_death =
                    case_when(drug_death == 1 & opioid_death == 0 ~ 1,
                              TRUE ~ 0))

@@ -2,7 +2,6 @@
 #'
 #' @description R package for working with multiple cause of death data
 #' @name narcan
-#' @importFrom dplyr %>%
 "_PACKAGE"
 
 ## These are just here to declare globals so I don't get notes on R CMD check

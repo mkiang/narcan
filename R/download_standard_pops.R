@@ -65,7 +65,7 @@
                        col_widths, col_types = "iii")
 
     ## Make age groups consistent across standards
-    df_18 <- df_18 %>%
+    df_18 <- df_18 |>
         mutate(age = (age - 1) * 5,
                age_cat = factor(age,
                                 levels = seq(0, 85, 5),
@@ -73,7 +73,7 @@
                                                   seq(4, 84, 5)), "85+"),
                                 ordered = TRUE))
 
-    df_19 <- df_19 %>%
+    df_19 <- df_19 |>
         mutate(age = case_when(age >= 2 ~ as.integer((age - 1) * 5),
                                TRUE ~ age),
                age_cat = factor(age,
@@ -83,13 +83,13 @@
                                                   seq(9, 84, 5)), "85+"),
                                 ordered = TRUE))
 
-    df_85 <- df_85 %>%
+    df_85 <- df_85 |>
         mutate(age_cat = factor(age,
                                 levels = 0:85,
                                 labels = c(0:84, "85+"),
                                 ordered = TRUE))
 
-    df_100 <- df_100 %>%
+    df_100 <- df_100 |>
         mutate(age_cat = factor(age,
                                 levels = 0:100,
                                 labels = c(0:99, "100+"),
@@ -97,14 +97,14 @@
 
     ## Create better standards variable
     standard_pops <- rbind(df_18, df_19, df_85, df_100)
-    standard_pops <- standard_pops %>%
+    standard_pops <- standard_pops |>
         mutate(standard = paste0("s", standard),
                standard_cat = factor(standard,
                                      levels = names(standards_dict),
                                      labels = unname(unlist(standards_dict))))
 
     ## Reorder columns
-    standard_pops <- standard_pops %>%
+    standard_pops <- standard_pops |>
         select(age_cat, standard_cat, pop_std = pop, everything())
 
     return(standard_pops)

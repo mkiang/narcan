@@ -11,7 +11,6 @@
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom readr read_csv
 #' @importFrom dplyr select rename mutate case_when filter group_by ungroup summarize_all starts_with
-#' @importFrom stats setNames
 #' @importFrom tidyr gather
 
 .download_2010s_pop_data <- function(filter_race = TRUE) {
@@ -26,19 +25,19 @@
                        "SC-EST2020-ALLDATA6.csv")
 
     ## Download and make column names lowercase
-    pop_raw <- read_csv(file_url) %>%
-        setNames(tolower(names(.)))
+    pop_raw <- read_csv(file_url)
+    names(pop_raw) <- tolower(names(pop_raw))
 
     ## Remove columns we don't need. 2010 estimates will come
     ## from download_2000s_pop_data()
-    temp_df <- pop_raw %>%
-        select(-census2010pop, -popestimate2010, -estimatesbase2010) %>%
-        rename(age_years = age) %>%
+    temp_df <- pop_raw |>
+        select(-census2010pop, -popestimate2010, -estimatesbase2010) |>
+        rename(age_years = age) |>
         select(-sumlev, -region, -division, -state, -name)
 
     ## Create race codes consistent with previous years
-    temp_df <- temp_df %>%
-        rename(race_original = race) %>%
+    temp_df <- temp_df |>
+        rename(race_original = race) |>
         mutate(race = case_when(
             ## Total origin for each race
             origin == 0 & race_original == 1 ~ "white",
@@ -63,36 +62,36 @@
             origin == 2 & race_original == 6 ~ "htom"))
 
     ## Create a total population count
-    total_pop <- temp_df %>%
-        filter(origin == 0) %>%
-        select(-race, -race_original) %>%
-        group_by(sex, age_years, origin) %>%
-        summarize_all(sum) %>%
+    total_pop <- temp_df |>
+        filter(origin == 0) |>
+        select(-race, -race_original) |>
+        group_by(sex, age_years, origin) |>
+        summarize_all(sum) |>
         mutate(race = "total",
-               race_original = NA) %>%
+               race_original = NA) |>
         ungroup()
 
     ## Collapse down populations (over state)
-    temp_df <- temp_df %>%
-        group_by(sex, origin, race_original, race, age_years) %>%
-        summarize_all(sum) %>%
+    temp_df <- temp_df |>
+        group_by(sex, origin, race_original, race, age_years) |>
+        summarize_all(sum) |>
         ungroup()
 
     ## Combine
     temp_df <- rbind(temp_df, total_pop)
 
     ## Reshape
-    temp_df <- temp_df %>%
+    temp_df <- temp_df |>
         gather(year, value = pop, dplyr::starts_with("popestimate"))
 
     ## Fix year and sex columns
-    temp_df <- temp_df %>%
+    temp_df <- temp_df |>
         mutate(year = as.integer(substr(year, 12, 15)),
                sex = case_when(
                    sex == 0 ~ "both",
                    sex == 1 ~ "male",
                    sex == 2 ~ "female",
-                   TRUE ~ NA_character_)) %>%
+                   TRUE ~ NA_character_)) |>
         select(year, age_years, pop, sex, race)
 
     ## Filter race

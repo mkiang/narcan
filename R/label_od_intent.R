@@ -12,7 +12,7 @@ label_od_intent <- function(processed_df) {
     ## NOTE: This assumes the opioid_death column (flag_opioid_deaths()) and
     ## intent columns (flag_od_intent()) already exists.
 
-    new_df <- processed_df %>%
+    new_df <- processed_df |>
         mutate(od_intent = case_when(
             unintended_intent   == 1 ~ "unintended",
             suicide_intent      == 1 ~ "suicide",

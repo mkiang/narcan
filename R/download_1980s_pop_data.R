@@ -85,54 +85,54 @@
                             n_max = n_rows)
 
         ## Remove series column, filter rows
-        temp_df <- temp_df %>%
-            select(-series) %>%
-            filter(month == 7, age_years != 999) %>%
-            mutate(year = as.integer(paste0("19", year))) %>%
+        temp_df <- temp_df |>
+            select(-series) |>
+            filter(month == 7, age_years != 999) |>
+            mutate(year = as.integer(paste0("19", year))) |>
             select(-month)
 
         ## Reshape females
-        female_df <- temp_df %>%
-            select(year, age_years, contains("_female")) %>%
-            gather(race, pop, total_female:nhapi_female) %>%
+        female_df <- temp_df |>
+            select(year, age_years, contains("_female")) |>
+            gather(race, pop, total_female:nhapi_female) |>
             mutate(sex = "female",
                    race = gsub(race, pattern = "_female", replacement = ""))
 
         ## Reshape males
-        male_df <- temp_df %>%
-            select(year, age_years, contains("_male")) %>%
-            gather(race, pop, total_male:nhapi_male) %>%
+        male_df <- temp_df |>
+            select(year, age_years, contains("_male")) |>
+            gather(race, pop, total_male:nhapi_male) |>
             mutate(sex = "male",
                    race = gsub(race, pattern = "_male", replacement = ""))
 
         ## Reshape total
-        total_df <- temp_df %>%
-            select(year, age_years, pop = total) %>%
+        total_df <- temp_df |>
+            select(year, age_years, pop = total) |>
             mutate(sex = "both",
                    race = "total")
 
         ## Reshape nhw (both sexes)
-        nhw_both_df <- temp_df %>%
-            select(year, age_years, contains("nhw_")) %>%
+        nhw_both_df <- temp_df |>
+            select(year, age_years, contains("nhw_")) |>
             mutate(pop = nhw_male + nhw_female,
                    sex = "both",
-                   race = "nhw") %>%
+                   race = "nhw") |>
             select(-nhw_male, -nhw_female)
 
         ## Reshape white (both sexes)
-        white_both_df <- temp_df %>%
-            select(year, age_years, contains("white_")) %>%
+        white_both_df <- temp_df |>
+            select(year, age_years, contains("white_")) |>
             mutate(pop = white_male + white_female,
                    sex = "both",
-                   race = "white") %>%
+                   race = "white") |>
             select(-white_male, -white_female)
 
         ## Reshape black (both sexes)
-        black_both_df <- temp_df %>%
-            select(year, age_years, contains("black_")) %>%
+        black_both_df <- temp_df |>
+            select(year, age_years, contains("black_")) |>
             mutate(pop = black_male + black_female,
                    sex = "both",
-                   race = "black") %>%
+                   race = "black") |>
             select(-black_male, -black_female)
 
         ## Combine

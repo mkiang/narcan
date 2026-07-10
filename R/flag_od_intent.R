@@ -19,7 +19,7 @@ flag_od_intent <- function(processed_df, year = NULL) {
     }
 
     if (year >= 1979 & year <= 1998) {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(
                 unintended_intent = case_when(
                     grepl(ucod, pattern = "\\<E85[012345678]\\d{1}\\>") ~ 1,
@@ -37,7 +37,7 @@ flag_od_intent <- function(processed_df, year = NULL) {
                         homicide_intent == 0 ~ 1,
                     TRUE ~ 0))
     } else {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(
                 unintended_intent = case_when(
                     grepl(ucod, pattern = "\\<X4[01234]\\>") ~ 1, TRUE ~ 0),

@@ -29,16 +29,16 @@ flag_opioid_types <- function(processed_df, year = NULL) {
     }
 
     ## Find specific opioids
-    new_df <- processed_df %>%
-        flag_opium_present(year = year) %>%
-        flag_heroin_present(year = year) %>%
-        flag_other_natural_present(year = year) %>%
-        flag_methadone_present(year = year) %>%
-        flag_other_synth_present(year = year) %>%
+    new_df <- processed_df |>
+        flag_opium_present(year = year) |>
+        flag_heroin_present(year = year) |>
+        flag_other_natural_present(year = year) |>
+        flag_methadone_present(year = year) |>
+        flag_other_synth_present(year = year) |>
         flag_other_op_present(year = year)
 
     ## Add unspecified opioid
-    new_df <- new_df %>%
+    new_df <- new_df |>
         mutate(unspecified_op_present =
                    case_when(
                        opioid_death == 1 &
@@ -52,7 +52,7 @@ flag_opioid_types <- function(processed_df, year = NULL) {
 
 
     ## Count up total number of opioids
-    new_df <- new_df %>%
+    new_df <- new_df |>
         mutate(num_opioids =
                    opium_present +
                    heroin_present +
@@ -63,7 +63,7 @@ flag_opioid_types <- function(processed_df, year = NULL) {
                    unspecified_op_present)
 
     ## More than one opioid?
-    new_df <- new_df %>%
+    new_df <- new_df |>
         mutate(multi_opioids = ifelse(num_opioids > 1, 1, 0))
 
     return(new_df)

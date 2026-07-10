@@ -24,13 +24,13 @@ flag_opioid_contributed <- function(processed_df, year = NULL) {
     }
 
     if (year >= 1979 & year <= 1998) {
-        df <- processed_df %>%
+        df <- processed_df |>
             mutate(opioid_contributed =
                        (!(grepl(.regex_opioid_icd9(), ucod)) &
                             grepl(.regex_opioid_icd9(n_codes = TRUE),
                                   f_records_all)) + 0)
     } else {
-        df <- processed_df %>%
+        df <- processed_df |>
             mutate(opioid_contributed =
                        (!(grepl(.regex_opioid_icd10(ucod_codes = TRUE),
                                 ucod)) &

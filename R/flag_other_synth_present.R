@@ -19,10 +19,10 @@ flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0)
     }
 
     if (year >= 1979 & year <= 1998) {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(other_synth_present = missing_val)
     } else {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(other_synth_present =
                        case_when(grepl(f_records_all, pattern = "T404") &
                                      opioid_death == 1 ~ 1,

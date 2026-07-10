@@ -36,9 +36,9 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race")) {
 #' @importFrom dplyr filter select mutate left_join
 #' @export
 add_std_pop <- function(df, std_cat = "s204", by_vars = "age") {
-    std_pop_df <- narcan::std_pops %>%
-        filter(standard == std_cat) %>%
-        select(pop_std, age) %>%
+    std_pop_df <- narcan::std_pops |>
+        filter(standard == std_cat) |>
+        select(pop_std, age) |>
         mutate(unit_w = pop_std / sum(pop_std))
 
     x <- left_join(df, std_pop_df, by = by_vars)

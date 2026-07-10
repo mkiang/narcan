@@ -23,7 +23,7 @@
                                pop_2000s, pop_2010s)
 
     ## Add age categories
-    population_counts <- population_counts %>%
+    population_counts <- population_counts |>
         mutate(age = (findInterval(age_years, c(seq(0, 85, 5), 150)) - 1) * 5,
                age_cat = factor(age,
                                 levels = seq(0, 85, 5),
@@ -34,9 +34,9 @@
                                 ordered = TRUE))
 
     ## Now collapse down age into the five year bins
-    population_counts <- population_counts %>%
-        group_by(year, age, age_cat, sex, race) %>%
-        summarize(pop = sum(pop)) %>%
+    population_counts <- population_counts |>
+        group_by(year, age, age_cat, sex, race) |>
+        summarize(pop = sum(pop)) |>
         arrange(year, race, sex, age)
 
     return(population_counts)

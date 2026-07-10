@@ -9,7 +9,7 @@
 #' @param keep_cols keep intermediate columns
 #'
 #' @return a new dataframe with a binary heroin_present column
-#' @importFrom dplyr select any_of "%>%" mutate
+#' @importFrom dplyr select any_of mutate
 #' @importFrom tibble has_name
 #' @export
 flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
@@ -25,17 +25,17 @@ flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
                 "Generating this column automatically.\n",
                 "As a result, all `record_` columns will be dropped.\n",
                 "See help(unite_records) for more information.")
-        processed_df <- processed_df %>%
+        processed_df <- processed_df |>
             unite_records(year = year)
     }
 
     if (!(tibble::has_name(processed_df, "opioid_death"))) {
-        processed_df <- processed_df %>%
+        processed_df <- processed_df |>
             flag_opioid_deaths(year = year)
     }
 
     if (year >= 1979 & year <= 1998) {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
                                   grepl(ucod, pattern = "E8500") &
@@ -44,7 +44,7 @@ flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
                                       opioid_death == 1 ~ 1,
                                   TRUE ~ 0))
     } else {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
                                   grepl(f_records_all, pattern = "T401") &

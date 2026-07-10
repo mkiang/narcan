@@ -23,7 +23,7 @@ calc_asrate_var <- function(df, new_name, death_col, pop_col = pop) {
     rate_name <- paste0(quo_name(new_name), "_rate")
     var_name  <- paste0(quo_name(new_name), "_var")
 
-    new_df <- df %>%
+    new_df <- df |>
         mutate(
             !!rate_name := ((!!death_col) / (!!pop_col)) * 10^5,
             !!var_name  := ((((!!death_col) / (!!pop_col)) * 10^5)^2 /

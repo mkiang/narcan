@@ -12,7 +12,7 @@
 #' @export
 flag_suicide_deaths <- function(df, year = NULL) {
     .warn_icd9_only(.detect_year_safe(df, year), "flag_suicide_deaths")
-    new_df <- df %>%
+    new_df <- df |>
         mutate(suicide_death = grepl("U03|X[67]\\d{1}|X8[01234]|Y870",
                                    ucod) + 0)
 

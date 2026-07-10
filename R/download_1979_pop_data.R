@@ -32,28 +32,28 @@
                                       "other_female"))
 
     ## Fix age
-    temp_df <- temp_df %>%
+    temp_df <- temp_df |>
         mutate(age_years = 0:85,
                year = 1979)
 
     ## Both sexes
-    both_sex <- temp_df %>%
-        select(age_years, year, ends_with("_both")) %>%
-        gather(race, pop, total_both:other_both) %>%
+    both_sex <- temp_df |>
+        select(age_years, year, ends_with("_both")) |>
+        gather(race, pop, total_both:other_both) |>
         mutate(race = gsub(race, pattern = "_both", replacement = ""),
                sex = "both")
 
     ## Females
-    females <- temp_df %>%
-        select(age_years, year, ends_with("_female")) %>%
-        gather(race, pop, total_female:other_female) %>%
+    females <- temp_df |>
+        select(age_years, year, ends_with("_female")) |>
+        gather(race, pop, total_female:other_female) |>
         mutate(race = gsub(race, pattern = "_female", replacement = ""),
                sex = "female")
 
     ## Males
-    males <- temp_df %>%
-        select(age_years, year, ends_with("_male")) %>%
-        gather(race, pop, total_male:other_male) %>%
+    males <- temp_df |>
+        select(age_years, year, ends_with("_male")) |>
+        gather(race, pop, total_male:other_male) |>
         mutate(race = gsub(race, pattern = "_male", replacement = ""),
                sex = "male")
 

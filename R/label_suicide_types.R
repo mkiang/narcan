@@ -7,7 +7,7 @@
 #' @export
 label_suicide_type <- function(processed_df) {
 
-    new_df <- processed_df %>%
+    new_df <- processed_df |>
         mutate(suicide_type = case_when(
             suicide_firearm     == 1 ~ "suicide_firearm",
             suicide_poison      == 1 ~ "suicide_poison",

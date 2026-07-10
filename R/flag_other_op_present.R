@@ -15,7 +15,7 @@ flag_other_op_present <- function(processed_df, year = NULL) {
     }
 
     if (year >= 1979 & year <= 1998) {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(other_op_present =
                        case_when(grepl(ucod, pattern = "E8502") &
                                      opioid_death == 1 ~ 1,
@@ -23,7 +23,7 @@ flag_other_op_present <- function(processed_df, year = NULL) {
                                      opioid_death == 1 ~ 1,
                                  TRUE ~ 0))
     } else {
-        new_df <- processed_df %>%
+        new_df <- processed_df |>
             mutate(other_op_present =
                        case_when(grepl(f_records_all, pattern = "T406") &
                                      opioid_death == 1 ~ 1,

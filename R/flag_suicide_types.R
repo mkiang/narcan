@@ -14,11 +14,11 @@
 #' @export
 flag_suicide_types <- function(df, year = NULL) {
     .warn_icd9_only(.detect_year_safe(df, year), "flag_suicide_types")
-    new_df <- df %>%
-        flag_suicide_firearm() %>%
-        flag_suicide_poison() %>%
-        flag_suicide_fall() %>%
-        flag_suicide_suffocation() %>%
+    new_df <- df |>
+        flag_suicide_firearm() |>
+        flag_suicide_poison() |>
+        flag_suicide_fall() |>
+        flag_suicide_suffocation() |>
         flag_suicide_other()
 
     return(new_df)
@@ -38,7 +38,7 @@ flag_suicide_types <- function(df, year = NULL) {
 #' @export
 flag_suicide_firearm <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_firearm")
-    new_df <- df %>%
+    new_df <- df |>
         mutate(suicide_firearm = grepl("X7[234]", ucod) + 0)
 
     return(new_df)
@@ -58,7 +58,7 @@ flag_suicide_firearm <- function(df, year = NULL) {
 #' @export
 flag_suicide_poison <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_poison")
-    new_df <- df %>%
+    new_df <- df |>
         mutate(suicide_poison = grepl("X6\\d{1}", ucod) + 0)
 
     return(new_df)
@@ -78,7 +78,7 @@ flag_suicide_poison <- function(df, year = NULL) {
 #' @export
 flag_suicide_fall <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_fall")
-    new_df <- df %>%
+    new_df <- df |>
         mutate(suicide_fall = grepl("X80", ucod) + 0)
 
     return(new_df)
@@ -98,7 +98,7 @@ flag_suicide_fall <- function(df, year = NULL) {
 #' @export
 flag_suicide_suffocation <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_suffocation")
-    new_df <- df %>%
+    new_df <- df |>
         mutate(suicide_suffocation = grepl("X70", ucod) + 0)
 
     return(new_df)
@@ -118,7 +118,7 @@ flag_suicide_suffocation <- function(df, year = NULL) {
 #' @export
 flag_suicide_other <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_other")
-    new_df <- df %>%
+    new_df <- df |>
         mutate(suicide_other = grepl("U03|X7[156789]|X8[1234]|Y870",
                                    ucod) + 0)
 
