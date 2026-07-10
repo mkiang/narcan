@@ -16,15 +16,14 @@ BugReports: http://github.com/mkiang/narcan/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: 
-    dplyr, 
-    haven, 
-    readr, 
-    rlang, 
-    stringr, 
-    tibble, 
-    tidyr,
-    purrr
+Imports:
+    dplyr,
+    haven,
+    readr,
+    rlang,
+    stringr,
+    tibble,
+    tidyr
 Depends:
     R (>= 3.5)
 Suggests:
