@@ -14,6 +14,8 @@
 #' @importFrom tibble has_name
 #' @export
 flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
+    .check_mcod_df(processed_df, need = "ucod", fn = "flag_drug_deaths")
+
     ## Extract year
     if (is.null(year)) {
         year <- .extract_year(processed_df)

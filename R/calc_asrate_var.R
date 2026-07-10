@@ -17,6 +17,8 @@ calc_asrate_var <- function(df, new_name, death_col, pop_col = pop) {
     ## Poisson-approximation variance in new columns `{new_name}_rate` and
     ## `{new_name}_var`. The rate cannot be reused inside the variance within a
     ## single mutate(), so the ratio is recomputed.
+    .check_mcod_df(df, fn = "calc_asrate_var")
+
     df |>
         mutate(
             "{{ new_name }}_rate" := ({{ death_col }} / {{ pop_col }}) * 10^5,

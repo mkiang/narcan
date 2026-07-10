@@ -22,6 +22,7 @@ flag_opioid_types <- function(processed_df, year = NULL) {
     ##      unspecified
     ## 1 for total number of opioids
     ## 1 for indicator if more than 1 opioids
+    .check_mcod_df(processed_df, fn = "flag_opioid_types")
 
     ## Extract year
     if (is.null(year)) {

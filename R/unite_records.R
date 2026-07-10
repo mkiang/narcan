@@ -14,6 +14,7 @@
 unite_records <- function(icd_df, year = NULL) {
     ## Unite all 20 records columns into a single new column for easier
     ## regexing.
+    .check_mcod_df(icd_df, fn = "unite_records")
 
     ## Extract year ----
     if (is.null(year)) {

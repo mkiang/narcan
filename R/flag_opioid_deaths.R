@@ -18,6 +18,7 @@ flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     ##  - true for ICD9 if any opioid code is in any UCOD or record field
     ##  - true for ICD10 if contains specified UCOD **and** at least
     ##      one specified T code.
+    .check_mcod_df(processed_df, need = "ucod", fn = "flag_opioid_deaths")
 
     ## Extract year
     if (is.null(year)) {

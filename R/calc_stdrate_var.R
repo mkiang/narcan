@@ -19,6 +19,8 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
     ## Returns the age-standardized rate given an age-specific rate column
     ## (asrate_col) and some weights (weight_col). Unit weights are expected.
     ## The standardized columns reuse the input rate/variance names.
+    .check_mcod_df(df, fn = "calc_stdrate_var")
+
     df |>
         group_by(..., .add = TRUE) |>
         summarize(

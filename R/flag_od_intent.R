@@ -12,6 +12,8 @@ flag_od_intent <- function(processed_df, year = NULL) {
     ##
     ## NOTE: This assumes the opioid_death column (created by
     ## flag_opioid_deaths()) already exists.
+    .check_mcod_df(processed_df, need = c("ucod", "drug_death"),
+                   fn = "flag_od_intent")
 
     ## Extract year
     if (is.null(year)) {
