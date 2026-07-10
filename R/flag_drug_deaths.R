@@ -10,7 +10,7 @@
 #' @param keep_cols keep intermediate columns
 #'
 #' @return new dataframe with a drug_death column
-#' @importFrom dplyr select one_of "%>%" mutate
+#' @importFrom dplyr select any_of "%>%" mutate
 #' @importFrom tibble has_name
 #' @export
 flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
@@ -43,7 +43,7 @@ flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     ## Drop all intermediate columns?
     if (!keep_cols) {
         df <- suppressMessages(suppressWarnings(
-            dplyr::select(df, one_of(c(original_cols, "drug_death")))
+            dplyr::select(df, any_of(c(original_cols, "drug_death")))
         ))
     }
 

@@ -1,8 +1,6 @@
-# Bucket B: summarize_binary_columns() ERRORS today -- its first operation is
-# group_by(..., add = TRUE), and `add` is defunct in dplyr 1.2 (Phase 0). The
-# KNOWN-BUG test locks the current failure; the desired-behavior test is skipped
-# until the Phase 2 `.add` (and summarize_all -> across) fix lands, then un-skip
-# it and DELETE the KNOWN-BUG test in the same commit.
+# summarize_binary_columns(): Phase 2 fixed the defunct group_by(add=) -> .add,
+# summarize_all -> summarize(across(everything())), and the by-less join ->
+# explicit by = group_vars(df). Characterizes per-group death counts + flag sums.
 
 sbc_input <- function() {
     tibble::tibble(
@@ -14,12 +12,7 @@ sbc_input <- function() {
     )
 }
 
-test_that("KNOWN BUG: summarize_binary_columns() errors on defunct group_by(add=)", {
-    expect_error(summarize_binary_columns(sbc_input()), regexp = "add")
-})
-
 test_that("summarize_binary_columns() counts deaths and sums flag columns per group", {
-    skip("Bucket B: un-skip after Phase 2 fixes group_by(add=)/summarize_all; delete the KNOWN BUG test above")
     out <- suppressMessages(summarize_binary_columns(sbc_input()))
 
     # two groups: (2015,0,"0-4") from 2 rows, (2015,5,"5-9") from 1 row

@@ -8,26 +8,20 @@
 #' @param icd9_df an ICD-9 dataframe
 #'
 #' @return dataframe
-#' @importFrom dplyr mutate_at starts_with vars
+#' @importFrom dplyr mutate across starts_with
 #' @export
 clean_icd9_data <- function(icd9_df) {
     ## Clean up names
     df <- rename_ni_flag(icd9_df)
 
-    ## Fix 3-character codes in UCOD
-    df <- mutate_at(df, vars(ucod), pad_3char_codes)
+    ## Fix 3-character codes in UCOD, then add the E prefix to external causes
+    df <- mutate(df, ucod = pad_3char_codes(ucod))
+    df <- mutate(df, ucod = prefix_e_to_ucod(ucod))
 
-    ## Add prefix to UCOD
-    df <- mutate_at(df, vars(ucod), prefix_e_to_ucod)
-
-    ## Remove fifth char from record_
-    df <- mutate_at(df, vars(starts_with("record_")), trim_5char_record)
-
-    ## Fix traililng white space in record_
-    df <- mutate_at(df, vars(starts_with("record_")), trim_trailing_whitespace)
-
-    ## Pad 3 char record_ codes ----
-    df <- mutate_at(df, vars(starts_with("record_")), pad_3char_codes)
+    ## Remove fifth char, trim trailing whitespace, and pad 3-char record_ codes
+    df <- mutate(df, across(starts_with("record_"), trim_5char_record))
+    df <- mutate(df, across(starts_with("record_"), trim_trailing_whitespace))
+    df <- mutate(df, across(starts_with("record_"), pad_3char_codes))
 
     return(df)
 }

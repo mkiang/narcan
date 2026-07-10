@@ -6,7 +6,8 @@
 #' @param ... grouping variables (in addition to year and age)
 #'
 #' @return dataframe
-#' @importFrom dplyr group_by summarize_all left_join quos
+#' @importFrom dplyr group_by group_vars summarize across everything left_join n
+#' @importFrom rlang quos !!!
 #' @export
 summarize_binary_columns <- function(df, ...) {
     ## Takes a tibble that has already been flagged with opioid columns and
@@ -15,13 +16,13 @@ summarize_binary_columns <- function(df, ...) {
     add_groups <- quos(...)
     df <- df %>%
         group_by(year, age, age_cat) %>%
-        group_by(!!!add_groups, add = TRUE)
+        group_by(!!!add_groups, .add = TRUE)
 
-    o_df <- summarize_all(df, sum)
+    o_df <- summarize(df, across(everything(), sum))
 
     n_df <- df %>%
         summarize(deaths = n()) %>%
-        left_join(o_df)
+        left_join(o_df, by = group_vars(df))
 
     return(n_df)
 }

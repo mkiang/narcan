@@ -8,7 +8,7 @@
 #' @param keep_cols keep intermediate columns
 #'
 #' @return a new dataframe with a binary maternal_death column
-#' @importFrom dplyr select one_of "%>%" mutate
+#' @importFrom dplyr select any_of "%>%" mutate
 #' @importFrom tibble has_name
 #' @export
 flag_maternal_deaths <- function (processed_df, year = NULL,
@@ -47,7 +47,7 @@ flag_maternal_deaths <- function (processed_df, year = NULL,
     if (!keep_cols) {
         df <- suppressMessages(suppressWarnings(
             dplyr::select(
-                df, dplyr::one_of(c(original_cols, "maternal_death"))
+                df, dplyr::any_of(c(original_cols, "maternal_death"))
             )
         ))
     }

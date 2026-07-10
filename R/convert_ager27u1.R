@@ -4,7 +4,7 @@
 #' @param remove_age27 once a new column is created, remove the old age27
 #'
 #' @return dataframe
-#' @importFrom dplyr mutate select case_when
+#' @importFrom dplyr mutate select case_when between
 #' @export
 convert_ager27u1 <- function(icd_df, remove_age27 = TRUE) {
     df <- icd_df %>%

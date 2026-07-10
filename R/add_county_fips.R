@@ -4,7 +4,7 @@
 #' @param county_vector specify if we should use countyoc or countyrs
 #'
 #' @return same dataframe with new county_fips column
-#' @importFrom dplyr mutate left_join pull
+#' @importFrom dplyr mutate left_join pull transmute
 #' @importFrom stringr str_replace_all
 #' @export
 add_county_fips <- function(df, county_vector) {

@@ -9,7 +9,7 @@
 #' @param keep_cols keep intermediate columns
 #'
 #' @return a new dataframe with a binary heroin_present column
-#' @importFrom dplyr select one_of "%>%" mutate
+#' @importFrom dplyr select any_of "%>%" mutate
 #' @importFrom tibble has_name
 #' @export
 flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
@@ -56,7 +56,7 @@ flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
     if (!keep_cols) {
         new_df <- suppressMessages(suppressWarnings(
             dplyr::select(
-                new_df, dplyr::one_of(c(original_cols, "heroin_present"))
+                new_df, dplyr::any_of(c(original_cols, "heroin_present"))
                 )
         ))
     }

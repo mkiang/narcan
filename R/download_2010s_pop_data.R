@@ -10,7 +10,7 @@
 #' @return Dataframe with population counts by age and sex
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom readr read_csv
-#' @import dplyr
+#' @importFrom dplyr select rename mutate case_when filter group_by ungroup summarize_all starts_with
 #' @importFrom stats setNames
 #' @importFrom tidyr gather
 

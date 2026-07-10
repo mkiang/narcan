@@ -7,7 +7,7 @@
 #' @param keep_cols keep intermediate columns
 #'
 #' @return a new dataframe with 1 additional column
-#' @importFrom dplyr mutate case_when select "%>%" one_of
+#' @importFrom dplyr mutate case_when select "%>%" any_of
 #' @importFrom tibble has_name
 #' @export
 flag_methadone_present <- function(processed_df, year = NULL,
@@ -43,7 +43,7 @@ flag_methadone_present <- function(processed_df, year = NULL,
     if (!keep_cols) {
         new_df <- suppressMessages(suppressWarnings(
             dplyr::select(new_df,
-                          one_of(c(original_cols, "methadone_present")))
+                          any_of(c(original_cols, "methadone_present")))
         ))
     }
 

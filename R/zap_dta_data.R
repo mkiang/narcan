@@ -8,16 +8,18 @@
 #'
 #' @return dataframe
 #' @importFrom haven zap_formats zap_labels zap_missing zap_empty
-#' @importFrom dplyr mutate_if
+#' @importFrom dplyr mutate across where
 #' @export
 zap_dta_data <- function(dta_df) {
     ## ZAP EVERYTHING! Also change all NaNs to NA.
     dta_df <- dta_df %>%
-        dplyr::mutate_if(is.character, funs(haven::zap_empty(.))) %>%
+        dplyr::mutate(dplyr::across(dplyr::where(is.character),
+                                    \(x) haven::zap_empty(x))) %>%
         haven::zap_formats(.) %>%
         haven::zap_labels(.) %>%
         haven::zap_missing(.) %>%
-        dplyr::mutate_if(is.numeric, funs(ifelse(is.nan(.), NA_real_, .)))
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric),
+                                    \(x) ifelse(is.nan(x), NA_real_, x)))
 
     ## Remove "" and replace with NA
     dta_df[dta_df == ""] <- NA

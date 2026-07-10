@@ -11,6 +11,7 @@
 #'
 #' @return dataframe with two new columns
 #' @importFrom rlang := !! !!! enquo quos quo_name
+#' @importFrom dplyr group_by summarize
 #' @importFrom stats weighted.mean
 #' @export
 calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
@@ -26,7 +27,7 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
     vcol_name  <- paste0(quo_name(asvar_col))
 
     new_df <- df %>%
-        group_by(!!!add_grps, add = TRUE) %>%
+        group_by(!!!add_grps, .add = TRUE) %>%
         summarize(!!rcol_name := weighted.mean(!!asrate_col, !!weight_col,
                                                na.rm = TRUE),
                   !!vcol_name := sum((!!weight_col)^2 * (!!asvar_col),
