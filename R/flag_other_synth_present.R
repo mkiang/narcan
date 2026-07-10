@@ -18,7 +18,7 @@ flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0)
         year <- .extract_year(processed_df)
     }
 
-    if (year >= 1979 & year <= 1998) {
+    if (.is_icd9(year)) {
         new_df <- processed_df |>
             mutate(other_synth_present = missing_val)
     } else {

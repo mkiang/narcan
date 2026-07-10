@@ -21,7 +21,7 @@ unite_records <- function(icd_df, year = NULL) {
     }
 
     ## For ICD-9 dataframes
-    if (year >= 1979 & year <= 1998) {
+    if (.is_icd9(year)) {
         ## ICD-9 record codes in [800, 999] need an E/N prefix set by the
         ## paired nature-of-injury flag. Build the 20 f_record_ columns
         ## pairwise (base R Map; across() cannot walk two column sets in
@@ -36,7 +36,7 @@ unite_records <- function(icd_df, year = NULL) {
             unite(f_records_all, starts_with("f_record_"), sep = " ") |>
             mutate(f_records_all = gsub(f_records_all,
                                         pattern = " NA", replacement = ""))
-    } else if (year >= 1999) {
+    } else if (.is_icd10(year)) {
         ## NOTE: Some random ICD10 years will still have an rnifla_ column even
         ##      though they are all blank. We drop them here to keep them
         ##      conformable with all other years.

@@ -36,7 +36,7 @@ flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     }
 
     ## Flag opioid deaths according to ICD definition
-    if (year >= 1979 & year <= 1998) {
+    if (.is_icd9(year)) {
         new_df <- processed_df |>
             dplyr::mutate(opioid_death =
                        (grepl(.regex_opioid_icd9(), ucod) |

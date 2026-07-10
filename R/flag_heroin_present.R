@@ -34,7 +34,7 @@ flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
             flag_opioid_deaths(year = year)
     }
 
-    if (year >= 1979 & year <= 1998) {
+    if (.is_icd9(year)) {
         new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(

@@ -23,7 +23,7 @@ flag_methadone_present <- function(processed_df, year = NULL,
             unite_records(year = year)
         }
 
-    if (year >= 1979 & year <= 1998) {
+    if (.is_icd9(year)) {
         new_df <- processed_df |>
             mutate(methadone_present =
                        case_when(grepl(ucod, pattern = "E8501") &

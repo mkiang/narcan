@@ -66,3 +66,22 @@
     }
     invisible(NULL)
 }
+
+#' Is this an ICD-9 data year? (US MCOD coded causes in ICD-9 for 1979-1998)
+#'
+#' Central definition of the ICD-9 era boundary shared by the flag_* family
+#' and unite_records() so the magic numbers live in one place.
+#'
+#' @param year a single year
+#' @return logical
+.is_icd9 <- function(year) {
+    year >= 1979 & year <= 1998
+}
+
+#' Is this an ICD-10 data year? (US MCOD adopted ICD-10 from 1999)
+#'
+#' @param year a single year
+#' @return logical
+.is_icd10 <- function(year) {
+    year >= 1999
+}

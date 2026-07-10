@@ -14,7 +14,7 @@ flag_other_op_present <- function(processed_df, year = NULL) {
         year <- .extract_year(processed_df)
     }
 
-    if (year >= 1979 & year <= 1998) {
+    if (.is_icd9(year)) {
         new_df <- processed_df |>
             mutate(other_op_present =
                        case_when(grepl(ucod, pattern = "E8502") &
