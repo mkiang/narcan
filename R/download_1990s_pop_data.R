@@ -11,7 +11,7 @@
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom readr read_fwf fwf_positions
 #' @importFrom dplyr mutate select filter
-#' @importFrom tidyr gather
+#' @importFrom tidyr pivot_longer
 .download_1990s_pop_data <- function(filter_race = TRUE) {
     ## Files can be found at the `base_url` defined below.
     ##
@@ -69,14 +69,14 @@
         ## Reshape females
         female_df <- temp_df |>
             select(year, age_years, contains("_female")) |>
-            gather(race, pop, total_female:nhapi_female) |>
+            pivot_longer(total_female:nhapi_female, names_to = "race", values_to = "pop") |>
             mutate(sex = "female",
                    race = gsub(race, pattern = "_female", replacement = ""))
 
         ## Reshape males
         male_df <- temp_df |>
             select(year, age_years, contains("_male")) |>
-            gather(race, pop, total_male:nhapi_male) |>
+            pivot_longer(total_male:nhapi_male, names_to = "race", values_to = "pop") |>
             mutate(sex = "male",
                    race = gsub(race, pattern = "_male", replacement = ""))
 

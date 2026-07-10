@@ -11,7 +11,7 @@
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom readr read_csv
 #' @importFrom dplyr select rename mutate case_when filter group_by ungroup summarize_all starts_with
-#' @importFrom tidyr gather
+#' @importFrom tidyr pivot_longer
 
 .download_2010s_pop_data <- function(filter_race = TRUE) {
     ## Source: paste0("https://www2.census.gov/programs-surveys/",
@@ -82,7 +82,8 @@
 
     ## Reshape
     temp_df <- temp_df |>
-        gather(year, value = pop, dplyr::starts_with("popestimate"))
+        pivot_longer(dplyr::starts_with("popestimate"),
+                     names_to = "year", values_to = "pop")
 
     ## Fix year and sex columns
     temp_df <- temp_df |>

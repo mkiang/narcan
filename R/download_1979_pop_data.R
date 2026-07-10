@@ -9,7 +9,7 @@
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom readr read_csv
 #' @importFrom dplyr mutate select ends_with contains
-#' @importFrom tidyr gather
+#' @importFrom tidyr pivot_longer
 
 .download_1979_pop_data <- function() {
     ## Downloads 1979 data. "Documentation" can be found here:
@@ -39,21 +39,21 @@
     ## Both sexes
     both_sex <- temp_df |>
         select(age_years, year, ends_with("_both")) |>
-        gather(race, pop, total_both:other_both) |>
+        pivot_longer(total_both:other_both, names_to = "race", values_to = "pop") |>
         mutate(race = gsub(race, pattern = "_both", replacement = ""),
                sex = "both")
 
     ## Females
     females <- temp_df |>
         select(age_years, year, ends_with("_female")) |>
-        gather(race, pop, total_female:other_female) |>
+        pivot_longer(total_female:other_female, names_to = "race", values_to = "pop") |>
         mutate(race = gsub(race, pattern = "_female", replacement = ""),
                sex = "female")
 
     ## Males
     males <- temp_df |>
         select(age_years, year, ends_with("_male")) |>
-        gather(race, pop, total_male:other_male) |>
+        pivot_longer(total_male:other_male, names_to = "race", values_to = "pop") |>
         mutate(race = gsub(race, pattern = "_male", replacement = ""),
                sex = "male")
 

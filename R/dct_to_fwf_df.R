@@ -9,7 +9,7 @@
 #' @param natality set to TRUE if you want to download natality dictionaries
 #'
 #' @return dataframe
-#' @importFrom tibble as_data_frame
+#' @importFrom tibble as_tibble
 #' @source http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
 #' @source http://www.nber.org/data/vital-statistics-natality-data.html
 .dct_to_fwf_df <- function(year, natality = FALSE) {
@@ -58,10 +58,10 @@
     col_types <- gsub("f", "n", col_types)
 
     ## Return
-    df <- tibble::as_data_frame(list(name  = col_names,
-                                     type  = col_types,
-                                     start = col_start,
-                                     end   = col_ends))
+    df <- tibble::as_tibble(list(name  = col_names,
+                                 type  = col_types,
+                                 start = col_start,
+                                 end   = col_ends))
 
     return(df)
 }
