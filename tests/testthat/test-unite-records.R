@@ -22,3 +22,12 @@ test_that("ICD-9 unite_records (after clean_icd9_data) drops record_ and rnifla_
     expect_false(any(grepl("^rnifla", names(out))))
     expect_false(any(grepl(" NA", out$f_records_all)))
 })
+
+test_that("unite_records errors on an out-of-range year instead of silently returning stats::df", {
+    # A 2-digit datayear (e.g. 93) matches neither the 1979-1998 nor the >=1999
+    # branch; before the else-guard this fell through and returned stats::df.
+    expect_error(
+        unite_records(flag_icd10_fixture(), year = 93L),
+        "Cannot unite records"
+    )
+})

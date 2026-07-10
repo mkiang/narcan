@@ -22,32 +22,17 @@ unite_records <- function(icd_df, year = NULL) {
 
     ## For ICD-9 dataframes
     if (year >= 1979 & year <= 1998) {
-        ## Make sure record columns are appropriate prefixed
-        df <- icd_df |>
-            mutate(f_record_1  = prefix_to_record(record_1,  rnifla_1),
-                   f_record_2  = prefix_to_record(record_2,  rnifla_2),
-                   f_record_3  = prefix_to_record(record_3,  rnifla_3),
-                   f_record_4  = prefix_to_record(record_4,  rnifla_4),
-                   f_record_5  = prefix_to_record(record_5,  rnifla_5),
-                   f_record_6  = prefix_to_record(record_6,  rnifla_6),
-                   f_record_7  = prefix_to_record(record_7,  rnifla_7),
-                   f_record_8  = prefix_to_record(record_8,  rnifla_8),
-                   f_record_9  = prefix_to_record(record_9,  rnifla_9),
-                   f_record_10 = prefix_to_record(record_10, rnifla_10),
-                   f_record_11 = prefix_to_record(record_11, rnifla_11),
-                   f_record_12 = prefix_to_record(record_12, rnifla_12),
-                   f_record_13 = prefix_to_record(record_13, rnifla_13),
-                   f_record_14 = prefix_to_record(record_14, rnifla_14),
-                   f_record_15 = prefix_to_record(record_15, rnifla_15),
-                   f_record_16 = prefix_to_record(record_16, rnifla_16),
-                   f_record_17 = prefix_to_record(record_17, rnifla_17),
-                   f_record_18 = prefix_to_record(record_18, rnifla_18),
-                   f_record_19 = prefix_to_record(record_19, rnifla_19),
-                   f_record_20 = prefix_to_record(record_20, rnifla_20)) |>
-            select(-starts_with("record_"), -starts_with("rnifla_"))
+        ## ICD-9 record codes in [800, 999] need an E/N prefix set by the
+        ## paired nature-of-injury flag. Build the 20 f_record_ columns
+        ## pairwise (base R Map; across() cannot walk two column sets in
+        ## lockstep), then drop the source columns and collapse. No purrr.
+        rec_cols <- paste0("record_", 1:20)
+        nif_cols <- paste0("rnifla_", 1:20)
+        icd_df[paste0("f_record_", 1:20)] <-
+            Map(prefix_to_record, icd_df[rec_cols], icd_df[nif_cols])
 
-        ## Unite f_record_ columns
-        df <- df |>
+        df <- icd_df |>
+            select(-starts_with("record_"), -starts_with("rnifla_")) |>
             unite(f_records_all, starts_with("f_record_"), sep = " ") |>
             mutate(f_records_all = gsub(f_records_all,
                                         pattern = " NA", replacement = ""))
@@ -60,6 +45,13 @@ unite_records <- function(icd_df, year = NULL) {
             mutate(f_records_all = gsub(f_records_all,
                                         pattern = " NA", replacement = "")) |>
             select(-starts_with("rnifla"))
+    } else {
+        stop(sprintf(
+            paste0("Cannot unite records for year %s: expected a 4-digit year ",
+                   "in 1979-1998 (ICD-9) or >= 1999 (ICD-10). Two-digit ",
+                   "`datayear` values (e.g. 93) are unsupported -- pass an ",
+                   "explicit 4-digit `year`."),
+            year), call. = FALSE)
     }
 
     return(df)
