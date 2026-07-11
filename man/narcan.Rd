@@ -11,8 +11,9 @@ R package for working with multiple cause of death data
 \seealso{
 Useful links:
 \itemize{
-  \item \url{http://github.com/mkiang/narcan}
-  \item Report bugs at \url{http://github.com/mkiang/narcan/issues}
+  \item \url{https://github.com/mkiang/narcan}
+  \item \url{https://mkiang.github.io/narcan/}
+  \item Report bugs at \url{https://github.com/mkiang/narcan/issues}
 }
 
 }

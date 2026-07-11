@@ -1,3 +1,43 @@
+# narcan 0.3.0
+
+## Modernized for current R and tidyverse
+
+This release brings a long-dormant package up to date with modern R and
+tidyverse conventions and fixes several correctness issues, while preserving the
+existing analysis behavior. `R CMD check` is clean (0 errors, 0 warnings).
+
+### Changed (behavior)
+
+* **Minimum R is now 4.2** -- the package uses the native `|>` pipe internally.
+* **The `flag_suicide_*` family gains a `year` argument and now warns on pre-1999
+  (ICD-9) data** instead of silently returning all zeros. ICD-9 suicide coding is
+  not yet implemented; the warning fires only when a year is determinable and
+  `< 1999`.
+* **`state_abbrev_to_fips()` now zero-pads** two-digit FIPS codes (e.g. `"06"` for
+  California, not `"6"`), matching `add_county_fips()` and the NCHS convention.
+* **`unite_records()` now errors on a year outside 1979-1998 / `>= 1999`** (for
+  example a two-digit `datayear` such as `93`) instead of silently returning an
+  unrelated object. Pass an explicit four-digit `year`.
+
+### New
+
+* The main data-consuming functions (`unite_records()`, `flag_drug_deaths()`,
+  `flag_opioid_deaths()`, `flag_opioid_types()`, `flag_od_intent()`,
+  `calc_asrate_var()`, `calc_stdrate_var()`, `add_pop_counts()`, `add_std_pop()`)
+  now emit a plain **warning** when the first argument is not a data frame or is
+  missing a required column, so a mistake surfaces by name rather than as a
+  cryptic downstream error. These checks never abort.
+
+### Internal
+
+* Dependency calls deprecated or defunct in current dplyr were updated with no
+  change in output: `funs()` -> `across()`, `mutate_at(vars())` -> `mutate()`,
+  `one_of()` -> `any_of()`, and `group_by(add = TRUE)` -> `group_by(.add = TRUE)`.
+* Converted internal code to the native `|>` pipe, modernized the rate/summary
+  helpers' non-standard evaluation to `{{ }}` embracing, and replaced
+  `tidyr::gather()` with `tidyr::pivot_longer()`.
+* Removed the unused `purrr` dependency.
+
 # narcan 0.2.1
 
 ## Coding-aware race/Hispanic recode functions
