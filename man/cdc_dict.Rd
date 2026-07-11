@@ -12,7 +12,7 @@ A dictionary
 }
 }
 \source{
-\url{ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/}
+\url{https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/}
 }
 \usage{
 cdc_dict

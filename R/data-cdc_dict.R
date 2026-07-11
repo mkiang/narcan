@@ -11,6 +11,6 @@
 #'   \item{key}{chr, year of file}
 #'   \item{value}{chr, URL of file}
 #' }
-#' @source \url{ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/}
+#' @source \url{https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/}
 #' @keywords datasets
 "cdc_dict"

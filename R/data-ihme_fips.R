@@ -16,6 +16,6 @@
 #'   \item{orig_fips}{character, FIPS code from the US Census}
 #'   \item{ihme_fips}{character, temporally stable FIPS code from IHME}
 #' }
-#' @source \url{http://jamanetwork.com/journals/jama/fullarticle/2592499}
+#' @source \url{https://jamanetwork.com/journals/jama/fullarticle/2592499}
 #' @keywords datasets
 "ihme_fips"

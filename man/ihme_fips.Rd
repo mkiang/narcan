@@ -14,7 +14,7 @@ A data frame with 77 rows and 4 columns
 }
 }
 \source{
-\url{http://jamanetwork.com/journals/jama/fullarticle/2592499}
+\url{https://jamanetwork.com/journals/jama/fullarticle/2592499}
 }
 \usage{
 ihme_fips
