@@ -1,0 +1,65 @@
+url: https://mkiang.github.io/narcan/
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Overview
+  contents:
+  - narcan-package
+- title: Import & download
+  desc: Read raw fixed-width MCOD files and download source data.
+  contents:
+  - import_mcod_fwf
+  - starts_with("download_")
+  - mkdir_p
+- title: Clean & reshape records
+  desc: Prepare imported records for flagging.
+  contents:
+  - unite_records
+  - clean_icd9_data
+  - zap_dta_data
+  - subset_residents
+  - prefix_to_record
+  - prefix_e_to_ucod
+  - pad_3char_codes
+  - trim_5char_record
+  - trim_trailing_whitespace
+  - rename_ni_flag
+- title: Flag & label deaths (ISW7)
+  desc: Classify drug, opioid, intent, suicide, and maternal deaths.
+  contents:
+  - starts_with("flag_")
+  - starts_with("label_")
+- title: Recode demographics & geography
+  desc: Year-aware race, Hispanic origin, age, occupation, and FIPS recodes.
+  contents:
+  - remap_race
+  - categorize_race
+  - categorize_hspanicr
+  - add_hspanicr_column
+  - starts_with("categorize_age")
+  - starts_with("convert_ager")
+  - add_county_fips
+  - state_abbrev_to_fips
+  - add_coded_occupation
+- title: Population & rates
+  desc: Population denominators and (standardized) mortality rates.
+  contents:
+  - add_pop_counts
+  - add_std_pop
+  - calc_asrate_var
+  - calc_stdrate_var
+  - summarize_binary_columns
+- title: Datasets
+  desc: Bundled reference tables and crosswalks.
+  contents:
+  - appalachia_fips
+  - cdc_dict
+  - ihme_fips
+  - live_births
+  - mcod_fwf_dicts
+  - mcod_public_fwf_dicts
+  - pop_est
+  - st_fips_map
+  - std_pops
