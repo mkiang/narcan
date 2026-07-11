@@ -4,7 +4,7 @@
 "_PACKAGE"
 
 ## These are just here to declare globals so I don't get notes on R CMD check
-if(getRversion() >= "2.15.1") {
+if (getRversion() >= "2.15.1") {
     ## Add global variables for download_standard_pops()
     utils::globalVariables(c("standard", "age", "age_cat",
                              "standard_cat", "pop"))
