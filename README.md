@@ -5,4 +5,7 @@
 An R package for working with [multiple cause of death micro-data](https://wonder.cdc.gov/mcd.html). 
 
 ## Warning
-**This package is no longer actively maintained.** 
+
+**This package is not intended for public use.** It is occasionally maintained
+for personal use only, so bugs may abound. User beware.
+

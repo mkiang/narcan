@@ -4,7 +4,6 @@
 ^_pkgdown\.yml$
 ^docs$
 ^data-raw$
-^README\.Rmd$
 ^CITATION\.cff$
 ^LICENSE\.md$
 ^\.RData$
