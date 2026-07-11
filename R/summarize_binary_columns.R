@@ -26,7 +26,25 @@ summarize_binary_columns <- function(df, ...) {
         group_by(.data$year, .data$age, .data$age_cat) |>
         group_by(..., .add = TRUE)
 
-    o_df <- summarize(df, across(everything(), sum))
+    ## Guard: everything() sums every non-grouping column as if it were a 0/1
+    ## flag. Warn on any column that is not binary (would be summed as a total)
+    ## and on any NA (summed with na.rm = TRUE below, so a flag total can then
+    ## differ from `deaths = n()`).
+    sum_cols <- setdiff(names(df), group_vars(df))
+    not_binary <- sum_cols[vapply(
+        sum_cols, function(cc) !all(df[[cc]] %in% c(0, 1, NA)), logical(1)
+    )]
+    if (length(not_binary) > 0) {
+        warning("Non-binary column(s) summed as if they were 0/1 flags: ",
+                paste(not_binary, collapse = ", "),
+                ". Remove non-flag columns before summarizing.", call. = FALSE)
+    }
+    if (any(vapply(sum_cols, function(cc) anyNA(df[[cc]]), logical(1)))) {
+        warning("NA values in flag column(s); summed with na.rm = TRUE, so flag ",
+                "totals may not equal `deaths`.", call. = FALSE)
+    }
+
+    o_df <- summarize(df, across(everything(), \(x) sum(x, na.rm = TRUE)))
 
     n_df <- df |>
         summarize(deaths = n()) |>

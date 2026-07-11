@@ -5,9 +5,15 @@
 #' `datayear` for 1979-1995. This checks `year` first, then falls back to
 #' `datayear`, and errors if neither column is present.
 #'
+#' The 1979-1995 files store `datayear` as a two-digit value (e.g. 85 for 1985).
+#' A two-digit value is normalized to its four-digit year (+1900), since every
+#' two-digit `datayear` is a 19xx year. Without this, downstream year dispatch
+#' (`.dispatch_era()`, `remap_race()`, `categorize_hspanicr()`) sees a value like
+#' 85 that matches no coding era and either errors or silently mislabels.
+#'
 #' @param df dataframe to extract year from
 #'
-#' @return year as integer
+#' @return year as integer (four-digit)
 #' @keywords internal
 .extract_year <- function(df) {
     if (!is.null(df$year)) {
@@ -20,6 +26,14 @@
 
     if (length(year) > 1) {
         stop("Too many years.")
+    }
+
+    ## Coerce to numeric so a character/factor datayear (e.g. "85" read from a
+    ## CSV) compares numerically, not lexicographically, then normalize a
+    ## two-digit datayear (79-95) to its four-digit year.
+    year <- suppressWarnings(as.numeric(as.character(year)))
+    if (!is.na(year) && year < 100) {
+        year <- year + 1900
     }
 
     return(year)
@@ -102,6 +116,9 @@
 #' @return "icd9" or "icd10"
 #' @keywords internal
 .dispatch_era <- function(year) {
+    ## Coerce so a character/factor year compares numerically -- a lexicographic
+    ## comparison would misroute a value like "85" into the ICD-10 branch.
+    year <- suppressWarnings(as.numeric(as.character(year)))
     if (length(year) != 1L || is.na(year)) {
         stop("`year` must be a single, non-missing value.", call. = FALSE)
     }

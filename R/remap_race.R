@@ -49,7 +49,12 @@ remap_race <- function(icd_df, year = NULL) {
                 "(2020 and earlier).")
         icd_df$race <- .remap_race_2022plus(icd_df$racer5)
     } else {
-        warning("Invalid year")
+        stop(sprintf(
+            paste0("remap_race(): cannot map race for year %s. Expected a ",
+                   "4-digit MCOD data year >= 1979. (A 2-digit datayear is ",
+                   "normalized by .extract_year(); pass a 4-digit `year` if you ",
+                   "supplied it explicitly.)"),
+            year), call. = FALSE)
     }
 
     return(icd_df)

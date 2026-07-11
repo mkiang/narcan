@@ -42,16 +42,16 @@ unite_records <- function(icd_df, year = NULL) {
         df <- icd_df |>
             select(-starts_with("record_"), -starts_with("rnifla_")) |>
             unite(f_records_all, starts_with("f_record_"), sep = " ") |>
-            mutate(f_records_all = gsub(f_records_all,
-                                        pattern = " NA", replacement = ""))
+            mutate(f_records_all = trimws(gsub("\\s+", " ",
+                                        gsub("\\bNA\\b", "", f_records_all))))
     } else {
         ## NOTE: Some random ICD10 years will still have an rnifla_ column even
         ##      though they are all blank. We drop them here to keep them
         ##      conformable with all other years.
         df <- icd_df |>
             unite(f_records_all, starts_with("record_"), sep = " ") |>
-            mutate(f_records_all = gsub(f_records_all,
-                                        pattern = " NA", replacement = "")) |>
+            mutate(f_records_all = trimws(gsub("\\s+", " ",
+                                        gsub("\\bNA\\b", "", f_records_all)))) |>
             select(-starts_with("rnifla"))
     }
 

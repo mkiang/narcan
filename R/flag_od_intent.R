@@ -19,8 +19,11 @@ flag_od_intent <- function(processed_df, year = NULL) {
     ## Makes 4 new columns indicating intent of the UCOD for overdoses.
     ## Intents are: unintended, suicide, homicide, and undetermined.
     ##
-    ## NOTE: This assumes the opioid_death column (created by
-    ## flag_opioid_deaths()) already exists.
+    ## Every intent flag is gated on `drug_death == 1`, so a poisoning UCOD that
+    ## is not a drug death under narcan's combined rule (drug UCOD AND a
+    ## contributory T-code) yields all-zero intents -> "not_overdose", matching
+    ## the death-flag definition. Requires the `drug_death` column from
+    ## flag_drug_deaths().
     .check_mcod_df(processed_df, need = c("ucod", "drug_death"),
                    fn = "flag_od_intent")
 
@@ -33,15 +36,19 @@ flag_od_intent <- function(processed_df, year = NULL) {
         new_df <- processed_df |>
             mutate(
                 unintended_intent = case_when(
-                    grepl(ucod, pattern = "\\<E85[012345678]\\d{1}\\>") ~ 1,
+                    drug_death == 1 &
+                        grepl(ucod, pattern = "\\<E85[012345678]\\d{1}\\>") ~ 1,
                     TRUE ~ 0),
                 suicide_intent = case_when(
-                    grepl(ucod, pattern = "\\<E950[012345]\\>") ~ 1,
+                    drug_death == 1 &
+                        grepl(ucod, pattern = "\\<E950[012345]\\>") ~ 1,
                     TRUE ~ 0),
-                homicide_intent = case_when(grepl(ucod, pattern = "\\<E9620\\>") ~ 1,
-                                            TRUE ~ 0),
+                homicide_intent = case_when(
+                    drug_death == 1 & grepl(ucod, pattern = "\\<E9620\\>") ~ 1,
+                    TRUE ~ 0),
                 undetermined_intent = case_when(
-                    grepl(ucod, pattern = "\\<E980[012345]\\>") ~ 1,
+                    drug_death == 1 &
+                        grepl(ucod, pattern = "\\<E980[012345]\\>") ~ 1,
                     drug_death == 1 &
                         unintended_intent == 0 &
                         suicide_intent == 0 &
@@ -51,13 +58,19 @@ flag_od_intent <- function(processed_df, year = NULL) {
         new_df <- processed_df |>
             mutate(
                 unintended_intent = case_when(
-                    grepl(ucod, pattern = "\\<X4[01234]\\d{0,1}\\>") ~ 1, TRUE ~ 0),
+                    drug_death == 1 &
+                        grepl(ucod, pattern = "\\<X4[01234]\\d{0,1}\\>") ~ 1,
+                    TRUE ~ 0),
                 suicide_intent = case_when(
-                    grepl(ucod, pattern = "\\<X6[01234]\\d{0,1}\\>") ~ 1, TRUE ~ 0),
+                    drug_death == 1 &
+                        grepl(ucod, pattern = "\\<X6[01234]\\d{0,1}\\>") ~ 1,
+                    TRUE ~ 0),
                 homicide_intent = case_when(
-                    grepl(ucod, pattern = "\\<X85\\d{0,1}\\>") ~ 1, TRUE ~ 0),
+                    drug_death == 1 & grepl(ucod, pattern = "\\<X85\\d{0,1}\\>") ~ 1,
+                    TRUE ~ 0),
                 undetermined_intent = case_when(
-                    grepl(ucod, pattern = "\\<Y1[01234]\\d{0,1}\\>") ~ 1,
+                    drug_death == 1 &
+                        grepl(ucod, pattern = "\\<Y1[01234]\\d{0,1}\\>") ~ 1,
                     drug_death == 1 &
                         unintended_intent == 0 &
                         suicide_intent == 0 &

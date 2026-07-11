@@ -10,7 +10,7 @@ state_abbrev_to_fips(column)
 \item{column}{a vector of strings with state abbreviations}
 }
 \value{
-a new vector with state FIPS
+a new vector with state FIPS (`NA` for unrecognized abbreviations)
 }
 \description{
 Replace state abbreviations with their corresponding FIPS code

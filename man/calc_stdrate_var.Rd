@@ -13,7 +13,9 @@ calc_stdrate_var(df, asrate_col, asvar_col, ..., weight_col = unit_w)
 
 \item{asvar_col}{variance of the age-specific rate}
 
-\item{...}{grouping variables (in addition to year and race)}
+\item{...}{grouping variables. These are **not** added automatically: pass
+every dimension you want preserved in the output (e.g. `year`, `race`), or
+pre-group `df`. Age bins are collapsed into the standardized rate.}
 
 \item{weight_col}{column of (unit) weights}
 }
@@ -26,10 +28,11 @@ will return the age-standardized rate and variance.
 }
 \examples{
 df <- data.frame(
+    year = c(2015, 2015),
     race = c("white", "white"),
     opioid_rate = c(5, 7),
     opioid_var = c(0.1, 0.2),
     unit_w = c(0.5, 0.5)
 )
-calc_stdrate_var(df, opioid_rate, opioid_var, race)
+calc_stdrate_var(df, opioid_rate, opioid_var, year, race)
 }

@@ -30,14 +30,14 @@ which era or tier the data came from.
 Availability matrix (coded occupation/industry):
 \tabular{lll}{
   \strong{Years} \tab \strong{Scheme} \tab \strong{Notes} \cr
-  1985-1999 \tab `3digit_census` \tab 1980-Census basis 1985-1992, 1990-Census
+  1982-1999 \tab `3digit_census` \tab 1980-Census basis 1982-1992, 1990-Census
     1993-1999; source columns `occup` (@88-90) and `industry` (@85-87);
     state-dependent coverage \cr
   2000-2019 \tab (none) \tab coded occupation/industry not collected \cr
   2020+ \tab `4digit_niosh` \tab NCHS+NIOSH 4-digit codes; source columns
     `occupation`/`occupationr` (@806-811) and `industry`/`industryr` (@812-817)
 }
-The 3-digit (1985-1999) and 4-digit (2020+) codes are **not comparable** -- do
+The 3-digit (1982-1999) and 4-digit (2020+) codes are **not comparable** -- do
 not chain a series across the gap. Tier difference: the 4-digit codes reach the
 \strong{public} file in data year 2020 but the \strong{restricted} file only in
 2021, so `occ_coded` is all-`NA` for restricted 2020 (use the public file for

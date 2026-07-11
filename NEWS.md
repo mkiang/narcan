@@ -1,3 +1,75 @@
+# narcan 0.4.1
+
+## Second-pass correctness fixes (0.4-P2b)
+
+A second, exhaustive multi-agent review of the 0.4.0 code (weighted toward the
+areas the first pass rated "clean," and toward the 0.4.0 fixes themselves) found
+several correctness issues the first pass missed -- one of them introduced by a
+0.4.0 fix. Point estimates on canonical national data are essentially unchanged;
+the behavior changes below are narrow. The 0.4.0 behavior is reproducible from
+the `v0.4.0` tag.
+
+### Breaking changes
+
+* **`add_county_fips()` gains `year` and `scheme` arguments and resolves the
+  state-coding scheme deterministically.** NCHS mortality files code state as
+  NCHS numeric codes through 2002 and as 2-letter postal abbreviations from 2003;
+  the numeric NCHS codes overlap FIPS but mean different states (NCHS `"06"` is
+  Colorado, FIPS California). The function now picks the scheme from `year` (a
+  scalar, or a `year` column on the data). When no year is available it guesses
+  from the codes and **warns loudly** on an ambiguous numeric code instead of
+  silently guessing FIPS (the 0.4.0 subset-detection fix could resolve an
+  isolated ambiguous code to the wrong state). Pass `scheme=` to force a scheme.
+* **`add_county_fips()` maps the ambiguous NCHS code 62 to `NA` (with a warning)
+  instead of aborting.** NCHS 62 is both American Samoa and the Northern Mariana
+  Islands; the 0.4.0 `relationship = "many-to-one"` join errored on the whole
+  batch if any 62 record was present. Those rows now become `NA` state FIPS and
+  the rest of the batch proceeds.
+* **`flag_od_intent()` gates every intent flag on `drug_death == 1`.** A poisoning
+  UCOD with no contributory T-code (not a drug death under the combined rule) now
+  yields all-zero intents (`"not_overdose"` after `label_od_intent()`), matching
+  the `flag_drug_deaths()` definition. Previously intent was assigned from the
+  UCOD alone. Real-data effect is negligible (a poisoning UCOD essentially always
+  co-occurs with a qualifying T-code).
+* **A two-digit `datayear` is normalized to its four-digit year.** `.extract_year()`
+  (used by `remap_race()`, the `flag_*` family, and `unite_records()`) maps a
+  1979-1995 `datayear` such as `85` to `1985`. As a result the `flag_*` family now
+  correctly dispatches a `datayear`-coded ICD-9 file to the ICD-9 branch, rather
+  than erroring on the two-digit value (superseding the 0.4.0 behavior). An
+  explicit two-digit `year` argument still errors.
+* **`add_coded_occupation()` recognizes the 3-digit occupation/industry scheme
+  from data year 1982** (was 1985). The byte-verified dictionary carries real,
+  non-suppressed `occup`/`industry` from 1982, so 1982-1984 records were being
+  silently dropped to `occ_available = FALSE`.
+
+### Fixed
+
+* `calc_asrate_var()` returns variance `0` (not `NaN`) for a zero-death cell. The
+  variance is now `deaths * (1e5 / pop)^2` rather than the algebraically identical
+  `rate^2 / deaths`, which was `0/0` when `deaths == 0`. Age-specific rate CIs for
+  zero-count strata (ubiquitous in stratified data) were `NaN`; standardized rates
+  were already shielded by `na.rm`.
+* `add_county_fips()` returns `NA` for a missing county code instead of the
+  literal string `"NANA"`, and raises a clean error when every state code is
+  missing (previously it silently produced `"NANA"`).
+* `remap_race()` errors on an impossible data year instead of emitting a bare
+  `"Invalid year"` warning and passing raw, unmapped race codes through.
+* `state_abbrev_to_fips()` maps an unrecognized or wrong-case abbreviation to
+  `NA` with a warning, instead of returning it unchanged to fail a downstream
+  join silently.
+* `unite_records()` strips a leading `"NA"` token (not only interior/trailing
+  ones) when collapsing the record columns.
+
+### Guards / warnings
+
+* `calc_stdrate_var()` warns when a multi-year frame is passed without `year` in
+  the grouping (which would collapse all years into one rate) and when
+  standardization weights are `NA` or sum to zero; the `...` documentation now
+  states that grouping is not added automatically.
+* `summarize_binary_columns()` warns when a non-binary column would be summed as
+  a flag, and sums with `na.rm = TRUE` (warning when a flag column has `NA`s so a
+  flag total may differ from `deaths`).
+
 # narcan 0.4.0
 
 ## Verified-review correctness fixes (0.4-P2)
