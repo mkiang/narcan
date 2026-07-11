@@ -47,6 +47,7 @@ http
 https
 icd
 industryr
+injectable
 jama
 mcod
 mkdir
@@ -61,10 +62,12 @@ nonop
 occ
 occup
 occupationr
+od
 opioid
 opioids
 orchestrator
 plaintext
+pmin
 popest
 pre
 preconverted
@@ -77,6 +80,7 @@ renormalizes
 restatus
 rnifla
 rniflag
+rowwise
 stateoc
 staters
 statersr

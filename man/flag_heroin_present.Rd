@@ -4,7 +4,12 @@
 \alias{flag_heroin_present}
 \title{Creates a new column called heroin_present if opioid death involved heroin}
 \usage{
-flag_heroin_present(processed_df, year = NULL, keep_cols = FALSE)
+flag_heroin_present(
+  processed_df,
+  year = NULL,
+  keep_cols = FALSE,
+  opioid_deaths_only = TRUE
+)
 }
 \arguments{
 \item{processed_df}{MCOD dataframe already processed}
@@ -12,6 +17,11 @@ flag_heroin_present(processed_df, year = NULL, keep_cols = FALSE)
 \item{year}{if NULL, will attempt to detect}
 
 \item{keep_cols}{keep intermediate columns}
+
+\item{opioid_deaths_only}{if `TRUE` (default) the flag fires only on opioid
+deaths (`opioid_death == 1`); if `FALSE`, it fires wherever the heroin code
+appears (including contributory-only records) and the caller is expected to
+`filter(opioid_death == 1)` themselves.}
 }
 \value{
 a new dataframe with a binary heroin_present column

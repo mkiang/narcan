@@ -4,12 +4,17 @@
 \alias{flag_other_op_present}
 \title{Creates a column `other_op_present` for deaths with other unspecified opioid}
 \usage{
-flag_other_op_present(processed_df, year = NULL)
+flag_other_op_present(processed_df, year = NULL, opioid_deaths_only = TRUE)
 }
 \arguments{
 \item{processed_df}{MCOD dataframe already processed}
 
 \item{year}{if NULL, will attempt to detect}
+
+\item{opioid_deaths_only}{if `TRUE` (default) the flag fires only on opioid
+deaths (`opioid_death == 1`); if `FALSE`, it fires wherever the code appears
+(including contributory-only records) and the caller is expected to
+`filter(opioid_death == 1)` themselves.}
 }
 \value{
 a new dataframe with 1 additional column

@@ -41,7 +41,8 @@ if (getRversion() >= "2.15.1") {
     utils::globalVariables(c("heroin_present", "methadone_present",
                              "num_opioids", "opium_present",
                              "other_natural_present", "other_op_present",
-                             "other_synth_present", "unspecified_op_present"))
+                             "other_synth_present", "unspecified_op_present",
+                             "opioid_death"))
 
     ## Globals for subsetting function
     utils::globalVariables(c("restatus"))

@@ -7,6 +7,10 @@
 #' @param processed_df MCOD dataframe already processed
 #' @param year if NULL, will attempt to detect
 #' @param keep_cols keep intermediate columns
+#' @param opioid_deaths_only if `TRUE` (default) the flag fires only on opioid
+#'   deaths (`opioid_death == 1`); if `FALSE`, it fires wherever the heroin code
+#'   appears (including contributory-only records) and the caller is expected to
+#'   `filter(opioid_death == 1)` themselves.
 #'
 #' @return a new dataframe with a binary heroin_present column
 #' @importFrom dplyr select any_of mutate
@@ -15,7 +19,8 @@
 #' @examples
 #' df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T401 T400")
 #' flag_heroin_present(df, year = 2019)
-flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
+flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE,
+                                opioid_deaths_only = TRUE) {
     ## Extract year
     if (is.null(year)) {
         year <- .extract_year(processed_df)
@@ -32,26 +37,29 @@ flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
             unite_records(year = year)
     }
 
-    if (!(tibble::has_name(processed_df, "opioid_death"))) {
+    if (opioid_deaths_only &&
+        !(tibble::has_name(processed_df, "opioid_death"))) {
         processed_df <- processed_df |>
             flag_opioid_deaths(year = year)
     }
+
+    gate <- .opioid_gate(processed_df, opioid_deaths_only, "flag_heroin_present")
 
     if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
                                   grepl(ucod, pattern = "\\<E8500\\>") &
-                                      opioid_death == 1 ~ 1,
+                                      !!gate ~ 1,
                                   grepl(f_records_all, pattern = "\\<E8500\\>") &
-                                      opioid_death == 1 ~ 1,
+                                      !!gate ~ 1,
                                   TRUE ~ 0))
     } else {
         new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
                                   grepl(f_records_all, pattern = "\\<T401\\>") &
-                                      opioid_death == 1 ~ 1,
+                                      !!gate ~ 1,
                                   TRUE ~ 0))
     }
 

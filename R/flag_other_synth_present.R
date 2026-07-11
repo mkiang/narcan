@@ -8,6 +8,10 @@
 #' @param processed_df MCOD dataframe already processed
 #' @param year if NULL, will attempt to detect
 #' @param missing_val value to indicate missing (i.e., code did not exist)
+#' @param opioid_deaths_only if `TRUE` (default) the flag fires only on opioid
+#'   deaths (`opioid_death == 1`); if `FALSE`, it fires wherever the code appears
+#'   (including contributory-only records) and the caller is expected to
+#'   `filter(opioid_death == 1)` themselves.
 #'
 #' @return a new dataframe with 1 additional column
 #' @importFrom dplyr mutate case_when
@@ -17,7 +21,8 @@
 #' df |>
 #'     flag_opioid_deaths(year = 2019) |>
 #'     flag_other_synth_present(year = 2019)
-flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0) {
+flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0,
+                                     opioid_deaths_only = TRUE) {
     ## Extract year
     if (is.null(year)) {
         year <- .extract_year(processed_df)
@@ -27,10 +32,12 @@ flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0)
         new_df <- processed_df |>
             mutate(other_synth_present = missing_val)
     } else {
+        gate <- .opioid_gate(processed_df, opioid_deaths_only,
+                             "flag_other_synth_present")
         new_df <- processed_df |>
             mutate(other_synth_present =
                        case_when(grepl(f_records_all, pattern = "\\<T404\\>") &
-                                     opioid_death == 1 ~ 1,
+                                     !!gate ~ 1,
                                  TRUE ~ 0))
     }
 

@@ -4,12 +4,20 @@
 \alias{flag_opioid_types}
 \title{Take a processed MCOD dataframe and create indicators for opioid types}
 \usage{
-flag_opioid_types(processed_df, year = NULL)
+flag_opioid_types(processed_df, year = NULL, opioid_deaths_only = TRUE)
 }
 \arguments{
 \item{processed_df}{MCOD dataframe already processed}
 
 \item{year}{if NULL, will attempt to detect}
+
+\item{opioid_deaths_only}{if `TRUE` (default), types are flagged only for
+opioid deaths (`opioid_death == 1`) -- the historical behavior. If `FALSE`,
+an opioid *type* is flagged wherever its code appears in the contributory
+causes, even when the death is not an opioid death under the ISW7 combined
+rule; the presence of an opioid in contributory causes does NOT mean the
+death was an opioid death, so the caller is expected to
+`filter(opioid_death == 1)` themselves. See issue #2.}
 }
 \value{
 a new dataframe with 9 additional columns

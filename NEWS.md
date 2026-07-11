@@ -1,5 +1,29 @@
 # narcan 0.4.1
 
+## New features (0.4-P4)
+
+* **`flag_opioid_types()` and the six opioid-subtype flags gain
+  `opioid_deaths_only` (default `TRUE`).** The default is unchanged -- a type is
+  flagged only for opioid deaths. With `FALSE`, an opioid *type* is flagged
+  wherever its code appears in the contributory causes, even when the death is
+  not an opioid death under the ISW7 combined rule; the caller is then expected
+  to `filter(opioid_death == 1)` themselves (an opioid in a contributory cause
+  does not make the death an opioid death). Resolves issue #2. `num_opioids` /
+  `unspecified_op_present` stay coherent under `FALSE` (the residual keys off an
+  "any opioid present" indicator, so it never fires on a non-opioid row).
+* **`categorize_sex()` and `categorize_female()`** -- era-aware sex recodes. NCHS
+  codes sex numerically (`1`/`2`) through 2002 and as characters (`"M"`/`"F"`)
+  from 2003; these map either scheme to `"male"`/`"female"`/`NA` (matching the
+  `sex` labels in `pop_est`) and to `1`/`0`/`NA`, respectively. Resolves issue #11.
+* **`remap_age()`** -- converts the raw unit-coded NCHS detail-age field (`age`)
+  to age in completed years in a new `age_years` column, dispatching on the 2003
+  encoding change; sub-year ages (months/weeks/days/hours/minutes) collapse to
+  `0` and not-stated ages to `NA`. Resolves issue #15.
+* **`flag_all_deaths()`** -- a convenience wrapper that runs the canonical
+  pipeline (`unite_records` -> `flag_drug_deaths` -> `flag_opioid_deaths` ->
+  `flag_opioid_types` -> `flag_od_intent`) in one call, resolving the data year
+  once. Optional `types`/`intent`/`clean_icd9` toggles.
+
 ## Second-pass correctness fixes (0.4-P2b)
 
 A second, exhaustive multi-agent review of the 0.4.0 code (weighted toward the

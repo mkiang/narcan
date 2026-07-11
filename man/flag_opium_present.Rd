@@ -4,7 +4,12 @@
 \alias{flag_opium_present}
 \title{Creates a column called `opium_present` if opioid death involved opium}
 \usage{
-flag_opium_present(processed_df, year = NULL, missing_val = 0)
+flag_opium_present(
+  processed_df,
+  year = NULL,
+  missing_val = 0,
+  opioid_deaths_only = TRUE
+)
 }
 \arguments{
 \item{processed_df}{MCOD dataframe already processed}
@@ -12,6 +17,12 @@ flag_opium_present(processed_df, year = NULL, missing_val = 0)
 \item{year}{if NULL, will attempt to detect}
 
 \item{missing_val}{value to indicate missing (i.e., code did not exist)}
+
+\item{opioid_deaths_only}{if `TRUE` (default) the flag fires only when the
+record is an opioid death (`opioid_death == 1`); if `FALSE`, it fires
+wherever the opioid code appears (including contributory-only records that
+are not opioid deaths) -- the caller is then expected to
+`filter(opioid_death == 1)` themselves.}
 }
 \value{
 a new dataframe with 1 additional column
