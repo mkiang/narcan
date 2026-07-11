@@ -1,0 +1,14 @@
+# Network-bound functions: exercised only against live NBER/CDC/Census
+# endpoints, so they are excluded from coverage (no offline test can reach them).
+R/download_1979_pop_data.R
+R/download_1980s_pop_data.R
+R/download_1990s_pop_data.R
+R/download_2000s_pop_data.R
+R/download_2010s_pop_data.R
+R/download_all_pop_data.R
+R/download_mcod_csv.R
+R/download_mcod_dta.R
+R/download_mcod_fwf.R
+R/download_natality_ascii.R
+R/download_standard_pops.R
+R/dct_to_fwf_df.R

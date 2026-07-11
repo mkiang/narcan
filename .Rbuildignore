@@ -5,6 +5,7 @@
 ^docs$
 ^data-raw$
 ^CITATION\.cff$
+^\.covrignore$
 ^LICENSE\.md$
 ^\.RData$
 ^\.Rhistory$
