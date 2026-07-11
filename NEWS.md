@@ -1,3 +1,60 @@
+# narcan 0.5.0
+
+## New features -- single-race population denominators (2020-2024)
+
+* **Single-race denominators for 2022+ deaths.** From data year 2022 NCHS codes
+  race with the single-race (OMB 1997) scheme; `categorize_race()` labels those
+  deaths `white_only`/`black_only`/`american_indian_only`/`asian_only`/
+  `nhopi_only`/`multiracial` (codes 101-106). This release adds matching Census
+  Population Estimates Program (Vintage 2024) denominators for 2020-2024 so those
+  deaths get correct rates. Bundled: `pop_singlerace` (national) and
+  `pop_singlerace_state` (state). County estimates are too large to bundle and
+  are fetched on demand (see below). Each dataset also carries a
+  `hispanic_origin` dimension.
+* **`add_pop_counts()` gains `race_scheme`.** `race_scheme = "legacy"` (the
+  **default**) joins the frozen bridged-race `pop_est` and reproduces existing
+  bridged-race rates *byte-for-byte*. `race_scheme = "single"` joins the new
+  single-race denominators. The single scheme guarantees no silent `NA`
+  denominator: out-of-domain `age`/`sex`/`race` values and unmatched keys are
+  hard errors, and passing single-race labels under the default scheme errors
+  with a pointer to `race_scheme = "single"`. Geography is routed by `by_vars`
+  membership -- add `state_fips`/`county_fips` for sub-national denominators. The
+  `"total"` (race), `"both"` (sex), and `"all"` (Hispanic origin) aggregate
+  tokens are synthesized on demand.
+* **New accessors `get_pop_state()` and `get_pop_county()`** return population
+  rows for descriptive use, with the Hispanic-origin dimension exposed.
+* **`download_pop_data()`** fetches data too large to bundle. By default it
+  fetches the analysis-ready county parquet from the tagged GitHub release and
+  verifies its checksum; `raw = TRUE` fetches the original Census source files
+  verbatim (the same pull the package's own build uses), so the processed data
+  can be reproduced from scratch. `pop_sources()` prints the provenance manifest
+  (source, vintage, coverage, delivery) for every dataset.
+* **New vignette** `single-race-rates` walks through an `asian_only`
+  age-standardized rate end to end.
+
+## Minor changes
+
+* `calc_asrate_var()` now emits a warning when any cell has `pop == 0` (its rate
+  is undefined). This is a diagnostic only -- the numeric output is unchanged, so
+  existing rate values are unaffected. Zero-population cells are common in fine
+  single-race county strata.
+
+## Notes
+
+* Bridged-race (`"legacy"`, 2020 and earlier) and single-race (`"single"`,
+  2022+) denominators are **not comparable** and must not be chained into one
+  trend. The frozen `pop_est` is unchanged; all new datasets and arguments are
+  additive (nothing was renamed or removed).
+* The Hispanic-origin dimension ships in the new denominator data now, but the
+  death-side Hispanic join is deferred to a later release; the death-side join is
+  currently pinned to all-origin denominators.
+* narcan's existing by-race rates for 2020 and earlier pair bridged-race death
+  counts with single-race population estimates, which understates the
+  denominator (most for smaller groups), so those rates run slightly high. A
+  future release will add a bridged-race denominator series consistent across
+  1969-2024; for coherent single-race by-race rates from 2020 on, use the new
+  single-race path.
+
 # narcan 0.4.2
 
 ## Bug fixes

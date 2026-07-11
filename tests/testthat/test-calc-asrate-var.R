@@ -13,6 +13,14 @@ test_that("calc_asrate_var() computes rate = deaths/pop*1e5 and var = rate^2/dea
     expect_equal(out$opioid_var, out$opioid_rate^2 / out$deaths)
 })
 
+test_that("calc_asrate_var() warns (value-neutral) on a pop == 0 cell", {
+    df <- data.frame(deaths = c(0, 5), pop = c(0, 1e5))
+    expect_warning(out <- calc_asrate_var(df, opioid, deaths), "pop == 0")
+    # arithmetic is unchanged: the warning does not alter the numeric output
+    expect_true(is.infinite(out$opioid_rate[1]) || is.nan(out$opioid_rate[1]))
+    expect_equal(out$opioid_rate[2], 5 / 1e5 * 1e5)
+})
+
 test_that("calc_asrate_var() honors a custom death_col and pop_col and new_name", {
     df <- add_pop_counts(rate_input(year = 2015L, sex = "male", race = "white"))
     df$my_pop <- df$pop
