@@ -20,3 +20,7 @@ dataframe
 Returns the US 2000 population by default, by any population from the
 narcan::std_pop$std_cat column is valid.
 }
+\examples{
+df <- data.frame(age = c(0, 5, 25, 85))
+add_std_pop(df)
+}

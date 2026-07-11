@@ -9,6 +9,15 @@
 #' @importFrom dplyr group_by group_vars summarize across everything left_join n
 #' @importFrom rlang .data
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     year = c(2019, 2019),
+#'     age = c(25, 25),
+#'     age_cat = c("20-24", "20-24"),
+#'     opioid_death = c(1, 0),
+#'     drug_death = c(1, 1)
+#' )
+#' summarize_binary_columns(df)
 summarize_binary_columns <- function(df, ...) {
     ## Takes a tibble that has already been flagged with opioid columns and
     ## summarizes them over year and age (plus any extra bare grouping

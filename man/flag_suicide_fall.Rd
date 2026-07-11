@@ -18,3 +18,7 @@ dataframe
 ICD-10 only (see flag_suicide_types). Warns if an explicit pre-1999 `year`
 is supplied.
 }
+\examples{
+df <- data.frame(ucod = c("X80", "X72"))
+flag_suicide_fall(df)
+}

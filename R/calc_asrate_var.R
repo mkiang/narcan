@@ -12,6 +12,9 @@
 #' @importFrom dplyr mutate
 #' @importFrom rlang :=
 #' @export
+#' @examples
+#' df <- data.frame(deaths = c(10, 20), pop = c(1e5, 2e5))
+#' calc_asrate_var(df, opioid, deaths)
 calc_asrate_var <- function(df, new_name, death_col, pop_col = pop) {
     ## Returns the age-specific mortality rate of `death_col` and its
     ## Poisson-approximation variance in new columns `{new_name}_rate` and

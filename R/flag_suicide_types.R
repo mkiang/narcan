@@ -12,6 +12,12 @@
 #' @return new dataframe
 #' @importFrom dplyr mutate
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     year = 2019,
+#'     ucod = c("X72", "X68", "X80", "X70", "X78")
+#' )
+#' flag_suicide_types(df, year = 2019)
 flag_suicide_types <- function(df, year = NULL) {
     .warn_icd9_only(.detect_year_safe(df, year), "flag_suicide_types")
     new_df <- df |>
@@ -36,6 +42,9 @@ flag_suicide_types <- function(df, year = NULL) {
 #' @return dataframe
 #' @importFrom dplyr mutate
 #' @export
+#' @examples
+#' df <- data.frame(ucod = c("X72", "X73", "X60"))
+#' flag_suicide_firearm(df)
 flag_suicide_firearm <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_firearm")
     new_df <- df |>
@@ -56,6 +65,9 @@ flag_suicide_firearm <- function(df, year = NULL) {
 #' @return dataframe
 #' @importFrom dplyr mutate
 #' @export
+#' @examples
+#' df <- data.frame(ucod = c("X60", "X64", "X72"))
+#' flag_suicide_poison(df)
 flag_suicide_poison <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_poison")
     new_df <- df |>
@@ -76,6 +88,9 @@ flag_suicide_poison <- function(df, year = NULL) {
 #' @return dataframe
 #' @importFrom dplyr mutate
 #' @export
+#' @examples
+#' df <- data.frame(ucod = c("X80", "X72"))
+#' flag_suicide_fall(df)
 flag_suicide_fall <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_fall")
     new_df <- df |>
@@ -96,6 +111,9 @@ flag_suicide_fall <- function(df, year = NULL) {
 #' @return dataframe
 #' @importFrom dplyr mutate
 #' @export
+#' @examples
+#' df <- data.frame(ucod = c("X70", "X80"))
+#' flag_suicide_suffocation(df)
 flag_suicide_suffocation <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_suffocation")
     new_df <- df |>
@@ -116,6 +134,9 @@ flag_suicide_suffocation <- function(df, year = NULL) {
 #' @return dataframe
 #' @importFrom dplyr mutate
 #' @export
+#' @examples
+#' df <- data.frame(ucod = c("X78", "X83", "X72"))
+#' flag_suicide_other(df)
 flag_suicide_other <- function(df, year = NULL) {
     .warn_icd9_only(year, "flag_suicide_other")
     new_df <- df |>

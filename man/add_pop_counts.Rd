@@ -27,3 +27,7 @@ Denominators are bridged-race population estimates, which NCHS
   2022+) by these bridged-race denominators. Single-race denominator support is
   a separate, future work item.
 }
+\examples{
+df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")
+add_pop_counts(df)
+}

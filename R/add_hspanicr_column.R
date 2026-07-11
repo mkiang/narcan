@@ -8,6 +8,9 @@
 #' @return dataframe
 #' @importFrom tibble add_column
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = "X42")
+#' add_hspanicr_column(df)
 add_hspanicr_column <- function(icd_df) {
     ## Hispanic wasn't recorded until 1989, so just make a NA hspanicr column
     ## for years that don't have one.

@@ -19,3 +19,11 @@ This function collapses the 20 contributory cause columns into a single
 column for easier regex'ing. ICD-9 dataframes will also get appropriate
 prefixes before collapsing.
 }
+\examples{
+df <- data.frame(
+    year = 2019,
+    record_1 = c("X42", "I250"),
+    record_2 = c("T401", "")
+)
+unite_records(df, year = 2019)
+}

@@ -14,6 +14,14 @@
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats weighted.mean
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     race = c("white", "white"),
+#'     opioid_rate = c(5, 7),
+#'     opioid_var = c(0.1, 0.2),
+#'     unit_w = c(0.5, 0.5)
+#' )
+#' calc_stdrate_var(df, opioid_rate, opioid_var, race)
 calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
                              weight_col = unit_w) {
     ## Returns the age-standardized rate given an age-specific rate column

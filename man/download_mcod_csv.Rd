@@ -24,3 +24,8 @@ NBER hosts publicly available multiple cause of death data in several
 formats (see source). This function downloads the specified year to the
 specified folder in the CSV format.
 }
+\examples{
+\dontrun{
+download_mcod_csv(2019, download_dir = tempdir())
+}
+}

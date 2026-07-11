@@ -10,6 +10,9 @@
 #' @importFrom haven zap_formats zap_labels zap_missing zap_empty
 #' @importFrom dplyr mutate across where
 #' @export
+#' @examples
+#' df <- data.frame(x = c(1, NaN, 3), y = c("a", "", "c"))
+#' zap_dta_data(df)
 zap_dta_data <- function(dta_df) {
     ## ZAP EVERYTHING! Also change all NaNs to NA.
     dta_df <- dta_df |>

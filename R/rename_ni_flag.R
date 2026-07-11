@@ -7,6 +7,9 @@
 #'
 #' @return dataframe
 #' @export
+#' @examples
+#' df <- data.frame(rniflag_1 = c(0, 1), record_1 = c("E850", "9650"))
+#' rename_ni_flag(df)
 rename_ni_flag <- function(icd9_df) {
     names(icd9_df) <- gsub(names(icd9_df),
                       pattern = "rniflag_",

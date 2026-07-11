@@ -7,6 +7,9 @@
 #' @importFrom dplyr mutate left_join pull transmute
 #' @importFrom stringr str_replace_all
 #' @export
+#' @examples
+#' df <- data.frame(countyrs = c("53033", "54001", "55079", "56001"))
+#' add_county_fips(df, countyrs)
 add_county_fips <- function(df, county_vector) {
     df <- df |>
         dplyr::mutate(state_substr = substr({{county_vector}}, 1, 2),

@@ -6,6 +6,9 @@
 #' @return dataframe
 #' @importFrom dplyr mutate select
 #' @export
+#' @examples
+#' df <- data.frame(ager27 = c(1, 10, 23, 27))
+#' convert_ager27(df)
 convert_ager27 <- function(icd_df, remove_age27 = TRUE) {
     df <- icd_df |>
         mutate(ager27 = ifelse(ager27 == 27, NA, ager27),

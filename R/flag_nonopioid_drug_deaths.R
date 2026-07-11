@@ -9,6 +9,12 @@
 #' @return new dataframe with a nonop_drug_death column
 #' @importFrom dplyr mutate case_when
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T509")
+#' df |>
+#'     flag_drug_deaths(year = 2019) |>
+#'     flag_opioid_deaths(year = 2019) |>
+#'     flag_nonopioid_drug_deaths()
 flag_nonopioid_drug_deaths <- function(processed_df) {
     ## This assumes you already ran flag_drug_deaths() and flag_opioid_deaths()
     ## Returns a new tibble with a `nonop_drug_death` representing drug deaths

@@ -24,3 +24,12 @@ dataframe with two new columns
 Given a bare (unquoted) column of age-specific rates, variance, and weights,
 will return the age-standardized rate and variance.
 }
+\examples{
+df <- data.frame(
+    race = c("white", "white"),
+    opioid_rate = c(5, 7),
+    opioid_var = c(0.1, 0.2),
+    unit_w = c(0.5, 0.5)
+)
+calc_stdrate_var(df, opioid_rate, opioid_var, race)
+}

@@ -19,3 +19,7 @@ new dataframe
 ICD-10 only. Pre-1999 (ICD-9) data returns all zeros and emits a warning;
 ICD-9 suicide detection is a future work item.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = c("X72", "I250"))
+flag_suicide_deaths(df, year = 2019)
+}

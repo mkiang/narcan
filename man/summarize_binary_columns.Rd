@@ -17,3 +17,13 @@ dataframe
 \description{
 To use this, you must remove all non-grouping, non-binary variables.
 }
+\examples{
+df <- data.frame(
+    year = c(2019, 2019),
+    age = c(25, 25),
+    age_cat = c("20-24", "20-24"),
+    opioid_death = c(1, 0),
+    drug_death = c(1, 1)
+)
+summarize_binary_columns(df)
+}

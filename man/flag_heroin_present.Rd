@@ -21,3 +21,7 @@ Heroin deaths were recorded in both ICD-9 and ICD-10 years. This creates
 a new column to flag when that death involved heroin and was an opioid
 death as defined by flag_opioid_death().
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T401 T400")
+flag_heroin_present(df, year = 2019)
+}

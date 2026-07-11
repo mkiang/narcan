@@ -22,3 +22,8 @@ NBER hosts publicly available multiple cause of death data in several
 formats (see source). This function downloads the specified year to the
 specified folder in the DTA (Stata) format.
 }
+\examples{
+\dontrun{
+download_mcod_dta(2019, download_dir = tempdir())
+}
+}

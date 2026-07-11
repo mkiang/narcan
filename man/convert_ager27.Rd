@@ -17,3 +17,7 @@ dataframe
 \description{
 Converts the age27 variable in MCOD data to 5-year age groups
 }
+\examples{
+df <- data.frame(ager27 = c(1, 10, 23, 27))
+convert_ager27(df)
+}

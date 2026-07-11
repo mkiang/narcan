@@ -23,3 +23,7 @@ cause is **NOT** an opioid-related death.
 NOTE: This function really doesn't make sense for ICD-9 years. Use with
 caution.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "I250", f_records_all = "T401")
+flag_opioid_contributed(df, year = 2019)
+}

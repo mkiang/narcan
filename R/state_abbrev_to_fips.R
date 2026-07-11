@@ -5,7 +5,8 @@
 #' @return a new vector with state FIPS
 #' @importFrom stringr str_replace_all
 #' @export
-
+#' @examples
+#' state_abbrev_to_fips(c("CA", "NY", "TX"))
 state_abbrev_to_fips <- function(column) {
     ## Zero-pad to two digits so the result matches add_county_fips() (e.g. CA
     ## -> "06", not "6").

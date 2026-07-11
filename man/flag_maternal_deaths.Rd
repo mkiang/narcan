@@ -26,3 +26,11 @@ a new dataframe with a binary maternal_death column
 \description{
 Maternal deaths according to ICD-10 codes.
 }
+\examples{
+df <- data.frame(
+    year = 2019,
+    ucod = c("O95", "I250"),
+    f_records_all = c("O95", "I250")
+)
+flag_maternal_deaths(df, year = 2019)
+}

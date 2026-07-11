@@ -22,3 +22,9 @@ We code it as 0 by default, but can be coded however specified in
 missing_val parameter. This function flags all opioid deaths that involved
 other natural/semi-synthetic opioids.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T402")
+df |>
+    flag_opioid_deaths(year = 2019) |>
+    flag_other_natural_present(year = 2019)
+}

@@ -21,3 +21,10 @@ warning; ICD-9 detection is a future work item. The subtype helpers below
 warn only when a pre-1999 `year` is passed explicitly, so calling this
 orchestrator does not emit duplicate warnings.
 }
+\examples{
+df <- data.frame(
+    year = 2019,
+    ucod = c("X72", "X68", "X80", "X70", "X78")
+)
+flag_suicide_types(df, year = 2019)
+}

@@ -19,3 +19,9 @@ a new dataframe with 1 additional column
 \description{
 This function flags all opioid deaths that involved methadone.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T403")
+df |>
+    flag_opioid_deaths(year = 2019) |>
+    flag_methadone_present(year = 2019)
+}

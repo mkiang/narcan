@@ -17,3 +17,13 @@ dataframe
 \description{
 Flag overdose deaths by their UCOD intent code
 }
+\examples{
+df <- data.frame(
+    year = 2019,
+    ucod = c("X42", "X62"),
+    f_records_all = c("T400", "T400")
+)
+df |>
+    flag_drug_deaths(year = 2019) |>
+    flag_od_intent(year = 2019)
+}

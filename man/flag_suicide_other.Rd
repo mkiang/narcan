@@ -18,3 +18,7 @@ dataframe
 ICD-10 codes: U03, X71, X75-X79, X81-X84, Y870. ICD-10 only (see
 flag_suicide_types). Warns if an explicit pre-1999 `year` is supplied.
 }
+\examples{
+df <- data.frame(ucod = c("X78", "X83", "X72"))
+flag_suicide_other(df)
+}

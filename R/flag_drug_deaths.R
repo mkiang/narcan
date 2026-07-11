@@ -13,6 +13,13 @@
 #' @importFrom dplyr select any_of mutate
 #' @importFrom tibble has_name
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     year = 2019,
+#'     ucod = c("X42", "I250"),
+#'     f_records_all = c("T400 T401", "I250")
+#' )
+#' flag_drug_deaths(df, year = 2019)
 flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     .check_mcod_df(processed_df, need = "ucod", fn = "flag_drug_deaths")
 

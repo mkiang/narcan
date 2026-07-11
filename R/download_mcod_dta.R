@@ -11,7 +11,10 @@
 #' @export
 #' @importFrom utils download.file
 #' @source http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
-
+#' @examples
+#' \dontrun{
+#' download_mcod_dta(2019, download_dir = tempdir())
+#' }
 download_mcod_dta <- function(year, download_dir = './raw_data') {
     ## Downloads the raw data (as a zipped dta) for specified year.
     ##

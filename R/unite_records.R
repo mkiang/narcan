@@ -11,6 +11,13 @@
 #' @importFrom dplyr mutate select starts_with
 #' @importFrom tidyr unite
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     year = 2019,
+#'     record_1 = c("X42", "I250"),
+#'     record_2 = c("T401", "")
+#' )
+#' unite_records(df, year = 2019)
 unite_records <- function(icd_df, year = NULL) {
     ## Unite all 20 records columns into a single new column for easier
     ## regexing.

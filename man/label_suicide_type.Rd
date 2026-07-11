@@ -15,3 +15,9 @@ dataframe
 \description{
 Create a new column with labels for suicide type
 }
+\examples{
+df <- data.frame(year = 2019, ucod = c("X72", "X68"))
+df |>
+    flag_suicide_types(year = 2019) |>
+    label_suicide_type()
+}

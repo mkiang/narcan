@@ -10,6 +10,13 @@
 #' @return dataframe
 #' @importFrom dplyr mutate across starts_with
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     ucod = c("8001", "4321"),
+#'     record_1 = c("8001", "4321"),
+#'     rniflag_1 = c(0, 1)
+#' )
+#' clean_icd9_data(df)
 clean_icd9_data <- function(icd9_df) {
     ## Clean up names
     df <- rename_ni_flag(icd9_df)

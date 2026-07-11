@@ -11,6 +11,13 @@
 #' @importFrom dplyr select any_of mutate
 #' @importFrom tibble has_name
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     year = 2019,
+#'     ucod = c("O95", "I250"),
+#'     f_records_all = c("O95", "I250")
+#' )
+#' flag_maternal_deaths(df, year = 2019)
 flag_maternal_deaths <- function (processed_df, year = NULL,
                                   ucod_only = FALSE, keep_cols = FALSE) {
     ## Extract year

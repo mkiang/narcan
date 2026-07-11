@@ -22,3 +22,7 @@ dataframe with two new columns
 Given a bare (unquoted) column of counts and population, will return the
 rate in 100,000 as well as the variance (using Poisson approximation).
 }
+\examples{
+df <- data.frame(deaths = c(10, 20), pop = c(1e5, 2e5))
+calc_asrate_var(df, opioid, deaths)
+}

@@ -18,3 +18,11 @@ function renames nature of injury columns, pads UCOD codes with no
 sub-codes, prefixes an E to external cause of injury codes and an N to
 nature of injury codes, and trims unnecessary characters and whitespace.
 }
+\examples{
+df <- data.frame(
+    ucod = c("8001", "4321"),
+    record_1 = c("8001", "4321"),
+    rniflag_1 = c(0, 1)
+)
+clean_icd9_data(df)
+}

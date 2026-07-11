@@ -12,6 +12,9 @@
 #'
 #' @return new dataframe with an opioid_contributed column
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = "I250", f_records_all = "T401")
+#' flag_opioid_contributed(df, year = 2019)
 flag_opioid_contributed <- function(processed_df, year = NULL) {
     ## Make a new column called `opioid_death` that is:
     ##  - true for ICD9 if any opioid code is in any UCOD or record field

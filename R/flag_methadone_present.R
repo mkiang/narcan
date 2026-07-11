@@ -10,6 +10,11 @@
 #' @importFrom dplyr mutate case_when select any_of
 #' @importFrom tibble has_name
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T403")
+#' df |>
+#'     flag_opioid_deaths(year = 2019) |>
+#'     flag_methadone_present(year = 2019)
 flag_methadone_present <- function(processed_df, year = NULL,
                                    keep_cols = FALSE) {
     ## Extract year

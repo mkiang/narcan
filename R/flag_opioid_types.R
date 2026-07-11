@@ -10,6 +10,11 @@
 #' @return a new dataframe with 9 additional columns
 #' @importFrom dplyr mutate case_when
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T401 T404")
+#' df |>
+#'     flag_opioid_deaths(year = 2019) |>
+#'     flag_opioid_types(year = 2019)
 flag_opioid_types <- function(processed_df, year = NULL) {
     ## Makes a bunch of new columns.
     ## 7 for specific type of opioid:

@@ -10,6 +10,9 @@
 #' @return new dataframe
 #' @importFrom dplyr mutate
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = c("X72", "I250"))
+#' flag_suicide_deaths(df, year = 2019)
 flag_suicide_deaths <- function(df, year = NULL) {
     .warn_icd9_only(.detect_year_safe(df, year), "flag_suicide_deaths")
     new_df <- df |>

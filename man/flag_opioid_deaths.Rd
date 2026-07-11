@@ -22,3 +22,7 @@ both ICD9 and ICD10 codes. Expects you to run unite_records() first. If you
 don't, it will do so, but will remove that columns by default. Change
 keep_cols = TRUE to keep it.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T401")
+flag_opioid_deaths(df, year = 2019)
+}

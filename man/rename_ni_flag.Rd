@@ -16,3 +16,7 @@ dataframe
 Some of the NBER ICD-9 MCOD files use rniflag_ as a column name while
 others use rnifla_. This function makes the names consistent (to rnifla_).
 }
+\examples{
+df <- data.frame(rniflag_1 = c(0, 1), record_1 = c("E850", "9650"))
+rename_ni_flag(df)
+}

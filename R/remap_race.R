@@ -19,6 +19,9 @@
 #' @return dataframe with a standardized `race` column
 #' @importFrom dplyr case_when
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, race = c(1, 2, 3, 18))
+#' remap_race(df, year = 2019)
 remap_race <- function(icd_df, year = NULL) {
     ## Extract year
     if (is.null(year)) {

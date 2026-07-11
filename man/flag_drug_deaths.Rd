@@ -22,3 +22,11 @@ both ICD9 and ICD10 codes.For ICD9, it is true if any poison code is in any
 record field. For ICD10, it is true if there is a specific UCOD code
 **and** at least one specified T-code.
 }
+\examples{
+df <- data.frame(
+    year = 2019,
+    ucod = c("X42", "I250"),
+    f_records_all = c("T400 T401", "I250")
+)
+flag_drug_deaths(df, year = 2019)
+}

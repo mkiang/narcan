@@ -29,3 +29,7 @@ to NA.
 Bridged (2020 and earlier) and single-race (2022+) codes are NOT comparable
 and must not be chained into a single trend. Use with categorize_race().
 }
+\examples{
+df <- data.frame(year = 2019, race = c(1, 2, 3, 18))
+remap_race(df, year = 2019)
+}

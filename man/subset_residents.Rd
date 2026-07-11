@@ -17,3 +17,10 @@ dataframe
 \description{
 Subset to US residents
 }
+\examples{
+df <- data.frame(
+    restatus = c(1, 2, 3, 4),
+    ucod = c("X42", "I250", "O95", "X72")
+)
+subset_residents(df)
+}

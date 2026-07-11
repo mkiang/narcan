@@ -16,3 +16,7 @@ dataframe
 Hispanic origin was not recorded until 1989. In order to keep all dataframes
 conformable, add an NA column named hspanicr if one does not exist.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "X42")
+add_hspanicr_column(df)
+}

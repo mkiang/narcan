@@ -12,6 +12,9 @@
 #' @importFrom dplyr select any_of mutate
 #' @importFrom tibble has_name
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T401 T400")
+#' flag_heroin_present(df, year = 2019)
 flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
     ## Extract year
     if (is.null(year)) {

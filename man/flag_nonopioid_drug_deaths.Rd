@@ -17,3 +17,10 @@ Given an MCOD dataframe **with** drug_death and opioid_death columns
 already, will flag non-opioid deaths. Must run flag_opioid_deaths() and
 flag_drug_deaths() first.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T509")
+df |>
+    flag_drug_deaths(year = 2019) |>
+    flag_opioid_deaths(year = 2019) |>
+    flag_nonopioid_drug_deaths()
+}

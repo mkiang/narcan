@@ -17,3 +17,7 @@ same dataframe with new county_fips column
 \description{
 Make a new county_fips column that is consistent across years
 }
+\examples{
+df <- data.frame(countyrs = c("53033", "54001", "55079", "56001"))
+add_county_fips(df, countyrs)
+}

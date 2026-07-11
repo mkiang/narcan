@@ -13,6 +13,9 @@
 #' @importFrom dplyr select any_of mutate
 #' @importFrom tibble has_name
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T401")
+#' flag_opioid_deaths(df, year = 2019)
 flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     ## Make a new column called `opioid_death` that is:
     ##  - true for ICD9 if any opioid code is in any UCOD or record field

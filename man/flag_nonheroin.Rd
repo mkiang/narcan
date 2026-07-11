@@ -15,3 +15,10 @@ dataframe
 \description{
 NOTE: assumes flag_opioid_types() has already been run.
 }
+\examples{
+df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T402")
+df |>
+    flag_opioid_deaths(year = 2019) |>
+    flag_opioid_types(year = 2019) |>
+    flag_nonheroin()
+}

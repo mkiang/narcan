@@ -17,6 +17,9 @@
 #' @return dataframe
 #' @importFrom dplyr left_join select
 #' @export
+#' @examples
+#' df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")
+#' add_pop_counts(df)
 add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race")) {
     .check_mcod_df(df, need = by_vars, fn = "add_pop_counts")
     x <- left_join(df, select(narcan::pop_est, -age_cat), by = by_vars)
@@ -36,6 +39,9 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race")) {
 #' @return dataframe
 #' @importFrom dplyr filter select mutate left_join
 #' @export
+#' @examples
+#' df <- data.frame(age = c(0, 5, 25, 85))
+#' add_std_pop(df)
 add_std_pop <- function(df, std_cat = "s204", by_vars = "age") {
     .check_mcod_df(df, need = by_vars, fn = "add_std_pop")
     std_pop_df <- narcan::std_pops |>

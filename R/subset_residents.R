@@ -6,6 +6,12 @@
 #' @return dataframe
 #' @importFrom dplyr filter select
 #' @export
+#' @examples
+#' df <- data.frame(
+#'     restatus = c(1, 2, 3, 4),
+#'     ucod = c("X42", "I250", "O95", "X72")
+#' )
+#' subset_residents(df)
 subset_residents <- function(df, drop_col = TRUE) {
     new_df <- dplyr::filter(df, restatus %in% 1:3)
     if (drop_col) {
