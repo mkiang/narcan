@@ -1,3 +1,17 @@
+# narcan 0.4.2
+
+## Bug fixes
+
+* **`pop_est` no longer contains the spurious `year == 420` block.** The bundled
+  data carried an extra 216-row year labeled `420` -- an alternate-vintage copy
+  of the 2020 estimates whose year field was mangled during the original build
+  (every cell is within ~1.2% of the real 2020 block; the legitimate 2020 data
+  are unchanged). The block is removed; `pop_est` now spans exactly 1979-2020
+  (9072 rows). No legitimate year or cell changed value. The data builder now
+  asserts the year range so a future rebuild cannot reship the artifact.
+* **`pop_est` documentation corrected.** The help page said 1979-2015 / 7992
+  rows; it now reads 1979-2020 / 9072 rows.
+
 # narcan 0.4.1
 
 ## New features (0.4-P4)

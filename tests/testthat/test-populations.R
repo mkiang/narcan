@@ -23,6 +23,16 @@ test_that("add_pop_counts() leaves pop NA for keys absent from pop_est", {
     expect_true(all(is.na(out$pop)))
 })
 
+test_that("pop_est has no stray years and every year is a complete block (F6)", {
+    # Regression for the year==420 artifact (an alternate-vintage 2020 copy).
+    yrs <- sort(unique(narcan::pop_est$year))
+    expect_equal(yrs, 1979:2020)
+    expect_false(any(narcan::pop_est$year == 420))
+    # Each year is a full 18 age x 4 race x 3 sex = 216-row block.
+    expect_true(all(table(narcan::pop_est$year) == 216))
+    expect_equal(nrow(narcan::pop_est), 9072L)
+})
+
 test_that("add_std_pop() attaches the US-2000 standard and unit weights summing to 1", {
     inp <- add_pop_counts(rate_input(year = 2015L, sex = "male", race = "white"))
     out <- add_std_pop(inp)               # default std_cat = "s204" (US 2000)

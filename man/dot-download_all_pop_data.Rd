@@ -2,7 +2,7 @@
 % Please edit documentation in R/download_all_pop_data.R
 \name{.download_all_pop_data}
 \alias{.download_all_pop_data}
-\title{Download 1979-2015 Population Estimates}
+\title{Download 1979-2020 Population Estimates}
 \source{
 https://www.census.gov/programs-surveys/popest.html
 }
@@ -13,7 +13,7 @@ https://www.census.gov/programs-surveys/popest.html
 Dataframe with US Census Bureau population estimates
 }
 \description{
-All annual population estimates from 1979 to 2015 by age (18 bins) and
+All annual population estimates from 1979 to 2020 by age (18 bins) and
 race. This is the function used to create the pop_est dataframe.
 }
 \keyword{internal}

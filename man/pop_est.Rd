@@ -3,11 +3,11 @@
 \docType{data}
 \name{pop_est}
 \alias{pop_est}
-\title{Dataframe of annual population counts by age and race, 1979-2015}
+\title{Dataframe of annual population counts by age and race, 1979-2020}
 \format{
-A data frame with 7992 rows and 6 columns
+A data frame with 9072 rows and 6 columns
 \describe{
-  \item{year}{year of observation (int)}
+  \item{year}{year of observation}
   \item{age}{starting age for that age category}
   \item{age_cat}{age category in human readable form}
   \item{sex}{male, female, or both}
