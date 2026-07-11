@@ -17,5 +17,7 @@ Mimics `mkdir -p` by making a directory and all subdirectories and
 suppressing error messages if folder already exists.
 }
 \examples{
-mkdir_p('./test_directory')
+d <- file.path(tempdir(), "narcan_example_dir")
+mkdir_p(d)
+unlink(d, recursive = TRUE)
 }

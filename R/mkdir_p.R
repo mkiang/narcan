@@ -9,8 +9,9 @@
 #' @export
 #'
 #' @examples
-#' mkdir_p('./test_directory')
-
+#' d <- file.path(tempdir(), "narcan_example_dir")
+#' mkdir_p(d)
+#' unlink(d, recursive = TRUE)
 mkdir_p <- function(path) {
     ## Mimics mkdir -p
     dir.create(path, showWarnings = FALSE, recursive = TRUE)
