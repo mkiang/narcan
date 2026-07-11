@@ -34,7 +34,7 @@
     txt_files <- sprintf('e%s%srmp.txt', 90:99, 90:99)
 
     ## Define columns
-    c_defs <- fwf_positions(start = c(1, 3, 5,  9, 12, seq(13, 213, 10)),
+    c_defs <- readr::fwf_positions(start = c(1, 3, 5,  9, 12, seq(13, 213, 10)),
                             end   = c(2, 4, 8, 11, 12, seq(22, 222, 10)),
                             col_names = c("series", "month", "year",
                                           "age_years", "delete", "total",
@@ -59,57 +59,57 @@
         file_url <- sprintf('%s%s', base_url, f)
 
         ## Read
-        temp_df <- read_fwf(file_url, col_positions = c_defs)
+        temp_df <- readr::read_fwf(file_url, col_positions = c_defs)
 
         ## Remove series column, filter rows
         temp_df <-  temp_df |>
-            select(-series, -delete) |>
-            filter(month == 7, age_years != 999) |>
-            select(-month)
+            dplyr::select(-series, -delete) |>
+            dplyr::filter(month == 7, age_years != 999) |>
+            dplyr::select(-month)
 
         ## Reshape females
         female_df <- temp_df |>
-            select(year, age_years, contains("_female")) |>
-            pivot_longer(total_female:nhapi_female, names_to = "race", values_to = "pop") |>
-            mutate(sex = "female",
+            dplyr::select(year, age_years, dplyr::contains("_female")) |>
+            tidyr::pivot_longer(total_female:nhapi_female, names_to = "race", values_to = "pop") |>
+            dplyr::mutate(sex = "female",
                    race = gsub(race, pattern = "_female", replacement = ""))
 
         ## Reshape males
         male_df <- temp_df |>
-            select(year, age_years, contains("_male")) |>
-            pivot_longer(total_male:nhapi_male, names_to = "race", values_to = "pop") |>
-            mutate(sex = "male",
+            dplyr::select(year, age_years, dplyr::contains("_male")) |>
+            tidyr::pivot_longer(total_male:nhapi_male, names_to = "race", values_to = "pop") |>
+            dplyr::mutate(sex = "male",
                    race = gsub(race, pattern = "_male", replacement = ""))
 
         ## Reshape total
         total_df <- temp_df |>
-            select(year, age_years, pop = total) |>
-            mutate(sex = "both",
+            dplyr::select(year, age_years, pop = total) |>
+            dplyr::mutate(sex = "both",
                    race = "total")
 
         ## Reshape nhw (both sexes)
         nhw_both_df <- temp_df |>
-            select(year, age_years, contains("nhw_")) |>
-            mutate(pop = nhw_male + nhw_female,
+            dplyr::select(year, age_years, dplyr::contains("nhw_")) |>
+            dplyr::mutate(pop = nhw_male + nhw_female,
                    sex = "both",
                    race = "nhw") |>
-            select(-nhw_male, -nhw_female)
+            dplyr::select(-nhw_male, -nhw_female)
 
         ## Reshape white (both sexes)
         white_both_df <- temp_df |>
-            select(year, age_years, contains("white_")) |>
-            mutate(pop = white_male + white_female,
+            dplyr::select(year, age_years, dplyr::contains("white_")) |>
+            dplyr::mutate(pop = white_male + white_female,
                    sex = "both",
                    race = "white") |>
-            select(-white_male, -white_female)
+            dplyr::select(-white_male, -white_female)
 
         ## Reshape black (both sexes)
         black_both_df <- temp_df |>
-            select(year, age_years, contains("black_")) |>
-            mutate(pop = black_male + black_female,
+            dplyr::select(year, age_years, dplyr::contains("black_")) |>
+            dplyr::mutate(pop = black_male + black_female,
                    sex = "both",
                    race = "black") |>
-            select(-black_male, -black_female)
+            dplyr::select(-black_male, -black_female)
 
         ## Combine
         holder <- rbind(holder, total_df, male_df, female_df,
@@ -118,7 +118,7 @@
 
     ## Subset out black, nonhispanic white, and total
     if (filter_race) {
-        holder <- filter(holder, race %in%
+        holder <- dplyr::filter(holder, race %in%
                              c("total", "black", "nhw", "white"))
     }
 

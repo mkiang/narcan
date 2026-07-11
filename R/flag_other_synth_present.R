@@ -30,13 +30,13 @@ flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0,
 
     if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
-            mutate(other_synth_present = missing_val)
+            dplyr::mutate(other_synth_present = missing_val)
     } else {
         gate <- .opioid_gate(processed_df, opioid_deaths_only,
                              "flag_other_synth_present")
         new_df <- processed_df |>
-            mutate(other_synth_present =
-                       case_when(grepl(f_records_all, pattern = "\\<T404\\>") &
+            dplyr::mutate(other_synth_present =
+                       dplyr::case_when(grepl(f_records_all, pattern = "\\<T404\\>") &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     }

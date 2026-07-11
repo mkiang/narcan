@@ -20,7 +20,7 @@
                        'tables/1900-1980/national/asrh/pe-11-1979.csv')
 
     ## First few lines are notes. Last few are footnotes.
-    temp_df <- read_csv(file_url,
+    temp_df <- readr::read_csv(file_url,
                         skip = 8, n_max = 86,
                         col_names = c("age_years",
                                       "total_both", "total_male",
@@ -34,28 +34,28 @@
 
     ## Fix age
     temp_df <- temp_df |>
-        mutate(age_years = 0:85,
+        dplyr::mutate(age_years = 0:85,
                year = 1979)
 
     ## Both sexes
     both_sex <- temp_df |>
-        select(age_years, year, ends_with("_both")) |>
-        pivot_longer(total_both:other_both, names_to = "race", values_to = "pop") |>
-        mutate(race = gsub(race, pattern = "_both", replacement = ""),
+        dplyr::select(age_years, year, dplyr::ends_with("_both")) |>
+        tidyr::pivot_longer(total_both:other_both, names_to = "race", values_to = "pop") |>
+        dplyr::mutate(race = gsub(race, pattern = "_both", replacement = ""),
                sex = "both")
 
     ## Females
     females <- temp_df |>
-        select(age_years, year, ends_with("_female")) |>
-        pivot_longer(total_female:other_female, names_to = "race", values_to = "pop") |>
-        mutate(race = gsub(race, pattern = "_female", replacement = ""),
+        dplyr::select(age_years, year, dplyr::ends_with("_female")) |>
+        tidyr::pivot_longer(total_female:other_female, names_to = "race", values_to = "pop") |>
+        dplyr::mutate(race = gsub(race, pattern = "_female", replacement = ""),
                sex = "female")
 
     ## Males
     males <- temp_df |>
-        select(age_years, year, ends_with("_male")) |>
-        pivot_longer(total_male:other_male, names_to = "race", values_to = "pop") |>
-        mutate(race = gsub(race, pattern = "_male", replacement = ""),
+        dplyr::select(age_years, year, dplyr::ends_with("_male")) |>
+        tidyr::pivot_longer(total_male:other_male, names_to = "race", values_to = "pop") |>
+        dplyr::mutate(race = gsub(race, pattern = "_male", replacement = ""),
                sex = "male")
 
     ## Combined

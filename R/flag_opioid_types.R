@@ -73,8 +73,8 @@ flag_opioid_types <- function(processed_df, year = NULL,
 
     ## Add unspecified opioid
     new_df <- new_df |>
-        mutate(unspecified_op_present =
-                   case_when(
+        dplyr::mutate(unspecified_op_present =
+                   dplyr::case_when(
                        !!op_present &
                            opium_present == 0 &
                            heroin_present == 0 &
@@ -87,7 +87,7 @@ flag_opioid_types <- function(processed_df, year = NULL,
 
     ## Count up total number of opioids
     new_df <- new_df |>
-        mutate(num_opioids =
+        dplyr::mutate(num_opioids =
                    opium_present +
                    heroin_present +
                    other_natural_present +
@@ -98,7 +98,7 @@ flag_opioid_types <- function(processed_df, year = NULL,
 
     ## More than one opioid?
     new_df <- new_df |>
-        mutate(multi_opioids = ifelse(num_opioids > 1, 1, 0))
+        dplyr::mutate(multi_opioids = ifelse(num_opioids > 1, 1, 0))
 
     return(new_df)
 }

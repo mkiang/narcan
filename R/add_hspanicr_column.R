@@ -16,7 +16,7 @@ add_hspanicr_column <- function(icd_df) {
     ## for years that don't have one.
     if (!("hspanicr" %in% names(icd_df))) {
         icd_df <- icd_df |>
-            add_column(hspanicr = NA)
+            tibble::add_column(hspanicr = NA)
     }
     return(icd_df)
 }

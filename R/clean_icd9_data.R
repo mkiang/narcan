@@ -22,13 +22,13 @@ clean_icd9_data <- function(icd9_df) {
     df <- rename_ni_flag(icd9_df)
 
     ## Fix 3-character codes in UCOD, then add the E prefix to external causes
-    df <- mutate(df, ucod = pad_3char_codes(ucod))
-    df <- mutate(df, ucod = prefix_e_to_ucod(ucod))
+    df <- dplyr::mutate(df, ucod = pad_3char_codes(ucod))
+    df <- dplyr::mutate(df, ucod = prefix_e_to_ucod(ucod))
 
     ## Remove fifth char, trim trailing whitespace, and pad 3-char record_ codes
-    df <- mutate(df, across(starts_with("record_"), trim_5char_record))
-    df <- mutate(df, across(starts_with("record_"), trim_trailing_whitespace))
-    df <- mutate(df, across(starts_with("record_"), pad_3char_codes))
+    df <- dplyr::mutate(df, dplyr::across(dplyr::starts_with("record_"), trim_5char_record))
+    df <- dplyr::mutate(df, dplyr::across(dplyr::starts_with("record_"), trim_trailing_whitespace))
+    df <- dplyr::mutate(df, dplyr::across(dplyr::starts_with("record_"), pad_3char_codes))
 
     return(df)
 }

@@ -13,7 +13,7 @@
 label_suicide_type <- function(processed_df) {
 
     new_df <- processed_df |>
-        mutate(suicide_type = case_when(
+        dplyr::mutate(suicide_type = dplyr::case_when(
             suicide_firearm     == 1 ~ "suicide_firearm",
             suicide_poison      == 1 ~ "suicide_poison",
             suicide_fall        == 1 ~ "suicide_fall",

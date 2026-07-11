@@ -40,19 +40,19 @@ unite_records <- function(icd_df, year = NULL) {
             Map(prefix_to_record, icd_df[rec_cols], icd_df[nif_cols])
 
         df <- icd_df |>
-            select(-starts_with("record_"), -starts_with("rnifla_")) |>
-            unite(f_records_all, starts_with("f_record_"), sep = " ") |>
-            mutate(f_records_all = trimws(gsub("\\s+", " ",
+            dplyr::select(-dplyr::starts_with("record_"), -dplyr::starts_with("rnifla_")) |>
+            tidyr::unite(f_records_all, dplyr::starts_with("f_record_"), sep = " ") |>
+            dplyr::mutate(f_records_all = trimws(gsub("\\s+", " ",
                                         gsub("\\bNA\\b", "", f_records_all))))
     } else {
         ## NOTE: Some random ICD10 years will still have an rnifla_ column even
         ##      though they are all blank. We drop them here to keep them
         ##      conformable with all other years.
         df <- icd_df |>
-            unite(f_records_all, starts_with("record_"), sep = " ") |>
-            mutate(f_records_all = trimws(gsub("\\s+", " ",
+            tidyr::unite(f_records_all, dplyr::starts_with("record_"), sep = " ") |>
+            dplyr::mutate(f_records_all = trimws(gsub("\\s+", " ",
                                         gsub("\\bNA\\b", "", f_records_all)))) |>
-            select(-starts_with("rnifla"))
+            dplyr::select(-dplyr::starts_with("rnifla"))
     }
 
     return(df)

@@ -54,20 +54,20 @@ remap_age <- function(df, year = NULL) {
 ## 1979-2002 detail age (3-digit): units 0/1 = years (literal); 2-6 = sub-year
 ## (months/weeks/days/hours/minutes) -> 0; 999 = not stated -> NA.
 .remap_age_pre2003 <- function(age_col) {
-    case_when(
+    dplyr::case_when(
         age_col == 999 ~ NA_real_,
         age_col < 200 ~ age_col,
-        between(age_col, 200, 699) ~ 0
+        dplyr::between(age_col, 200, 699) ~ 0
     )
 }
 
 ## 2003+ detail age (4-digit): unit 1 = years (code - 1000); 2/4/5/6 = sub-year
 ## -> 0; 1999 (years, number not stated) and 9999 (not stated) -> NA.
 .remap_age_2003plus <- function(age_col) {
-    case_when(
+    dplyr::case_when(
         age_col == 9999 ~ NA_real_,
         age_col == 1999 ~ NA_real_,
-        between(age_col, 1000, 1998) ~ age_col - 1000,
-        between(age_col, 2000, 6999) ~ 0
+        dplyr::between(age_col, 1000, 1998) ~ age_col - 1000,
+        dplyr::between(age_col, 2000, 6999) ~ 0
     )
 }

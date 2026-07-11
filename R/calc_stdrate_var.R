@@ -32,13 +32,13 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
     ## The standardized columns reuse the input rate/variance names.
     .check_mcod_df(df, fn = "calc_stdrate_var")
 
-    grouped <- df |> group_by(..., .add = TRUE)
+    grouped <- df |> dplyr::group_by(..., .add = TRUE)
 
     ## Guard: grouping is NOT added automatically. A multi-year frame passed
     ## without `year` in the grouping silently collapses every year into one
     ## standardized rate.
-    if ("year" %in% names(df) && !"year" %in% group_vars(grouped) &&
-        length(unique(na.omit(df$year))) > 1L) {
+    if ("year" %in% names(df) && !"year" %in% dplyr::group_vars(grouped) &&
+        length(unique(stats::na.omit(df$year))) > 1L) {
         warning("`df` spans multiple years but `year` is not a grouping ",
                 "variable; calc_stdrate_var() will collapse across years into a ",
                 "single rate. Pass `year` via `...` (or pre-group `df`).",
@@ -48,7 +48,7 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
     ## Guard: NA/zero weights make the rate and variance disagree -- the rate
     ## (weighted.mean) goes NA on any NA weight, while the variance renormalizes
     ## over the non-NA weights.
-    w <- pull(df, {{ weight_col }})
+    w <- dplyr::pull(df, {{ weight_col }})
     if (all(is.na(w)) || sum(w, na.rm = TRUE) == 0) {
         warning("Standardization weights are all missing or sum to zero; the ",
                 "standardized rate will be NA/NaN.", call. = FALSE)
@@ -60,8 +60,8 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
     }
 
     grouped |>
-        summarize(
-            "{{ asrate_col }}" := weighted.mean({{ asrate_col }},
+        dplyr::summarize(
+            "{{ asrate_col }}" := stats::weighted.mean({{ asrate_col }},
                                                 {{ weight_col }},
                                                 na.rm = TRUE),
             "{{ asvar_col }}" := sum(

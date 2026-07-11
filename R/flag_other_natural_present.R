@@ -31,13 +31,13 @@ flag_other_natural_present <- function(processed_df, year = NULL,
 
     if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
-            mutate(other_natural_present = missing_val)
+            dplyr::mutate(other_natural_present = missing_val)
     } else {
         gate <- .opioid_gate(processed_df, opioid_deaths_only,
                              "flag_other_natural_present")
         new_df <- processed_df |>
-            mutate(other_natural_present =
-                       case_when(grepl(f_records_all, pattern = "\\<T402\\>") &
+            dplyr::mutate(other_natural_present =
+                       dplyr::case_when(grepl(f_records_all, pattern = "\\<T402\\>") &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     }

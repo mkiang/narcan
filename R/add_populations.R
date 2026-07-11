@@ -26,7 +26,7 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race")) {
         stop("add_pop_counts(): `df` already has a `pop` column; remove or ",
              "rename it before joining population estimates.", call. = FALSE)
     }
-    x <- left_join(df, select(narcan::pop_est, -age_cat), by = by_vars)
+    x <- dplyr::left_join(df, dplyr::select(narcan::pop_est, -age_cat), by = by_vars)
     unmatched <- is.na(x$pop)
     if (any(unmatched)) {
         combos <- unique(x[unmatched, by_vars, drop = FALSE])
@@ -68,10 +68,10 @@ add_std_pop <- function(df, std_cat = "s204", by_vars = "age") {
             paste0("`", clash, "`", collapse = ", ")), call. = FALSE)
     }
     std_pop_df <- narcan::std_pops |>
-        filter(standard == std_cat) |>
-        select(pop_std, age) |>
-        mutate(unit_w = pop_std / sum(pop_std))
+        dplyr::filter(standard == std_cat) |>
+        dplyr::select(pop_std, age) |>
+        dplyr::mutate(unit_w = pop_std / sum(pop_std))
 
-    x <- left_join(df, std_pop_df, by = by_vars)
+    x <- dplyr::left_join(df, std_pop_df, by = by_vars)
     return(x)
 }

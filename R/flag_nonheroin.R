@@ -19,7 +19,7 @@ flag_nonheroin <- function(processed_df) {
     ## opioid death by heroin.
 
     new_df <- processed_df |>
-        mutate(nonheroin_present = case_when(
+        dplyr::mutate(nonheroin_present = dplyr::case_when(
             num_opioids > 0 & heroin_present == 0 ~ 1,
             TRUE ~ 0))
 

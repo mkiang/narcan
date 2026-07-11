@@ -30,11 +30,11 @@ flag_opium_present <- function(processed_df, year = NULL, missing_val = 0,
 
     if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
-            mutate(opium_present = missing_val)
+            dplyr::mutate(opium_present = missing_val)
     } else {
         gate <- .opioid_gate(processed_df, opioid_deaths_only, "flag_opium_present")
         new_df <- processed_df |>
-            mutate(opium_present = case_when(
+            dplyr::mutate(opium_present = dplyr::case_when(
                     grepl(f_records_all, pattern = "\\<T400\\>") &
                         !!gate ~ 1, TRUE ~ 0))
     }

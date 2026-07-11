@@ -25,7 +25,7 @@
 
     ## Add age categories
     population_counts <- population_counts |>
-        mutate(age = (findInterval(age_years, c(seq(0, 85, 5), 150)) - 1) * 5,
+        dplyr::mutate(age = (findInterval(age_years, c(seq(0, 85, 5), 150)) - 1) * 5,
                age_cat = factor(age,
                                 levels = seq(0, 85, 5),
                                 labels = c(paste0(seq(0, 84, 5),
@@ -36,9 +36,9 @@
 
     ## Now collapse down age into the five year bins
     population_counts <- population_counts |>
-        group_by(year, age, age_cat, sex, race) |>
-        summarize(pop = sum(pop)) |>
-        arrange(year, race, sex, age)
+        dplyr::group_by(year, age, age_cat, sex, race) |>
+        dplyr::summarize(pop = sum(pop)) |>
+        dplyr::arrange(year, race, sex, age)
 
     return(population_counts)
 }

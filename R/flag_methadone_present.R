@@ -38,16 +38,16 @@ flag_methadone_present <- function(processed_df, year = NULL,
 
     if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
-            mutate(methadone_present =
-                       case_when(grepl(ucod, pattern = "\\<E8501\\>") &
+            dplyr::mutate(methadone_present =
+                       dplyr::case_when(grepl(ucod, pattern = "\\<E8501\\>") &
                                      !!gate ~ 1,
                                  grepl(f_records_all, pattern = "\\<E8501\\>") &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     } else {
         new_df <- processed_df |>
-            mutate(methadone_present =
-                       case_when(grepl(f_records_all, pattern = "\\<T403\\>") &
+            dplyr::mutate(methadone_present =
+                       dplyr::case_when(grepl(f_records_all, pattern = "\\<T403\\>") &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     }
@@ -56,7 +56,7 @@ flag_methadone_present <- function(processed_df, year = NULL,
     if (!keep_cols) {
         new_df <- suppressMessages(suppressWarnings(
             dplyr::select(new_df,
-                          any_of(c(original_cols, "methadone_present")))
+                          dplyr::any_of(c(original_cols, "methadone_present")))
         ))
     }
 

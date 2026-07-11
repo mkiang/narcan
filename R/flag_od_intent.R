@@ -34,19 +34,19 @@ flag_od_intent <- function(processed_df, year = NULL) {
 
     if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
-            mutate(
-                unintended_intent = case_when(
+            dplyr::mutate(
+                unintended_intent = dplyr::case_when(
                     drug_death == 1 &
                         grepl(ucod, pattern = "\\<E85[012345678]\\d{1}\\>") ~ 1,
                     TRUE ~ 0),
-                suicide_intent = case_when(
+                suicide_intent = dplyr::case_when(
                     drug_death == 1 &
                         grepl(ucod, pattern = "\\<E950[012345]\\>") ~ 1,
                     TRUE ~ 0),
-                homicide_intent = case_when(
+                homicide_intent = dplyr::case_when(
                     drug_death == 1 & grepl(ucod, pattern = "\\<E9620\\>") ~ 1,
                     TRUE ~ 0),
-                undetermined_intent = case_when(
+                undetermined_intent = dplyr::case_when(
                     drug_death == 1 &
                         grepl(ucod, pattern = "\\<E980[012345]\\>") ~ 1,
                     drug_death == 1 &
@@ -56,19 +56,19 @@ flag_od_intent <- function(processed_df, year = NULL) {
                     TRUE ~ 0))
     } else {
         new_df <- processed_df |>
-            mutate(
-                unintended_intent = case_when(
+            dplyr::mutate(
+                unintended_intent = dplyr::case_when(
                     drug_death == 1 &
                         grepl(ucod, pattern = "\\<X4[01234]\\d{0,1}\\>") ~ 1,
                     TRUE ~ 0),
-                suicide_intent = case_when(
+                suicide_intent = dplyr::case_when(
                     drug_death == 1 &
                         grepl(ucod, pattern = "\\<X6[01234]\\d{0,1}\\>") ~ 1,
                     TRUE ~ 0),
-                homicide_intent = case_when(
+                homicide_intent = dplyr::case_when(
                     drug_death == 1 & grepl(ucod, pattern = "\\<X85\\d{0,1}\\>") ~ 1,
                     TRUE ~ 0),
-                undetermined_intent = case_when(
+                undetermined_intent = dplyr::case_when(
                     drug_death == 1 &
                         grepl(ucod, pattern = "\\<Y1[01234]\\d{0,1}\\>") ~ 1,
                     drug_death == 1 &

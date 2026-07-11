@@ -25,7 +25,7 @@ calc_asrate_var <- function(df, new_name, death_col, pop_col = pop) {
     .check_mcod_df(df, fn = "calc_asrate_var")
 
     df |>
-        mutate(
+        dplyr::mutate(
             "{{ new_name }}_rate" := ({{ death_col }} / {{ pop_col }}) * 10^5,
             "{{ new_name }}_var" := {{ death_col }} * (10^5 / {{ pop_col }})^2
         )

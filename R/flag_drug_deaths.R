@@ -52,7 +52,7 @@ flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     ## Drop all intermediate columns?
     if (!keep_cols) {
         df <- suppressMessages(suppressWarnings(
-            dplyr::select(df, any_of(c(original_cols, "drug_death")))
+            dplyr::select(df, dplyr::any_of(c(original_cols, "drug_death")))
         ))
     }
 

@@ -11,16 +11,16 @@
 #' convert_ager27u1(df)
 convert_ager27u1 <- function(icd_df, remove_age27 = TRUE) {
     df <- icd_df |>
-        mutate(ager27 = ifelse(ager27 == 27, NA, ager27),
-               age = case_when(between(ager27, 1, 2) ~ 0,
-                               between(ager27, 3, 6) ~ 1,
-                               between(ager27, 7, 22) ~ (ager27 - 6) * 5,
-                               between(ager27, 23, 26) ~ 85,
+        dplyr::mutate(ager27 = ifelse(ager27 == 27, NA, ager27),
+               age = dplyr::case_when(dplyr::between(ager27, 1, 2) ~ 0,
+                               dplyr::between(ager27, 3, 6) ~ 1,
+                               dplyr::between(ager27, 7, 22) ~ (ager27 - 6) * 5,
+                               dplyr::between(ager27, 23, 26) ~ 85,
                                ager27 == 27 ~ NA_real_)
         )
 
     if (remove_age27) {
-        df <- select(df, -ager27)
+        df <- dplyr::select(df, -ager27)
     }
 
     return(df)

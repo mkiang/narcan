@@ -23,7 +23,7 @@ label_od_intent <- function(processed_df) {
     ## intent columns (flag_od_intent()) already exists.
 
     new_df <- processed_df |>
-        mutate(od_intent = case_when(
+        dplyr::mutate(od_intent = dplyr::case_when(
             unintended_intent   == 1 ~ "unintended",
             suicide_intent      == 1 ~ "suicide",
             homicide_intent     == 1 ~ "homicide",

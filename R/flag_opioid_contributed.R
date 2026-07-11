@@ -28,13 +28,13 @@ flag_opioid_contributed <- function(processed_df, year = NULL) {
 
     if (.dispatch_era(year) == "icd9") {
         df <- processed_df |>
-            mutate(opioid_contributed =
+            dplyr::mutate(opioid_contributed =
                        (!(grepl(.regex_opioid_icd9(), ucod)) &
                             grepl(.regex_opioid_icd9(n_codes = TRUE),
                                   f_records_all)) + 0)
     } else {
         df <- processed_df |>
-            mutate(opioid_contributed =
+            dplyr::mutate(opioid_contributed =
                        (!(grepl(.regex_opioid_icd10(ucod_codes = TRUE),
                                 ucod)) &
                             grepl(.regex_opioid_icd10(t_codes = TRUE),

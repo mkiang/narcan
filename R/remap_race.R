@@ -61,7 +61,7 @@ remap_race <- function(icd_df, year = NULL) {
 }
 
 .remap_race_1979_1988 <- function(race_col) {
-    new_col <- case_when(
+    new_col <- dplyr::case_when(
         race_col == 0 ~ 99,
         race_col == 1 ~ 1,
         race_col == 2 ~ 2,
@@ -76,7 +76,7 @@ remap_race <- function(icd_df, year = NULL) {
 }
 
 .remap_race_1989_1991 <- function(race_col) {
-    new_col <- case_when(
+    new_col <- dplyr::case_when(
         race_col == 1 ~ 1,
         race_col == 2 ~ 2,
         race_col == 3 ~ 3,
@@ -91,7 +91,7 @@ remap_race <- function(icd_df, year = NULL) {
 }
 
 .remap_race_1992_2020 <- function(race_col) {
-    new_col <- case_when(
+    new_col <- dplyr::case_when(
         race_col == 1 ~ 1,
         race_col == 2 ~ 2,
         race_col == 3 ~ 3,
@@ -111,7 +111,7 @@ remap_race <- function(icd_df, year = NULL) {
 }
 
 .remap_race_2022plus <- function(racer5_col) {
-    new_col <- case_when(
+    new_col <- dplyr::case_when(
         racer5_col == 1 ~ 101,
         racer5_col == 2 ~ 102,
         racer5_col == 3 ~ 103,

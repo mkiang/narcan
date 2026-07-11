@@ -34,7 +34,7 @@ flag_maternal_deaths_late <- function (processed_df, year = NULL,
 
     ## First flag columns based only on underlying cause
     df <- processed_df |>
-        mutate(maternal_death_late = (
+        dplyr::mutate(maternal_death_late = (
             grepl(.regex_maternal_icd10(include_late = TRUE), ucod)) + 0)
 
     ## Now also flag contributing causes if ucod_only == FALSE
@@ -47,7 +47,7 @@ flag_maternal_deaths_late <- function (processed_df, year = NULL,
             df <- df |> unite_records(year = year)
         }
         df <- df |>
-            mutate(maternal_death_late = case_when(
+            dplyr::mutate(maternal_death_late = dplyr::case_when(
                 grepl(.regex_maternal_icd10(include_late = TRUE),
                       f_records_all) ~ 1,
                 TRUE ~ maternal_death_late))

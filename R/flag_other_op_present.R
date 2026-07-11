@@ -29,16 +29,16 @@ flag_other_op_present <- function(processed_df, year = NULL,
 
     if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
-            mutate(other_op_present =
-                       case_when(grepl(ucod, pattern = "\\<E8502\\>") &
+            dplyr::mutate(other_op_present =
+                       dplyr::case_when(grepl(ucod, pattern = "\\<E8502\\>") &
                                      !!gate ~ 1,
                                  grepl(f_records_all, pattern = "\\<E8502\\>") &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     } else {
         new_df <- processed_df |>
-            mutate(other_op_present =
-                       case_when(grepl(f_records_all, pattern = "\\<T406\\>") &
+            dplyr::mutate(other_op_present =
+                       dplyr::case_when(grepl(f_records_all, pattern = "\\<T406\\>") &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     }

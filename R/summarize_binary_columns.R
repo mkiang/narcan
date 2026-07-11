@@ -23,14 +23,14 @@ summarize_binary_columns <- function(df, ...) {
     ## summarizes them over year and age (plus any extra bare grouping
     ## variables passed in ...).
     df <- df |>
-        group_by(.data$year, .data$age, .data$age_cat) |>
-        group_by(..., .add = TRUE)
+        dplyr::group_by(.data$year, .data$age, .data$age_cat) |>
+        dplyr::group_by(..., .add = TRUE)
 
     ## Guard: everything() sums every non-grouping column as if it were a 0/1
     ## flag. Warn on any column that is not binary (would be summed as a total)
     ## and on any NA (summed with na.rm = TRUE below, so a flag total can then
     ## differ from `deaths = n()`).
-    sum_cols <- setdiff(names(df), group_vars(df))
+    sum_cols <- setdiff(names(df), dplyr::group_vars(df))
     not_binary <- sum_cols[vapply(
         sum_cols, function(cc) !all(df[[cc]] %in% c(0, 1, NA)), logical(1)
     )]
@@ -44,11 +44,11 @@ summarize_binary_columns <- function(df, ...) {
                 "totals may not equal `deaths`.", call. = FALSE)
     }
 
-    o_df <- summarize(df, across(everything(), \(x) sum(x, na.rm = TRUE)))
+    o_df <- dplyr::summarize(df, dplyr::across(dplyr::everything(), \(x) sum(x, na.rm = TRUE)))
 
     n_df <- df |>
-        summarize(deaths = n()) |>
-        left_join(o_df, by = group_vars(df))
+        dplyr::summarize(deaths = dplyr::n()) |>
+        dplyr::left_join(o_df, by = dplyr::group_vars(df))
 
     n_df
 }
