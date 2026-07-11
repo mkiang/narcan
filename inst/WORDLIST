@@ -2,6 +2,7 @@ Alldata
 Anthropic
 DTA
 DVS
+DuckDB
 Dwyer
 HTTPS
 ICD
@@ -74,6 +75,7 @@ popest
 pre
 preconverted
 psychostimulant
+pushdown
 readr
 regex'ing
 regexing
@@ -83,6 +85,7 @@ restatus
 rnifla
 rniflag
 rowwise
+sha
 stateoc
 staters
 statersr

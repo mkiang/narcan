@@ -176,17 +176,22 @@ test_that("state_fips carried but absent from by_vars hard-errors", {
                  "geography column")
 })
 
-test_that("county routing reports the pending Release-asset path", {
-    st <- narcan::pop_singlerace_state
-    keys <- dplyr::distinct(st[st$year == 2024L, ], state_fips, year, age, sex,
-                            race)
-    keys$county_fips <- "06075"
+test_that("county routing joins the county parquet (via fixture)", {
+    skip_if_not_installed("duckdb")
+    fx <- system.file("extdata", "pop_singlerace_county_fixture.parquet",
+                      package = "narcan")
+    skip_if_not(nzchar(fx) && file.exists(fx))
+    withr::local_options(narcan.pop_county_parquet = fx)
+
+    # Wyoming (56) is the fixture state; build a county death frame from it.
+    keys <- get_pop_county(states = "56", years = 2024L, parquet = fx)
+    keys <- dplyr::distinct(keys, state_fips, county_fips, year, age, sex, race)
     keys$deaths <- 1
-    expect_error(
-        add_pop_counts(tibble::as_tibble(keys), race_scheme = "single",
-                       by_vars = c("state_fips", "county_fips", "year", "age",
-                                   "sex", "race")),
-        "Release asset")
+    out <- add_pop_counts(
+        keys, race_scheme = "single",
+        by_vars = c("state_fips", "county_fips", "year", "age", "sex", "race"))
+    expect_false(anyNA(out$pop))
+    expect_equal(nrow(out), nrow(keys))
 })
 
 # ---- single scheme: grouping + factor safety ----------------------------------

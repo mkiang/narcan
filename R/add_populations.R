@@ -74,11 +74,11 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
             paste0("`", stray_geo, "`", collapse = ", ")), call. = FALSE)
     }
     if ("county_fips" %in% by_vars) {
-        stop("add_pop_counts(): county single-race denominators are delivered ",
-             "as a tag-pinned GitHub Release asset (parquet); the downloader ",
-             "and accessor land in a subsequent narcan 0.5.0 build step. ",
-             "National (no geography) and state (state_fips) joins are ",
-             "available now.", call. = FALSE)
+        pop_slice <- .load_pop_county(
+            scheme = "single",
+            states = if ("state_fips" %in% names(df)) unique(df$state_fips) else NULL,
+            counties = if ("county_fips" %in% names(df)) unique(df$county_fips) else NULL,
+            years = if ("year" %in% names(df)) unique(df$year) else NULL)
     } else if ("state_fips" %in% by_vars) {
         pop_slice <- narcan::pop_singlerace_state
     } else {

@@ -28,7 +28,11 @@ Depends:
     R (>= 4.2)
 Suggests:
     covr,
+    DBI,
+    digest,
+    duckdb (>= 0.9.0),
     knitr,
+    openssl,
     pkgdown,
     rmarkdown,
     spelling,
