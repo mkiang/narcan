@@ -7,7 +7,7 @@
 label_suicide_type(processed_df)
 }
 \arguments{
-\item{processed_df}{processe MCOD dataframe}
+\item{processed_df}{processed MCOD dataframe}
 }
 \value{
 dataframe

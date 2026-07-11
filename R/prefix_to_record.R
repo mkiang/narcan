@@ -1,7 +1,7 @@
 #' Add the prefix to appropriate ICD-9 record columns
 #'
 #' For record columns, codes between 800-999 can be either nature of injury (N)
-#' or external cause of innjury (E) codes. To determine the correct code, there
+#' or external cause of injury (E) codes. To determine the correct code, there
 #' is a corresponding nature of injury flag column where 0 indicates an E code
 #' and 1 indicates an N code. This takes the record/flag pair of columns and
 #' prefixes the record column as appropriate.

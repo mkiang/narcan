@@ -14,5 +14,5 @@ dataframe
 }
 \description{
 Hispanic origin was not recorded until 1989. In order to keep all dataframes
-comformable, add an NA column named hspanicr if one does not exist.
+conformable, add an NA column named hspanicr if one does not exist.
 }

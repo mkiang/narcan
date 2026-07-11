@@ -1,6 +1,6 @@
 #' Create a new column with labels for suicide type
 #'
-#' @param processed_df processe MCOD dataframe
+#' @param processed_df processed MCOD dataframe
 #'
 #' @return dataframe
 #' @importFrom dplyr mutate case_when

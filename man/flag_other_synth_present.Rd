@@ -17,7 +17,7 @@ flag_other_synth_present(processed_df, year = NULL, missing_val = 0)
 a new dataframe with 1 additional column
 }
 \description{
-Note that ICD9 years did not include an other synethtic opioid code.
+Note that ICD9 years did not include an other synthetic opioid code.
 We code it as 0 by default, but can be coded however specified in
 missing_val parameter.
 This function flags all opioid deaths that involved other synthetic opioid.

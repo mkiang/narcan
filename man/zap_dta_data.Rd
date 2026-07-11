@@ -2,7 +2,7 @@
 % Please edit documentation in R/zap_dta_data.R
 \name{zap_dta_data}
 \alias{zap_dta_data}
-\title{Clear Stata metadta from MCOD dta files}
+\title{Clear Stata metadata from MCOD dta files}
 \usage{
 zap_dta_data(dta_df)
 }

@@ -1,6 +1,6 @@
 #' Creates a column called `other_synth_present`
 #'
-#' Note that ICD9 years did not include an other synethtic opioid code.
+#' Note that ICD9 years did not include an other synthetic opioid code.
 #' We code it as 0 by default, but can be coded however specified in
 #' missing_val parameter.
 #' This function flags all opioid deaths that involved other synthetic opioid.

@@ -1,4 +1,4 @@
-#' Clear Stata metadta from MCOD dta files
+#' Clear Stata metadata from MCOD dta files
 #'
 #' The NBER MCOD dta files come with a variety of metadata not necessary for
 #' use in R. This function clears all metadata as well as replacing NAN and
