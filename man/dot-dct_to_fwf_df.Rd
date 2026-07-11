@@ -25,3 +25,4 @@ or Natality public use datasets. This function downloads the dictionary file
 and converts it to a dataframe with column name, column start position,
 column end position, and column time (in readr::col() format).
 }
+\keyword{internal}

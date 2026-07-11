@@ -14,6 +14,7 @@
 #' @importFrom dplyr mutate select
 #' @importFrom tidyr pivot_longer
 #' @importFrom utils count.fields unzip
+#' @keywords internal
 .download_1980s_pop_data <- function(raw_folder = "./raw_data",
                                      filter_race = TRUE) {
     ## Files can be found at the `base_url` defined below.

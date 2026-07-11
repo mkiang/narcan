@@ -25,3 +25,4 @@ instead of a downstream "object not found" (from a data-masked `grepl()`) or
 join error. It never aborts -- processing continues and any genuine error
 still surfaces where it would have before.
 }
+\keyword{internal}

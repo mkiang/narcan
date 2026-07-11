@@ -47,6 +47,7 @@ import_mcod_fwf <- function(file, year, tier = c("restricted", "public")) {
 #'
 #' @return a tibble
 #' @importFrom readr read_fwf fwf_positions
+#' @keywords internal
 .import_mcod_data <- function(file, year_x, tier = c("restricted", "public"),
                               dict = NULL, restricted_dict = NULL) {
     tier <- match.arg(tier)

@@ -18,3 +18,4 @@ each age group and sex. Note that each population estimate file is
 a little different and thus must be munged before being combined
 into the total pop_est dataframe.
 }
+\keyword{internal}

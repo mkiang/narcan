@@ -1,7 +1,6 @@
 #' narcan R package for working with multiple cause of death data
 #'
 #' @description R package for working with multiple cause of death data
-#' @name narcan
 "_PACKAGE"
 
 ## These are just here to declare globals so I don't get notes on R CMD check

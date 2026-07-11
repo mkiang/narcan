@@ -16,3 +16,4 @@ Dataframe with US Census Bureau population estimates
 All annual population estimates from 1979 to 2015 by age (18 bins) and
 race. This is the function used to create the pop_est dataframe.
 }
+\keyword{internal}

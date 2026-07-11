@@ -23,3 +23,4 @@ text files with known dictionaries.
 \seealso{
 [import_mcod_fwf()] for the public (and exported) entry point.
 }
+\keyword{internal}

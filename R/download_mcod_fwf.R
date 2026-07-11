@@ -12,6 +12,7 @@
 #' @return none
 #' @importFrom utils download.file
 #' @source https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/
+#' @keywords internal
 .download_mcod_fwf <- function(year, download_dir = './raw_data') {
     ## Downloads the raw MCOD data (as FWF text) for specified year
     ##

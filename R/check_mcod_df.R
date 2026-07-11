@@ -13,6 +13,7 @@
 #' @param fn name of the calling function (for the message)
 #'
 #' @return invisibly NULL
+#' @keywords internal
 .check_mcod_df <- function(df, need = character(), fn = "") {
     if (!is.data.frame(df)) {
         warning(sprintf("%s(): expected a data frame but got %s.",

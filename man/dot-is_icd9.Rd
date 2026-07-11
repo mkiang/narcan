@@ -16,3 +16,4 @@ logical
 Central definition of the ICD-9 era boundary shared by the flag_* family
 and unite_records() so the magic numbers live in one place.
 }
+\keyword{internal}

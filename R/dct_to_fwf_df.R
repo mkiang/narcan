@@ -12,6 +12,7 @@
 #' @importFrom tibble as_tibble
 #' @source http://www.nber.org/data/vital-statistics-mortality-data-multiple-cause-of-death.html
 #' @source http://www.nber.org/data/vital-statistics-natality-data.html
+#' @keywords internal
 .dct_to_fwf_df <- function(year, natality = FALSE) {
     ## Create URL
     if (natality) {

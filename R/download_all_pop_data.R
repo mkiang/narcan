@@ -6,6 +6,7 @@
 #' @return Dataframe with US Census Bureau population estimates
 #' @source https://www.census.gov/programs-surveys/popest.html
 #' @importFrom dplyr mutate group_by summarize arrange
+#' @keywords internal
 
 .download_all_pop_data <- function() {
     ## Wrapper to download all population data -- also collapses into five

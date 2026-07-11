@@ -19,3 +19,4 @@ Emits a single warning when `year` is determinable and < 1999, so ICD-9 years
 do not silently return all zeros. Does nothing when `year` is NULL/NA. ICD-9
 cause detection is not implemented (a future work item).
 }
+\keyword{internal}

@@ -10,6 +10,7 @@
 #' @importFrom readr read_csv
 #' @importFrom dplyr mutate select ends_with contains
 #' @importFrom tidyr pivot_longer
+#' @keywords internal
 
 .download_1979_pop_data <- function() {
     ## Downloads 1979 data. "Documentation" can be found here:

@@ -8,6 +8,7 @@
 #' @param df dataframe to extract year from
 #'
 #' @return year as integer
+#' @keywords internal
 .extract_year <- function(df) {
     if (!is.null(df$year)) {
         year <- unique(df$year)
@@ -33,6 +34,7 @@
 #' @param df dataframe
 #' @param year explicit year (or NULL to detect)
 #' @return a single year, or NULL if undeterminable
+#' @keywords internal
 .detect_year_safe <- function(df, year = NULL) {
     if (!is.null(year)) {
         return(year)
@@ -55,6 +57,7 @@
 #' @param year a single year (or NULL)
 #' @param fn name of the calling function (for the message)
 #' @return invisibly NULL
+#' @keywords internal
 .warn_icd9_only <- function(year, fn) {
     if (!is.null(year) && !is.na(year) && year < 1999) {
         warning(sprintf(
@@ -74,6 +77,7 @@
 #'
 #' @param year a single year
 #' @return logical
+#' @keywords internal
 .is_icd9 <- function(year) {
     year >= 1979 & year <= 1998
 }
@@ -82,6 +86,7 @@
 #'
 #' @param year a single year
 #' @return logical
+#' @keywords internal
 .is_icd10 <- function(year) {
     year >= 1999
 }

@@ -18,3 +18,4 @@ Performs minimal manipulation to make age and standard factors human
 readable and consistent across standards. Note that one must dplyr::filter()
 to a single standard before performing dplyr::left_join() on age_cat.
 }
+\keyword{internal}

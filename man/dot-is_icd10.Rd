@@ -15,3 +15,4 @@ logical
 \description{
 Is this an ICD-10 data year? (US MCOD adopted ICD-10 from 1999)
 }
+\keyword{internal}

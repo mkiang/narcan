@@ -9,6 +9,7 @@
 #' @source https://seer.cancer.gov/stdpopulations/
 #' @importFrom readr read_fwf fwf_widths
 #' @importFrom dplyr mutate select case_when everything
+#' @keywords internal
 
 .download_standard_pops <- function() {
     ## Define URLS

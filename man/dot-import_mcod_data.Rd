@@ -36,3 +36,4 @@ nested/overlapping geography fields), reads the file, appends any suppressed
 columns as typed all-\code{NA}, and reorders to the canonical restricted
 column order for column parity across tiers.
 }
+\keyword{internal}

@@ -12,6 +12,7 @@
 #' @importFrom readr read_fwf fwf_positions
 #' @importFrom dplyr mutate select filter
 #' @importFrom tidyr pivot_longer
+#' @keywords internal
 .download_1990s_pop_data <- function(filter_race = TRUE) {
     ## Files can be found at the `base_url` defined below.
     ##

@@ -12,6 +12,7 @@
 #' @importFrom readr read_csv
 #' @importFrom dplyr mutate select filter
 #' @importFrom tidyr pivot_longer
+#' @keywords internal
 
 .download_2000s_pop_data <- function(filter_race = TRUE) {
     ## Source: paste0("https://www2.census.gov/programs-surveys/popest/",

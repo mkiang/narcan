@@ -24,3 +24,4 @@ CDC server can be slow--downloading from NBER via the download_mcod_dta() or
 download_mcod_csv() functions is strongly suggested. Coverage in
 \code{cdc_dict} runs through the most recent public-use year (currently 2024).
 }
+\keyword{internal}

@@ -10,6 +10,7 @@
 #'
 #' @return dataframe
 #' @seealso [import_mcod_fwf()] for the public (and exported) entry point.
+#' @keywords internal
 .import_restricted_data <- function(file, year_x) {
     .import_mcod_data(file, year_x, tier = "restricted")
 }
