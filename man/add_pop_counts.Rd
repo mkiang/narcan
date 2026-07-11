@@ -2,30 +2,56 @@
 % Please edit documentation in R/add_populations.R
 \name{add_pop_counts}
 \alias{add_pop_counts}
-\title{Given a dataframe with year, age, sex, and race, returns population estimate}
+\title{Join population denominators to a death frame}
 \usage{
-add_pop_counts(df, by_vars = c("year", "age", "sex", "race"))
+add_pop_counts(
+  df,
+  by_vars = c("year", "age", "sex", "race"),
+  race_scheme = c("legacy", "single"),
+  hispanic = "all"
+)
 }
 \arguments{
 \item{df}{MCOD dataframe}
 
 \item{by_vars}{variables to match on}
+
+\item{race_scheme}{denominator scheme: \code{"legacy"} (bridged-race
+\code{pop_est}, the default) or \code{"single"} (single-race, 2020-2024)}
+
+\item{hispanic}{Hispanic-origin denominator to use; only \code{"all"} is
+supported in this release}
 }
 \value{
 dataframe
 }
 \description{
-Uses the internal narcan::pop_est dataset to return yearly population
-estimates by age, sex, and race. See narcan::pop_est for columns and
-possible values of each matching variable
+Attaches a \code{pop} column of population estimates matched on \code{by_vars}.
+Two denominator schemes are available; both route through the single guarded
+join so the same correctness guards always apply.
+}
+\details{
+\code{race_scheme = "legacy"} (default) joins the frozen bridged-race
+\code{narcan::pop_est} (1979-2020) and reproduces the historical behavior
+byte-for-byte: unmatched keys warn and leave \code{pop = NA}. Use this to
+reproduce published bridged-race rates.
+
+\code{race_scheme = "single"} joins the single-race denominators
+(\code{pop_singlerace}, 2020-2024) for deaths coded with \code{remap_race()}
+/\code{categorize_race()} codes 101-106. This scheme is strict: it guarantees
+no silent NA denominator, so out-of-domain \code{age}/\code{sex}/\code{race}
+values hard-error rather than passing through. Geography is routed by
+\code{by_vars} membership -- include \code{state_fips} for state denominators
+(county support arrives with the Release-asset parquet). The \code{"total"}
+(race), \code{"both"} (sex), and \code{"all"} (Hispanic origin) aggregate
+tokens are synthesized on demand.
 }
 \note{
-Denominators are bridged-race population estimates, which NCHS
-  discontinued after Vintage 2020. Rates for data year 2021 onward require
-  single-race population estimates (and the 2003 numeric->M/F `sex` recode must
-  be reconciled). Do not divide single-race death counts (see remap_race() for
-  2022+) by these bridged-race denominators. Single-race denominator support is
-  a separate, future work item.
+Bridged-race (\code{"legacy"}, 2020 and earlier) and single-race
+  (\code{"single"}, 2022+) schemes are NOT comparable and must not be chained
+  into a single trend. In this release the death-side join is pinned to
+  all-origin denominators (\code{hispanic = "all"}); the Hispanic-stratified
+  death join arrives in a later version.
 }
 \examples{
 df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")
