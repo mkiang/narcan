@@ -28,18 +28,18 @@ flag_methadone_present <- function(processed_df, year = NULL,
             unite_records(year = year)
         }
 
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
             mutate(methadone_present =
-                       case_when(grepl(ucod, pattern = "E8501") &
+                       case_when(grepl(ucod, pattern = "\\<E8501\\>") &
                                      opioid_death == 1 ~ 1,
-                                 grepl(f_records_all, pattern = "E8501") &
+                                 grepl(f_records_all, pattern = "\\<E8501\\>") &
                                      opioid_death == 1 ~ 1,
                                  TRUE ~ 0))
     } else {
         new_df <- processed_df |>
             mutate(methadone_present =
-                       case_when(grepl(f_records_all, pattern = "T403") &
+                       case_when(grepl(f_records_all, pattern = "\\<T403\\>") &
                                      opioid_death == 1 ~ 1,
                                  TRUE ~ 0))
     }

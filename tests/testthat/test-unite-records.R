@@ -28,6 +28,6 @@ test_that("unite_records errors on an out-of-range year instead of silently retu
     # branch; before the else-guard this fell through and returned stats::df.
     expect_error(
         unite_records(flag_icd10_fixture(), year = 93L),
-        "Cannot unite records"
+        "Cannot determine an ICD coding era"
     )
 })

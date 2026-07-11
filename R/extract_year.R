@@ -90,3 +90,31 @@
 .is_icd10 <- function(year) {
     year >= 1999
 }
+
+#' Dispatch the ICD coding era for a data year
+#'
+#' Single source of truth for era selection across the flag_* family and
+#' unite_records(). Returns "icd9" (1979-1998) or "icd10" (>= 1999) and errors
+#' on a 2-digit `datayear` (e.g. 93) or any 4-digit year before 1979, so an
+#' out-of-range year can never silently fall through into the wrong branch.
+#'
+#' @param year a single 4-digit data year
+#' @return "icd9" or "icd10"
+#' @keywords internal
+.dispatch_era <- function(year) {
+    if (length(year) != 1L || is.na(year)) {
+        stop("`year` must be a single, non-missing value.", call. = FALSE)
+    }
+    if (.is_icd9(year)) {
+        return("icd9")
+    }
+    if (.is_icd10(year)) {
+        return("icd10")
+    }
+    stop(sprintf(
+        paste0("Cannot determine an ICD coding era for year %s: expected a ",
+               "4-digit year in 1979-1998 (ICD-9) or >= 1999 (ICD-10). ",
+               "Two-digit `datayear` values (e.g. 93) are unsupported -- pass ",
+               "an explicit 4-digit `year`."),
+        year), call. = FALSE)
+}

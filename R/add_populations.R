@@ -22,7 +22,24 @@
 #' add_pop_counts(df)
 add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race")) {
     .check_mcod_df(df, need = by_vars, fn = "add_pop_counts")
+    if ("pop" %in% names(df)) {
+        stop("add_pop_counts(): `df` already has a `pop` column; remove or ",
+             "rename it before joining population estimates.", call. = FALSE)
+    }
     x <- left_join(df, select(narcan::pop_est, -age_cat), by = by_vars)
+    unmatched <- is.na(x$pop)
+    if (any(unmatched)) {
+        combos <- unique(x[unmatched, by_vars, drop = FALSE])
+        warning(sprintf(
+            paste0("add_pop_counts(): %d row(s) had no matching population in ",
+                   "narcan::pop_est (pop = NA), spanning %d distinct %s ",
+                   "combination(s). Check that these values use pop_est's ",
+                   "coding -- e.g. categorize_race()'s finer bridged categories ",
+                   "(american_indian/chinese/japanese/hawaiian/filipino) have ",
+                   "no rows in pop_est."),
+            sum(unmatched), nrow(combos), paste(by_vars, collapse = "/")),
+            call. = FALSE)
+    }
     return(x)
 }
 
@@ -44,6 +61,12 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race")) {
 #' add_std_pop(df)
 add_std_pop <- function(df, std_cat = "s204", by_vars = "age") {
     .check_mcod_df(df, need = by_vars, fn = "add_std_pop")
+    clash <- intersect(c("pop_std", "unit_w"), names(df))
+    if (length(clash) > 0L) {
+        stop(sprintf(
+            "add_std_pop(): `df` already has column(s) %s; remove or rename before joining.",
+            paste0("`", clash, "`", collapse = ", ")), call. = FALSE)
+    }
     std_pop_df <- narcan::std_pops |>
         filter(standard == std_cat) |>
         select(pop_std, age) |>

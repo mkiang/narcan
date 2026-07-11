@@ -26,7 +26,7 @@ flag_opioid_contributed <- function(processed_df, year = NULL) {
         year <- .extract_year(processed_df)
     }
 
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         df <- processed_df |>
             mutate(opioid_contributed =
                        (!(grepl(.regex_opioid_icd9(), ucod)) &

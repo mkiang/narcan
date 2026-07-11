@@ -5,6 +5,10 @@
 #' don't, it will do so, but will remove that columns by default. Change
 #' keep_cols = TRUE to keep it.
 #'
+#' @note "Any opioid" includes T40.6 ("other and unspecified narcotics"),
+#'   following ISW7 and NCHS. Per the ISW7 (2012) Appendix B1 footnote, T40.6
+#'   can capture non-opioids (e.g., cocaine) in some jurisdictions.
+#'
 #' @param processed_df processed dataframe
 #' @param year if NULL, will attempt to detect
 #' @param keep_cols keep intermediate columns
@@ -40,7 +44,7 @@ flag_opioid_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
     }
 
     ## Flag opioid deaths according to ICD definition
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
             dplyr::mutate(opioid_death =
                        (grepl(.regex_opioid_icd9(), ucod) |

@@ -34,7 +34,7 @@ test_that("flag_opioid_contributed(): opioid in contributory but not the UCOD", 
     expect_true("opioid_contributed" %in% names(out))
     # every flagged row: UCOD is NOT an opioid UCOD (opioid only contributes)
     flagged <- out[out$opioid_contributed == 1, ]
-    expect_false(any(grepl("^(X4[0-4]|X6[0-4]|X85|Y1[0-4])", flagged$ucod)))
+    expect_false(any(grepl(narcan:::.regex_opioid_icd10(ucod_codes = TRUE), flagged$ucod)))
     expect_gt(sum(out$opioid_contributed), 0)
 })
 

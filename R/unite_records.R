@@ -29,7 +29,7 @@ unite_records <- function(icd_df, year = NULL) {
     }
 
     ## For ICD-9 dataframes
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         ## ICD-9 record codes in [800, 999] need an E/N prefix set by the
         ## paired nature-of-injury flag. Build the 20 f_record_ columns
         ## pairwise (base R Map; across() cannot walk two column sets in
@@ -44,7 +44,7 @@ unite_records <- function(icd_df, year = NULL) {
             unite(f_records_all, starts_with("f_record_"), sep = " ") |>
             mutate(f_records_all = gsub(f_records_all,
                                         pattern = " NA", replacement = ""))
-    } else if (.is_icd10(year)) {
+    } else {
         ## NOTE: Some random ICD10 years will still have an rnifla_ column even
         ##      though they are all blank. We drop them here to keep them
         ##      conformable with all other years.
@@ -53,13 +53,6 @@ unite_records <- function(icd_df, year = NULL) {
             mutate(f_records_all = gsub(f_records_all,
                                         pattern = " NA", replacement = "")) |>
             select(-starts_with("rnifla"))
-    } else {
-        stop(sprintf(
-            paste0("Cannot unite records for year %s: expected a 4-digit year ",
-                   "in 1979-1998 (ICD-9) or >= 1999 (ICD-10). Two-digit ",
-                   "`datayear` values (e.g. 93) are unsupported -- pass an ",
-                   "explicit 4-digit `year`."),
-            year), call. = FALSE)
     }
 
     return(df)

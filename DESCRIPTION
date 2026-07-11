@@ -1,7 +1,7 @@
 Package: narcan
 Type: Package
 Title: Tools for Working with Multiple Cause of Death Data
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: c(
     person("Mathew", "Kiang", email = "mathew.kiang@gmail.com",
            role = c("aut", "cre")),
@@ -18,7 +18,7 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 Imports:
-    dplyr,
+    dplyr (>= 1.1.0),
     haven,
     readr,
     rlang,

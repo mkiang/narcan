@@ -19,7 +19,7 @@ test_that("add_pop_counts() joins bridged-race pop for real keys, no rows lost",
 test_that("add_pop_counts() leaves pop NA for keys absent from pop_est", {
     inp <- rate_input(year = 2015L, sex = "male", race = "white")
     inp$year <- 3000L                     # a year not in pop_est
-    out <- add_pop_counts(inp)
+    expect_warning(out <- add_pop_counts(inp), "no matching population")
     expect_true(all(is.na(out$pop)))
 })
 

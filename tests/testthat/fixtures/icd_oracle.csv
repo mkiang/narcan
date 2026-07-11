@@ -1,0 +1,71 @@
+# Frozen snapshot of verify_fwf/output/review/icd_oracle.csv (MK-approved 2026-07-10).
+# The authoritative, primary-source-cited oracle lives in the private review wrapper, not in this package.
+# `stored` = the decimal-stripped form narcan matches (ICD-9 nature codes get an N prefix); NA for composite rows.
+code,era,position,meaning,expect_drug_death,expect_opioid_death,expect_subtype,expect_intent,stored
+T40.0,icd10,record,Poisoning by opium (WHO T40.0),1,1,opium,na,T400
+T40.1,icd10,record,Poisoning by heroin (WHO T40.1),1,1,heroin,na,T401
+T40.2,icd10,record,Poisoning by other opioids (WHO T40.2),1,1,natural_semisynth,na,T402
+T40.3,icd10,record,Poisoning by methadone (WHO T40.3),1,1,methadone,na,T403
+T40.4,icd10,record,Poisoning by other synthetic narcotics (WHO T40.4),1,1,synthetic,na,T404
+T40.5,icd10,record,Poisoning by cocaine (WHO T40.5),1,0,none,na,T405
+T40.6,icd10,record,Poisoning by other and unspecified narcotics (WHO T40.6),1,1,other_opioid,na,T406
+T40.7,icd10,record,Poisoning by cannabis (derivatives) (WHO T40.7),1,0,none,na,T407
+T36.0,icd10,record,Poisoning by penicillins (WHO T36.0),1,0,none,na,T360
+T39.1,icd10,record,Poisoning by 4-aminophenol derivatives (acetaminophen) (WHO T39.1),1,0,none,na,T391
+T42.4,icd10,record,Poisoning by benzodiazepines (WHO T42.4),1,0,none,na,T424
+T50.9,icd10,record,"Other and unspecified drugs, medicaments, biologicals (WHO T50.9)",1,0,none,na,T509
+T51,icd10,record,Toxic effect of alcohol (WHO T51),0,0,none,na,T51
+T55,icd10,record,Toxic effect of soaps and detergents (WHO T55),0,0,none,na,T55
+T59,icd10,record,"Toxic effect of other gases, fumes and vapours (WHO T59)",0,0,none,na,T59
+X40,icd10,ucod,Accidental poisoning by nonopioid analgesics/antipyretics/antirheumatics,1,0,none,unintentional,X40
+X41,icd10,ucod,Accidental poisoning by antiepileptic/sedative-hypnotic/antiparkinson/psychotropic drugs NEC,1,0,none,unintentional,X41
+X42,icd10,ucod,Accidental poisoning by narcotics and psychodysleptics [hallucinogens] NEC,1,0,none,unintentional,X42
+X43,icd10,ucod,Accidental poisoning by other drugs acting on the autonomic nervous system,1,0,none,unintentional,X43
+X44,icd10,ucod,"Accidental poisoning by other and unspecified drugs, medicaments, biologicals",1,0,none,unintentional,X44
+X60,icd10,ucod,Intentional self-poisoning by nonopioid analgesics/antipyretics/antirheumatics,1,0,none,suicide,X60
+X61,icd10,ucod,Intentional self-poisoning by antiepileptic/sedative-hypnotic/psychotropic drugs NEC,1,0,none,suicide,X61
+X62,icd10,ucod,Intentional self-poisoning by narcotics and psychodysleptics NEC,1,0,none,suicide,X62
+X63,icd10,ucod,Intentional self-poisoning by other drugs acting on the autonomic nervous system,1,0,none,suicide,X63
+X64,icd10,ucod,"Intentional self-poisoning by other and unspecified drugs, medicaments, biologicals",1,0,none,suicide,X64
+X85,icd10,ucod,"Assault by drugs, medicaments and biological substances",1,0,none,homicide,X85
+Y10,icd10,ucod,"Poisoning by nonopioid analgesics/antipyretics/antirheumatics, undetermined intent",1,0,none,undetermined,Y10
+Y11,icd10,ucod,"Poisoning by antiepileptic/sedative-hypnotic/psychotropic drugs NEC, undetermined intent",1,0,none,undetermined,Y11
+Y12,icd10,ucod,"Poisoning by narcotics and psychodysleptics NEC, undetermined intent",1,0,none,undetermined,Y12
+Y13,icd10,ucod,"Poisoning by other drugs acting on autonomic nervous system, undetermined intent",1,0,none,undetermined,Y13
+Y14,icd10,ucod,"Poisoning by other and unspecified drugs, medicaments, biologicals, undetermined intent",1,0,none,undetermined,Y14
+X45,icd10,ucod,Accidental poisoning by and exposure to alcohol (WHO X45),0,0,none,unintentional,X45
+Y15,icd10,ucod,"Poisoning by alcohol, undetermined intent (WHO Y15)",0,0,none,undetermined,Y15
+X42(UCOD)+T40.1(record),icd10,either,Unintentional narcotic poisoning with heroin identified,1,1,heroin,unintentional,NA
+X42(UCOD)+no_Tcode,icd10,ucod,"Unintentional narcotic poisoning, no contributory T-code recorded",0,0,none,unintentional,NA
+T40.1(record)+non-drug_UCOD,icd10,record,"Heroin (T40.1) contributes to a death whose UCOD is not a drug poisoning (e.g., UCOD V89 motor-vehicle)",0,0,none,na,NA
+X44(UCOD)+T50.9(record),icd10,either,"Unintentional poisoning, unspecified drug",1,0,none,unintentional,NA
+X42(UCOD)+T40.5(record),icd10,either,Unintentional poisoning with cocaine identified,1,0,none,unintentional,NA
+X60(UCOD)+T40.2(record),icd10,either,Suicide by natural/semisynthetic opioid,1,1,natural_semisynth,suicide,NA
+E850.0,icd9,ucod,Accidental poisoning by heroin (ICD-9 E850.0),1,1,heroin,unintentional,E8500
+E850.1,icd9,ucod,Accidental poisoning by methadone (ICD-9 E850.1),1,1,methadone,unintentional,E8501
+E850.2,icd9,ucod,Accidental poisoning by other opiates and related narcotics (ICD-9 E850.2),1,1,other_opioid,unintentional,E8502
+E850,icd9,ucod,"Accidental poisoning by analgesics, antipyretics and antirheumatics (ICD-9 E850)",1,0,none,unintentional,E850
+E854,icd9,ucod,Accidental poisoning by other psychotropic agents (ICD-9 E854),1,0,none,unintentional,E854
+E858,icd9,ucod,Accidental poisoning by other drugs (ICD-9 E858),1,0,none,unintentional,E858
+E859,icd9,ucod,"Accidental poisoning beyond drug range (ICD-9 E859+; e.g., other solid/liquid)",0,0,none,na,E859
+E950.0,icd9,ucod,"Suicide/self-poisoning by analgesics, antipyretics, antirheumatics (ICD-9 E950.0)",1,0,none,suicide,E9500
+E950.3,icd9,ucod,Suicide/self-poisoning by tranquillisers and psychotropic agents (ICD-9 E950.3),1,0,none,suicide,E9503
+E950.5,icd9,ucod,Suicide/self-poisoning by unspecified drug or medicinal substance (ICD-9 E950.5),1,0,none,suicide,E9505
+E962.0,icd9,ucod,Assault by drugs and medicinal substances (ICD-9 E962.0),1,0,none,homicide,E9620
+E980.0,icd9,ucod,"Poisoning by analgesics/antipyretics/antirheumatics, undetermined intent (ICD-9 E980.0)",1,0,none,undetermined,E9800
+E980.5,icd9,ucod,"Poisoning by unspecified drug/medicinal, undetermined intent (ICD-9 E980.5)",1,0,none,undetermined,E9805
+965.0,icd9,record,Poisoning by opiates and related narcotics (ICD-9 965.0),1,1,other_opioid,na,N9650
+965.00,icd9,record,"Poisoning by opium (alkaloids), unspecified (ICD-9-CM 965.00)",1,1,opium,na,N96500
+965.01,icd9,record,Poisoning by heroin (ICD-9-CM 965.01),1,1,heroin,na,N96501
+965.02,icd9,record,Poisoning by methadone (ICD-9-CM 965.02),1,1,methadone,na,N96502
+965.09,icd9,record,Poisoning by other opioids (ICD-9-CM 965.09),1,1,other_opioid,na,N96509
+967.0,icd9,record,Poisoning by barbiturates (ICD-9 967.0),1,0,none,na,N9670
+969.4,icd9,record,Poisoning by benzodiazepine-based tranquilizers (ICD-9-CM 969.4),1,0,none,na,N9694
+960,icd9,record,Poisoning by antibiotics (ICD-9 960; lower edge of 960-979),1,0,none,na,N960
+979,icd9,record,Poisoning by other/unspecified medicinal/biological (ICD-9 979; upper edge of 960-979),1,0,none,na,N979
+980,icd9,record,"Toxic effect of alcohol (ICD-9 980; NON-DRUG, just past 960-979)",0,0,none,na,N980
+ERA:1998-record,icd9,either,A death record with data year 1998 uses ICD-9 (E-codes/N-codes),na,na,none,na,ERA:1998-record
+ERA:1999-record,icd10,either,A death record with data year 1999 uses ICD-10 (X/Y UCOD + T-codes),na,na,none,na,ERA:1999-record
+ERA:datayear=99,icd10,either,"2-digit datayear '99' denotes 1999 (ICD-10), NOT 1899/2099",na,na,none,na,ERA:datayear=99
+ERA:datayear=00,icd10,either,2-digit datayear '00' denotes 2000 (ICD-10),na,na,none,na,ERA:datayear=00
+ERA:datayear=93,icd9,either,2-digit datayear '93' denotes 1993 (ICD-9),na,na,none,na,ERA:datayear=93

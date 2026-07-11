@@ -22,6 +22,11 @@ both ICD9 and ICD10 codes. Expects you to run unite_records() first. If you
 don't, it will do so, but will remove that columns by default. Change
 keep_cols = TRUE to keep it.
 }
+\note{
+"Any opioid" includes T40.6 ("other and unspecified narcotics"),
+  following ISW7 and NCHS. Per the ISW7 (2012) Appendix B1 footnote, T40.6
+  can capture non-opioids (e.g., cocaine) in some jurisdictions.
+}
 \examples{
 df <- data.frame(year = 2019, ucod = "X42", f_records_all = "T401")
 flag_opioid_deaths(df, year = 2019)

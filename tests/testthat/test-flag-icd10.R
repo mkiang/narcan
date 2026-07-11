@@ -20,8 +20,8 @@ test_that("ICD-10 opioid deaths are a subset of drug deaths", {
 test_that("ICD-10 opioid death requires a drug UCOD AND an opioid T-code (edges resolve to 0)", {
     r <- flag_pipeline(flag_icd10_fixture(), year = 2019L, era = "icd10")
     f <- r$flagged
-    ucod_op  <- grepl("^(X4[0-4]|X6[0-4]|X85|Y1[0-4])", f$ucod)
-    tcode_op <- grepl("T40[012346]", f$f_records_all)
+    ucod_op  <- grepl(narcan:::.regex_opioid_icd10(ucod_codes = TRUE), f$ucod)
+    tcode_op <- grepl(narcan:::.regex_opioid_icd10(t_codes = TRUE), f$f_records_all)
     # both edge sets must be non-empty or the checks below are vacuous
     expect_gt(sum(ucod_op & !tcode_op), 0)
     expect_gt(sum(!ucod_op & tcode_op), 0)

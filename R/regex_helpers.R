@@ -16,7 +16,7 @@
     ##
     ## ICD-9 External Cause of Injury (E) codes that designate
     ## drug poisoning (all intents):
-    ##      E850 E851 E852 E853 E854 E855 E856 E857 E858 -- "\\<E85\\d{2}\\>"
+    ##      E850 E851 E852 E853 E854 E855 E856 E857 E858 -- "\\<E85[0-8]\\d\\>"
     ##      E950.0 E950.1 E950.2 E950.3 E950.4 E950.5 -- "\\<E950[012345]\\>"
     ##      E962.0 -- "\\<E9620\\>"
     ##      E980.0 E980.1 E980.2 E980.3 E980.4 E980.5 -- "\\<E980[012345]\\>"
@@ -32,7 +32,7 @@
     }
 
     if (e_codes) {
-        e_1 <- "\\<E85\\d{2}\\>"
+        e_1 <- "\\<E85[0-8]\\d\\>"
         e_2 <- "\\<E950[012345]\\>"
         e_3 <- "\\<E9620\\>"
         e_4 <- "\\<E980[012345]\\>"
@@ -82,7 +82,7 @@
     ##
     ## ICD-10 T codes in contributing causes that designates drug poisoning:
     ##      T36-T39.9 -- "\\<T3[6789]\\d{0,1}\\>"
-    ##      T40.0-T50.9 -- "\\<T[45]\\d{1,2}\\>"
+    ##      T40.0-T50.9 -- "\\<T(4\\d|50)\\d{0,1}\\>"
 
     search_term <- NULL
 
@@ -96,7 +96,7 @@
 
     if (t_codes) {
         t_1 <- "\\<T3[6789]\\d{0,1}\\>"
-        t_2 <- "\\<T[45]\\d{1,2}\\>"
+        t_2 <- "\\<T(4\\d|50)\\d{0,1}\\>"
 
         search_term <- c(search_term, t_1, t_2)
     }
@@ -116,8 +116,11 @@
     ##      X85 -- "\\<X85\\d{0,1}\\>"
     ##      Y10-Y14 -- "\\<Y1[01234]\\d{0,1}\\>"
     ##
-    ## ICD-10 T codes in contributing causes that designates opioid poisoning:
-    ##      T40.0-T40.4 -- "\\<T40[01234]\\>"
+    ## ICD-10 T codes in contributing causes that designates opioid poisoning
+    ## (ISW7 "any opioid" = T40.0-T40.4 and T40.6):
+    ##      T40.0-T40.4, T40.6 -- "\\<T40[012346]\\>"
+    ## NOTE (ISW7 2012, Appendix B1 footnote): T40.6 ("other and unspecified
+    ## narcotics") can capture non-opioids (e.g., cocaine) in some jurisdictions.
 
     search_term <- NULL
 

@@ -35,7 +35,7 @@ flag_drug_deaths <- function(processed_df, year = NULL, keep_cols = FALSE) {
             unite_records(year = year)
     }
 
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         df <- processed_df |>
             dplyr::mutate(drug_death = (
                 grepl(.regex_drug_icd9(), ucod) |

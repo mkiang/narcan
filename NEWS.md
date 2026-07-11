@@ -1,3 +1,59 @@
+# narcan 0.4.0
+
+## Verified-review correctness fixes (0.4-P2)
+
+Fixes correctness issues surfaced by a systematic, primary-source-anchored review
+of the ISW7 flag logic and the geography/rate machinery. Point estimates for
+canonical NCHS data are essentially unchanged; the behavior changes below are
+narrow. The pre-fix state is tagged `v0.3.0` for reproducibility.
+
+### Breaking changes
+
+* **`add_county_fips()` errors on an ambiguous NCHS state code instead of silently
+  duplicating rows.** NCHS code 62 maps to both American Samoa and the Northern
+  Mariana Islands in `st_fips_map`, so an NCHS-coded "62" record previously fanned
+  into two output rows. The NCHS join now uses `relationship = "many-to-one"`.
+  Real-world impact is nil (code 62 does not appear in national MCOD files;
+  public-MCOD-anchor estimate). Now requires `dplyr (>= 1.1.0)`.
+* **`calc_stdrate_var()` renormalizes the age-standardized variance** by the
+  weights actually present. Previously `sum(w^2 * var)` was correct only when the
+  weights summed to 1; if age bins were dropped upstream the reported variance was
+  under-stated (the point rate, already renormalized by `weighted.mean()`, is
+  unchanged). Reported variances/CIs change ONLY for analyses passing incomplete
+  age bins (e.g. county-level sparse-bin standardized rates); complete-bin analyses
+  are unaffected.
+* **The `flag_*` family errors on a 2-digit `datayear` or a 4-digit year before
+  1979** (shared `.dispatch_era()` guard) instead of silently routing the record
+  into the ICD-10 branch. Valid 4-digit years (1979+) are unaffected.
+* **`.regex_drug_icd10()` no longer matches T51-T59** (non-medicinal toxic
+  effects); the drug T-code range is now T36.0-T50.9 as intended. Effect on
+  `drug_death` counts is negligible: 8-26 records per year (<= 0.07%) across
+  public data years 2005-2023 (public-MCOD-anchor estimate).
+* **`.regex_drug_icd9()` no longer matches the unassigned E859**; the accidental
+  E-code range is now E850-E858. No effect on real data: E859 is unassigned in
+  WHO ICD-9 (zero E859 records in 1998 public data; public-MCOD-anchor estimate).
+
+### Fixed
+
+* `add_county_fips()` detects the state-coding scheme (postal / NCHS / FIPS) by
+  subset membership, so it works on a single state or filtered batch instead of
+  requiring the entire national code space; an unrecognized scheme raises an
+  informative error.
+* `add_pop_counts()` warns when join keys have no match in `pop_est` (previously a
+  silent NA population) and errors early on a pre-existing `pop` column;
+  `add_std_pop()` errors early on a pre-existing `pop_std`/`unit_w` column.
+* `flag_od_intent()` intent patterns and the opioid-subtype flags
+  (`flag_heroin_present()` etc.) use anchored code patterns consistent with the
+  death-flag definitions, removing latent substring over-match.
+
+### Internal
+
+* Added `.dispatch_era()` as the single source of truth for ICD-9/ICD-10 era
+  selection, shared by `unite_records()` and the `flag_*` family.
+* Expanded tests: an ICD-oracle golden test (codes -> expected flags, primary-
+  source-cited), direct unit tests for the ICD-9 munging helpers, era-dispatch
+  boundary tests, and regression tests for each fix above.
+
 # narcan 0.3.0
 
 ## Modernized for current R and tidyverse

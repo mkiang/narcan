@@ -35,7 +35,9 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
             "{{ asrate_col }}" := weighted.mean({{ asrate_col }},
                                                 {{ weight_col }},
                                                 na.rm = TRUE),
-            "{{ asvar_col }}" := sum({{ weight_col }}^2 * {{ asvar_col }},
-                                     na.rm = TRUE)
+            "{{ asvar_col }}" := sum(
+                ({{ weight_col }} / sum({{ weight_col }}, na.rm = TRUE))^2 *
+                    {{ asvar_col }},
+                na.rm = TRUE)
         )
 }

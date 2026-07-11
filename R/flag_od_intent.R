@@ -29,7 +29,7 @@ flag_od_intent <- function(processed_df, year = NULL) {
         year <- .extract_year(processed_df)
     }
 
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
             mutate(
                 unintended_intent = case_when(
@@ -38,7 +38,7 @@ flag_od_intent <- function(processed_df, year = NULL) {
                 suicide_intent = case_when(
                     grepl(ucod, pattern = "\\<E950[012345]\\>") ~ 1,
                     TRUE ~ 0),
-                homicide_intent = case_when(grepl(ucod, pattern = "E9620") ~ 1,
+                homicide_intent = case_when(grepl(ucod, pattern = "\\<E9620\\>") ~ 1,
                                             TRUE ~ 0),
                 undetermined_intent = case_when(
                     grepl(ucod, pattern = "\\<E980[012345]\\>") ~ 1,
@@ -51,13 +51,13 @@ flag_od_intent <- function(processed_df, year = NULL) {
         new_df <- processed_df |>
             mutate(
                 unintended_intent = case_when(
-                    grepl(ucod, pattern = "\\<X4[01234]\\>") ~ 1, TRUE ~ 0),
+                    grepl(ucod, pattern = "\\<X4[01234]\\d{0,1}\\>") ~ 1, TRUE ~ 0),
                 suicide_intent = case_when(
-                    grepl(ucod, pattern = "\\<X6[01234]\\>") ~ 1, TRUE ~ 0),
+                    grepl(ucod, pattern = "\\<X6[01234]\\d{0,1}\\>") ~ 1, TRUE ~ 0),
                 homicide_intent = case_when(
-                    grepl(ucod, pattern = "X85") ~ 1, TRUE ~ 0),
+                    grepl(ucod, pattern = "\\<X85\\d{0,1}\\>") ~ 1, TRUE ~ 0),
                 undetermined_intent = case_when(
-                    grepl(ucod, pattern = "\\<Y1[01234]\\>") ~ 1,
+                    grepl(ucod, pattern = "\\<Y1[01234]\\d{0,1}\\>") ~ 1,
                     drug_death == 1 &
                         unintended_intent == 0 &
                         suicide_intent == 0 &

@@ -23,13 +23,13 @@ flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0)
         year <- .extract_year(processed_df)
     }
 
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
             mutate(other_synth_present = missing_val)
     } else {
         new_df <- processed_df |>
             mutate(other_synth_present =
-                       case_when(grepl(f_records_all, pattern = "T404") &
+                       case_when(grepl(f_records_all, pattern = "\\<T404\\>") &
                                      opioid_death == 1 ~ 1,
                                  TRUE ~ 0))
     }

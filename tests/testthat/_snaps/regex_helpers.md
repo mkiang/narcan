@@ -3,11 +3,11 @@
     Code
       cat(.regex_drug_icd9(), "\n")
     Output
-      \<E85\d{2}\>|\<E950[012345]\>|\<E9620\>|\<E980[012345]\> 
+      \<E85[0-8]\d\>|\<E950[012345]\>|\<E9620\>|\<E980[012345]\> 
     Code
       cat(.regex_drug_icd9(n_codes = TRUE), "\n")
     Output
-      \<N909[05]\>|\<N9[67]\d{2}\>|\<N995[24]\>|\<E85\d{2}\>|\<E950[012345]\>|\<E9620\>|\<E980[012345]\> 
+      \<N909[05]\>|\<N9[67]\d{2}\>|\<N995[24]\>|\<E85[0-8]\d\>|\<E950[012345]\>|\<E9620\>|\<E980[012345]\> 
     Code
       cat(.regex_drug_icd9(n_codes = TRUE, e_codes = FALSE), "\n")
     Output
@@ -33,11 +33,11 @@
     Code
       cat(.regex_drug_icd10(t_codes = TRUE), "\n")
     Output
-      \<T3[6789]\d{0,1}\>|\<T[45]\d{1,2}\> 
+      \<T3[6789]\d{0,1}\>|\<T(4\d|50)\d{0,1}\> 
     Code
       cat(.regex_drug_icd10(ucod_codes = TRUE, t_codes = TRUE), "\n")
     Output
-      \<X[46][01234]\d{0,1}\>|\<X85\d{0,1}\>|\<Y1[01234]\d{0,1}\>|\<T3[6789]\d{0,1}\>|\<T[45]\d{1,2}\> 
+      \<X[46][01234]\d{0,1}\>|\<X85\d{0,1}\>|\<Y1[01234]\d{0,1}\>|\<T3[6789]\d{0,1}\>|\<T(4\d|50)\d{0,1}\> 
 
 # .regex_opioid_icd10() is stable (incl. the T40[012346] nuance)
 

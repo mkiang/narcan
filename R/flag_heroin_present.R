@@ -37,20 +37,20 @@ flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE) {
             flag_opioid_deaths(year = year)
     }
 
-    if (.is_icd9(year)) {
+    if (.dispatch_era(year) == "icd9") {
         new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
-                                  grepl(ucod, pattern = "E8500") &
+                                  grepl(ucod, pattern = "\\<E8500\\>") &
                                       opioid_death == 1 ~ 1,
-                                  grepl(f_records_all, pattern = "E8500") &
+                                  grepl(f_records_all, pattern = "\\<E8500\\>") &
                                       opioid_death == 1 ~ 1,
                                   TRUE ~ 0))
     } else {
         new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
-                                  grepl(f_records_all, pattern = "T401") &
+                                  grepl(f_records_all, pattern = "\\<T401\\>") &
                                       opioid_death == 1 ~ 1,
                                   TRUE ~ 0))
     }
