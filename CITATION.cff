@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "narcan: Tools for Working with Multiple Cause of Death Data"
+abstract: >-
+  An R package for downloading, importing, and working with United States
+  multiple cause of death (MCOD) micro-data, especially for identifying and
+  classifying opioid-related deaths.
+type: software
+authors:
+  - family-names: Kiang
+    given-names: Mathew
+  - family-names: Alexander
+    given-names: Monica
+version: 0.3.0
+license: MIT
+repository-code: "https://github.com/mkiang/narcan"
+url: "https://mkiang.github.io/narcan/"
+keywords:
+  - epidemiology
+  - mortality
+  - multiple-cause-of-death
+  - opioids
+  - r-package
