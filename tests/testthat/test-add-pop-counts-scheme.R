@@ -67,9 +67,16 @@ test_that("single-race race values under the default scheme hard-error", {
     expect_error(add_pop_counts(inp3), "race_scheme")
 })
 
-test_that("race_scheme = 'bridged' is a clean match.arg error", {
+test_that("race_scheme = 'bridged' is accepted by match.arg (0.5.1)", {
+    ## 0.5.0 rejected "bridged" at match.arg; 0.5.1 accepts it. End-to-end
+    ## national bridged needs the pop_bridged data (built in a later sub-phase),
+    ## so here we only confirm match.arg no longer rejects it -- the observed
+    ## error must NOT be the match.arg "should be one of" rejection.
     inp <- single_input()
-    expect_error(add_pop_counts(inp, race_scheme = "bridged"))
+    res <- tryCatch(add_pop_counts(inp, race_scheme = "bridged"),
+                    error = function(e) conditionMessage(e))
+    expect_true(is.character(res))
+    expect_false(grepl("should be one of", res))
 })
 
 # ---- single scheme: national join + value correctness -------------------------
@@ -127,7 +134,7 @@ test_that("single scheme hard-errors on out-of-domain keys", {
 
 test_that("single scheme hard-errors (no silent NA) on out-of-coverage year", {
     inp <- single_input(2024L)
-    inp$year <- 2019L                                # before single coverage
+    inp$year <- 1999L                                # before single coverage
     expect_error(add_pop_counts(inp, race_scheme = "single"),
                  "no single-race population")
 })
@@ -228,7 +235,7 @@ test_that("county routing joins the county parquet (via fixture)", {
     fx <- system.file("extdata", "pop_singlerace_county_fixture.parquet",
                       package = "narcan")
     skip_if_not(nzchar(fx) && file.exists(fx))
-    withr::local_options(narcan.pop_county_parquet = fx)
+    withr::local_options(narcan.pop_single_county_parquet = fx)
 
     # Wyoming (56) is the fixture state; build a county death frame from it.
     keys <- get_pop_county(states = "56", years = 2024L, parquet = fx)

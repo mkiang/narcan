@@ -2,38 +2,58 @@
 % Please edit documentation in R/get_pop.R
 \name{get_pop_state}
 \alias{get_pop_state}
-\title{Retrieve state-level single-race population denominators}
+\title{Retrieve state-level population denominators}
 \usage{
 get_pop_state(
-  scheme = "single",
+  scheme = c("single", "bridged"),
   states = NULL,
   years = NULL,
-  hispanic_origin = c("all", "non_hispanic", "hispanic")
+  hispanic_origin = c("all", "non_hispanic", "hispanic"),
+  parquet = NULL
 )
 }
 \arguments{
-\item{scheme}{denominator scheme; only \code{"single"} is available in this
-release}
+\item{scheme}{denominator scheme: \code{"single"} (default) or
+\code{"bridged"}}
 
 \item{states}{optional character vector of 2-digit state FIPS codes to keep
 (default: all states)}
 
-\item{years}{optional numeric vector of years to keep (default: all,
-2020-2024)}
+\item{years}{optional numeric vector of years to keep (default: all covered
+for bridged; the frozen 2020-2024 window for single -- request pre-2020
+years to reach the backfill)}
 
 \item{hispanic_origin}{\code{"all"} (default; sums the origin dimension),
-\code{"non_hispanic"}, or \code{"hispanic"}}
+\code{"non_hispanic"}, or \code{"hispanic"}. Bridged pre-1990 rows carry
+only \code{"all"} (SEER has no Hispanic origin before 1990).}
+
+\item{parquet}{optional path to a local state parquet (single-race backfill
+or bridged); default resolves the cached Release asset when the request
+falls outside the bundled frozen window}
 }
 \value{
 a tibble with columns \code{state_fips}, \code{year}, \code{age},
   \code{sex}, \code{race}, \code{hispanic_origin}, \code{pop}, and metadata
 }
 \description{
-A thin, dependency-free accessor over the bundled
-\code{narcan::pop_singlerace_state} table (Census PEP Vintage 2024,
-2020-2024). Unlike \code{add_pop_counts()}, this returns population rows for
-descriptive use and exposes the Hispanic-origin dimension. It does NOT guard a
-death-side join -- validate uniqueness/coverage yourself if you hand-join.
+A descriptive accessor over the state population denominators. For
+\code{scheme = "single"} it reads the bundled, dependency-free
+\code{narcan::pop_singlerace_state} table (Census PEP) when the requested
+\code{years} stay inside the frozen 2020-2024 window (the default), and the
+single-race backfill parquet (2000-2024) when any pre-2020 year is requested
+or a \code{parquet} is supplied (which needs the \code{duckdb} package). For
+\code{scheme = "bridged"} it reads the SEER-uniform bridged state parquet
+(1969-2024), fetched once from the tag-pinned GitHub Release asset and cached
+(see \code{download_pop_data()}). Unlike \code{add_pop_counts()}, this returns
+population rows for descriptive use and exposes the Hispanic-origin dimension.
+It does NOT guard a death-side join -- validate uniqueness/coverage yourself
+if you hand-join.
+}
+\details{
+Note the default-span asymmetry between schemes: \code{scheme = "single"}
+defaults to the frozen 5-year window (2020-2024; pass pre-2020 \code{years}
+to reach the 2000-2024 backfill), whereas \code{scheme = "bridged"} defaults
+to its full 56-year span (1969-2024).
 }
 \examples{
 get_pop_state(states = "06", years = 2024)

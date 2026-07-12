@@ -89,3 +89,14 @@ rate_input <- function(year = 2015L, sex = "male", race = "white") {
     keys$deaths <- rep(c(5, 10, 20, 40, 80), length.out = nrow(keys))
     tibble::as_tibble(keys)
 }
+
+## The bundled single-race STATE backfill fixture: Wyoming (56) only, 2000-2024,
+## single-race grain. Stands in for the *_full state parquet (a Release asset in
+## production) so pre-2020 state routing is testable OFFLINE, mirroring
+## county_fixture(). Skips if not installed.
+state_fixture <- function() {
+    fx <- system.file("extdata", "pop_singlerace_state_fixture.parquet",
+                      package = "narcan")
+    if (!nzchar(fx) || !file.exists(fx)) skip("state fixture not installed")
+    fx
+}

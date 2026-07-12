@@ -12,14 +12,40 @@ county_fixture <- function() {
 
 # ---- manifest + pop_sources() -------------------------------------------------
 
-test_that("pop_sources() returns the three single-race datasets", {
+test_that("pop_sources() lists the 0.5.1 single-race + bridged datasets", {
     m <- pop_sources()
     expect_s3_class(m, "data.frame")
     expect_setequal(m$dataset,
                     c("pop_singlerace", "pop_singlerace_state",
-                      "pop_singlerace_county"))
-    expect_true(all(m$scheme == "single"))
-    expect_true(all(m$vintage == "V2024"))
+                      "pop_singlerace_full", "pop_bridged",
+                      "pop_singlerace_county_full", "pop_singlerace_state_full",
+                      "pop_bridged_state", "pop_bridged_county"))
+    expect_setequal(unique(m$scheme), c("single", "bridged"))
+})
+
+test_that("manifest is current: backfill/bridged coverage + one asset per scheme x grain", {
+    # Regression against a stale asset silently shipping (CP-3/CP-4). The routing
+    # advertises single-race 2000-2024 and bridged 1969-2024; the resolvable
+    # assets must actually span that, and .pop_asset_path requires exactly one
+    # asset row per (scheme, grain) (D-COUNTYASSET supersede).
+    m <- narcan:::.pop_manifest()
+    row <- function(ds) m[m$dataset == ds, ]
+    for (ds in c("pop_singlerace_full", "pop_singlerace_county_full",
+                 "pop_singlerace_state_full")) {
+        expect_equal(row(ds)$year_min, "2000")
+        expect_equal(row(ds)$year_max, "2024")
+    }
+    for (ds in c("pop_bridged", "pop_bridged_state", "pop_bridged_county")) {
+        expect_equal(row(ds)$year_min, "1969")
+        expect_equal(row(ds)$year_max, "2024")
+    }
+    # exactly one downloadable asset per (scheme, grain) that ships an asset
+    assets <- m[nzchar(m$asset_url), ]
+    counts <- table(paste(assets$scheme, assets$grain))
+    expect_true(all(counts == 1L))
+    expect_setequal(names(counts),
+                    c("single county", "single state", "bridged county",
+                      "bridged state"))
 })
 
 # ---- get_pop_state() ----------------------------------------------------------

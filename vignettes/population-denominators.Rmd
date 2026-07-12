@@ -1,0 +1,219 @@
+---
+title: "Population denominators: bridged, single-race, and legacy"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Population denominators: bridged, single-race, and legacy}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+A mortality rate is death counts over a matching population, and "matching" is
+the whole problem. NCHS has coded race three incompatible ways over the series,
+so narcan ships three denominator schemes and routes all of them through one
+guarded join, `add_pop_counts()`. The schemes are NOT comparable -- you cannot
+chain them into one trend -- so set `race_scheme` deliberately.
+
+| Scheme | `race_scheme` | Source | Coverage | Use for |
+|---|---|---|---|---|
+| Legacy bridged | `"legacy"` (default) | frozen `pop_est` (single-race-alone PEP) | 1979-2020 | reproducing published bridged-race rates byte-for-byte |
+| Single-race | `"single"` | Census PEP single-race (OMB 1997) | 2000-2024 | 2022+ single-race deaths (codes 101-106) |
+| SEER bridged | `"bridged"` | SEER U.S. Population Data (Vintage 2024) | 1969-2024 | coherent bridged-race trends, including pre-2020 |
+
+All data here are public (bundled Census/SEER estimates, or a small bundled
+county fixture) plus synthetic death counts; no restricted NCHS records are
+used, and no chunk downloads anything.
+
+```{r libs}
+library(narcan)
+```
+
+## `add_pop_counts()`, scheme by scheme
+
+### Legacy (the default)
+
+`race_scheme = "legacy"` joins the frozen `pop_est` and reproduces the
+historical behavior byte-for-byte: unmatched keys warn and leave `pop = NA`. Use
+it only to reproduce published bridged-race rates.
+
+```{r legacy}
+legacy <- data.frame(year = 1999L, age = 25L, sex = "male", race = "white")
+add_pop_counts(legacy)                    # default scheme; adds `pop`
+```
+
+For 2000-2020 the legacy denominator is single-race-alone (it runs low against
+bridged-race deaths), so `add_pop_counts()` nudges you once per session in that
+span toward `"bridged"` or `"single"`.
+
+### Single-race, end to end
+
+`race_scheme = "single"` joins single-race denominators (2000-2024) for deaths
+coded 101-106 (`white_only`/`black_only`/`american_indian_only`/`asian_only`/
+`nhopi_only`/`multiracial`). It is strict: out-of-domain age/sex/race and any
+unmatched key hard-error, so a denominator is never silently `NA`. Below is a
+full `asian_only` age-standardized rate, one step at a time.
+
+```{r single-deaths}
+deaths <- expand.grid(
+    year = 2024L, age = seq(0, 85, 5), sex = c("male", "female"),
+    race = "asian_only", stringsAsFactors = FALSE
+)
+deaths$deaths <- rep(c(1, 2, 5, 12, 30, 55), length.out = nrow(deaths))
+head(deaths)
+```
+
+`add_pop_counts()` adds the matched `pop` column:
+
+```{r single-pop}
+rated <- add_pop_counts(deaths, race_scheme = "single")
+head(rated)
+```
+
+`add_std_pop()` adds the US 2000 standard population (`pop_std`) and its unit
+weights (`unit_w`, summing to 1 across age groups):
+
+```{r single-std-pop}
+weighted <- add_std_pop(rated)
+head(weighted[, c("age", "sex", "pop", "pop_std", "unit_w")])
+```
+
+`calc_asrate_var()` adds the **age-specific** rate per 100,000 (`drug_rate`) and
+its Poisson variance (`drug_var`) -- one rate per age/sex cell:
+
+```{r single-asrate}
+asr <- calc_asrate_var(weighted, new_name = drug, death_col = deaths)
+head(asr[, c("age", "sex", "deaths", "pop", "drug_rate", "drug_var")])
+```
+
+`calc_stdrate_var()` collapses the age bins into one **age-standardized** rate
+per group (grouping is not automatic -- pass every dimension to keep):
+
+```{r single-stdrate}
+calc_stdrate_var(asr, drug_rate, drug_var, sex, race)
+```
+
+### Bridged (SEER-uniform, era-ragged)
+
+`race_scheme = "bridged"` joins the SEER bridged denominators (1969-2024). It is
+strict and era-ragged: SEER resolves AIAN/API and Hispanic origin only from 1990
+(pre-1990 is white/black/other), so `year` MUST be a join key.
+
+```{r bridged}
+api <- data.frame(year = 2019L, age = 40L, sex = "female", race = "api")
+add_pop_counts(api, race_scheme = "bridged",
+               by_vars = c("year", "age", "sex", "race"))
+```
+
+Omitting `year` from `by_vars` is an error -- the valid race set is
+era-dependent:
+
+```{r bridged-noyear, error = TRUE}
+add_pop_counts(api, race_scheme = "bridged",
+               by_vars = c("age", "sex", "race"))
+```
+
+And an `api` row before 1990 errors, because SEER has no AIAN/API split yet:
+
+```{r bridged-pre1990, error = TRUE}
+old_api <- data.frame(year = 1985L, age = 40L, sex = "female", race = "api")
+add_pop_counts(old_api, race_scheme = "bridged",
+               by_vars = c("year", "age", "sex", "race"))
+```
+
+## Strictness guards
+
+Legacy and bridged share the labels white/black/other/total, so a mis-set
+`race_scheme` cannot always be detected. But single-race labels under a
+non-single scheme always can be -- passing them to the default is a hard error,
+a guard against forgetting `race_scheme = "single"`:
+
+```{r contradiction, error = TRUE}
+bad <- data.frame(year = 2024L, age = 25L, sex = "male", race = "asian_only")
+add_pop_counts(bad)                       # default is "legacy" -> error
+```
+
+A frame already summed over a dimension uses a reserved token -- `race = "total"`,
+`sex = "both"`, `hispanic_origin = "all"`. The matching marginal is synthesized
+on demand (finest cells summed; no marginal is stored, so it cannot double-count):
+
+```{r tokens}
+both_sex <- data.frame(year = 2024L, age = 65L, sex = "both", race = "asian_only")
+add_pop_counts(both_sex, race_scheme = "single")$pop        # male + female
+```
+
+## State and county grains
+
+Include `state_fips` (or `county_fips`) in `by_vars` to route to sub-national
+denominators. The state single-race table is bundled, so a state join needs no
+extra package:
+
+```{r state}
+ca <- data.frame(state_fips = "06", year = 2024L, age = 40L, sex = "female",
+                 race = "asian_only", deaths = 20)
+add_pop_counts(ca, race_scheme = "single",
+               by_vars = c("state_fips", "year", "age", "sex", "race"))
+```
+
+A geography column that is in the frame but absent from `by_vars` is an error,
+never a silent national join:
+
+```{r stray, error = TRUE}
+add_pop_counts(ca, race_scheme = "single",
+               by_vars = c("year", "age", "sex", "race"))
+```
+
+Public MCOD carries state/county geographic detail only through data year 2004
+(2005+ county detail needs restricted NCHS files). The county denominators are
+distributed as a downloadable parquet; here we point narcan at the small bundled
+Wyoming fixture instead of a live download.
+
+```{r county, eval = requireNamespace("duckdb", quietly = TRUE)}
+fx <- system.file("extdata", "pop_singlerace_county_fixture.parquet",
+                  package = "narcan")
+
+wy_deaths <- data.frame(
+    county_fips = "56013", year = 1999:2004, age = 40L, sex = "male",
+    race = "white_only", deaths = c(1, 2, 4, 3, 5, 2)
+)
+wy_deaths
+
+options(narcan.pop_single_county_parquet = fx)   # normally a downloaded parquet
+add_pop_counts(subset(wy_deaths, year >= 2000), race_scheme = "single",
+               by_vars = c("county_fips", "year", "age", "sex", "race"))
+```
+
+Single-race denominators start in 2000, so the 1999 row is dropped before the
+join above -- death-side coverage (public MCOD geography) and denominator-side
+coverage (single-race) can differ, so join only where both exist.
+
+## Coverage and the frozen slice
+
+The single-race 2020-2024 slice is frozen at 0.5.0; the 2000-2024 backfill is
+additive and does not change those five years. A request for a year the resolved
+data does not cover hard-errors -- never a silent 0-row or `NA`:
+
+```{r coverage, error = TRUE}
+get_pop_state(scheme = "single", years = 2025)
+```
+
+## Provenance
+
+`pop_sources()` prints the manifest -- scheme, grain, vintage, coverage, and
+delivery for every dataset. Check a bundled dataset's vintage before mixing it
+with a freshly downloaded file.
+
+```{r sources}
+pop_sources()
+```
+
+## A note on hand-joins
+
+Always join through `add_pop_counts()` (or the guarded rate helpers). The
+descriptive accessors `get_pop_state()`/`get_pop_county()` return population rows
+but do NOT guard a hand-join -- if you `left_join()` a slice yourself, or query
+the parquet with raw SQL, you own verifying that the slice is unique on your keys
+and that no key is silently dropped. The guarded path exists precisely to make
+those mistakes impossible.

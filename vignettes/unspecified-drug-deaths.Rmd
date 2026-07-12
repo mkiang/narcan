@@ -1,0 +1,143 @@
+---
+title: "Trends in unspecified drug overdose deaths"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Trends in unspecified drug overdose deaths}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+Many drug-overdose death certificates never name the specific drug involved. That
+gap biases drug-specific trends -- an apparent rise in one opioid can reflect
+improved toxicology and reporting specificity rather than a real increase in that
+drug. In ICD-10 data (1999 onward), the opioid deaths with no specific type are
+coded T40.6, "other and unspecified narcotics", which narcan flags as
+`other_op_present`. This vignette measures the T40.6 share of opioid deaths by
+year, end to end, on small illustrative records; no restricted NCHS data are used
+and no chunk downloads anything.
+
+```{r libs}
+library(narcan)
+```
+
+## Illustrative records
+
+The frame below is **synthetic and illustrative**. Each row is one death, coded
+in the ICD-10 convention -- `ucod` is the underlying-cause code and
+`f_records_all` is the space-joined multiple-cause T-code string. Opioid deaths
+carry a poisoning `ucod` (X42, accidental poisoning by narcotics) plus one T40.x
+opioid code: heroin (T40.1), synthetic opioids such as fentanyl (T40.4), or the
+"other and unspecified" residual (T40.6). Two cocaine deaths per year (T40.5) are
+included so the opioid filter has something to remove. Counts are chosen so the
+T40.6 share falls as more deaths get a specific opioid type over time.
+
+```{r data}
+recipe <- tibble::tribble(
+    ~year, ~ucod, ~f_records_all, ~n,
+    1999L, "X42", "T401",         4L,   # heroin
+    1999L, "X42", "T404",         2L,   # synthetic (e.g. fentanyl)
+    1999L, "X42", "T406",         4L,   # other/unspecified opioid
+    1999L, "X42", "T405",         2L,   # cocaine (non-opioid drug death)
+    2005L, "X42", "T401",         5L,
+    2005L, "X42", "T404",         3L,
+    2005L, "X42", "T406",         4L,
+    2005L, "X42", "T405",         2L,
+    2012L, "X42", "T401",         6L,
+    2012L, "X42", "T404",         6L,
+    2012L, "X42", "T406",         3L,
+    2012L, "X42", "T405",         2L,
+    2019L, "X42", "T401",         8L,
+    2019L, "X42", "T404",         9L,
+    2019L, "X42", "T406",         3L,
+    2019L, "X42", "T405",         2L
+)
+deaths <- recipe[rep(seq_len(nrow(recipe)), recipe$n),
+                 c("year", "ucod", "f_records_all")]
+rownames(deaths) <- NULL
+nrow(deaths)
+```
+
+## Walk the flags, one step at a time
+
+Each flag keys on `ucod` plus `f_records_all`, and the ICD era is read from
+`year`, so run the pipeline one year at a time. Here is the 2012 slice through
+each step.
+
+`flag_drug_deaths()` adds `drug_death` -- for ICD-10 it is 1 when a qualifying
+poisoning `ucod` pairs with a drug T-code. All four 2012 record types qualify.
+
+```{r flag_drug}
+d12 <- deaths[deaths$year == 2012, ]
+s1 <- flag_drug_deaths(d12, year = 2012)
+head(s1)
+```
+
+`flag_opioid_deaths()` adds `opioid_death`, which additionally requires a T40.0-.4
+or T40.6 opioid code. The three opioid rows stay 1; the cocaine death (T40.5)
+drops to 0.
+
+```{r flag_opioid}
+s2 <- flag_opioid_deaths(s1, year = 2012)
+s2[c(1, 13, 16), ]             # a heroin, an other/unspecified, a cocaine row
+```
+
+`flag_opioid_types()` adds the six specific-type columns, the ICD-9-era residual
+`unspecified_op_present`, and `num_opioids`. The T40.6 deaths land in
+`other_op_present`; `unspecified_op_present` stays 0 (see the closing note).
+
+```{r flag_types}
+s3 <- flag_opioid_types(s2, year = 2012)
+type_cols <- c("ucod", "f_records_all", "opioid_death", "heroin_present",
+               "other_synth_present", "other_op_present",
+               "unspecified_op_present", "num_opioids")
+unique(s3[s3$opioid_death == 1, type_cols])
+```
+
+## Unspecified (T40.6) share by year
+
+Apply the same three steps to every year, keep the opioid deaths, and take the
+mean of `other_op_present` per year -- that mean is the T40.6 share.
+
+```{r aggregate}
+flagged <- dplyr::bind_rows(lapply(split(deaths, deaths$year), function(d) {
+    y <- d$year[1]
+    d |>
+        flag_drug_deaths(year = y) |>
+        flag_opioid_deaths(year = y) |>
+        flag_opioid_types(year = y)
+}))
+
+unspec <- flagged |>
+    dplyr::filter(opioid_death == 1) |>
+    dplyr::group_by(year) |>
+    dplyr::summarize(
+        opioid_deaths = dplyr::n(),
+        t406_unspecified = sum(other_op_present),
+        t406_share = round(mean(other_op_present), 3),
+        .groups = "drop"
+    )
+unspec
+```
+
+The T40.6 share falls from 0.40 in 1999 to 0.15 in 2019 -- built into these
+illustrative counts, but the identical computation on real MCOD records recovers
+whatever trend the data actually hold.
+
+## Caveats
+
+T40.6 is the standard ICD-10 proxy for an unspecified opioid, but the label is
+"other **and** unspecified narcotics", so a T40.6 death is one where the specific
+opioid was not distinguished, not strictly one that is missing. This is the
+opioid *type*-unspecified share, not the broader problem of drug deaths with no
+specific drug coded at all, which spans non-opioid drugs too. narcan also carries
+`unspecified_op_present`, the ICD-9-era residual keyed to the generic opiate code
+965.0; it is 0 by construction for years >= 1999 because ICD-10 folds the
+unspecified opioids into T40.6, which is exactly why the modern measure reads
+`other_op_present` instead. Some analysts redistribute T40.6 deaths across the
+known types before computing drug-specific rates; narcan gives you the raw flags
+so you can measure the unspecified share first and decide how to adjust for it
+yourself.

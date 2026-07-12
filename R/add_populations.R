@@ -10,9 +10,13 @@
 #' reproduce published bridged-race rates.
 #'
 #' \code{race_scheme = "single"} joins the single-race denominators
-#' (\code{pop_singlerace}, 2020-2024) for deaths coded with \code{remap_race()}
-#' /\code{categorize_race()} codes 101-106. This scheme is strict: it guarantees
-#' no silent NA denominator, so out-of-domain \code{age}/\code{sex}/\code{race}
+#' (\code{pop_singlerace_full}, 2000-2024; the frozen \code{pop_singlerace}
+#' 2020-2024 slice is used unchanged when no pre-2020 year is requested) for
+#' deaths coded with \code{remap_race()}/\code{categorize_race()} codes 101-106.
+#' \code{race_scheme = "bridged"} joins
+#' the SEER-uniform bridged-race denominators (\code{pop_bridged}, 1969-2024) for
+#' deaths coded with the bridged categories. Both are strict: they guarantee no
+#' silent NA denominator, so out-of-domain \code{age}/\code{sex}/\code{race}
 #' values hard-error rather than passing through. Geography is routed by
 #' \code{by_vars} membership -- include \code{state_fips} for state denominators
 #' or \code{county_fips} (5-digit, as produced by \code{add_county_fips()}) for
@@ -24,16 +28,26 @@
 #' token. The \code{"total"} (race), \code{"both"} (sex), and \code{"all"}
 #' (Hispanic origin) aggregate tokens are synthesized on demand.
 #'
-#' @note Bridged-race (\code{"legacy"}, 2020 and earlier) and single-race
-#'   (\code{"single"}, 2022+) schemes are NOT comparable and must not be chained
-#'   into a single trend. In this release the death-side join is pinned to
-#'   all-origin denominators (\code{hispanic = "all"}); the Hispanic-stratified
-#'   death join arrives in a later version.
+#' The \code{"bridged"} scheme is era-ragged: SEER resolves AIAN/API and Hispanic
+#' origin only from 1990 (pre-1990 is white/black/other only), so it REQUIRES
+#' \code{year} in \code{by_vars} and validates the race set per row against that
+#' row's era. Asian/Pacific-Islander subgroups (chinese/japanese/hawaiian/
+#' filipino) have no separate bridged denominator; collapse them to \code{api}
+#' (numerator and denominator together) before joining.
+#'
+#' @note Legacy bridged-race (\code{"legacy"}), SEER bridged (\code{"bridged"}),
+#'   and single-race (\code{"single"}) schemes are NOT comparable and must not be
+#'   chained into a single trend. \code{"legacy"} and \code{"bridged"} share the
+#'   labels white/black/other/total, so passing the wrong \code{race_scheme}
+#'   cannot be detected automatically -- set it deliberately. In this release the
+#'   death-side join is pinned to all-origin denominators (\code{hispanic =
+#'   "all"}); the Hispanic-stratified death join arrives in a later version.
 #'
 #' @param df MCOD dataframe
 #' @param by_vars variables to match on
 #' @param race_scheme denominator scheme: \code{"legacy"} (bridged-race
-#'   \code{pop_est}, the default) or \code{"single"} (single-race, 2020-2024)
+#'   \code{pop_est}, the default), \code{"single"} (single-race), or
+#'   \code{"bridged"} (SEER-uniform bridged-race, 1969-2024)
 #' @param hispanic Hispanic-origin denominator to use; only \code{"all"} is
 #'   supported in this release
 #'
@@ -44,7 +58,7 @@
 #' df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")
 #' add_pop_counts(df)
 add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
-                           race_scheme = c("legacy", "single"),
+                           race_scheme = c("legacy", "single", "bridged"),
                            hispanic = "all") {
     race_scheme <- match.arg(race_scheme)
     .check_mcod_df(df, need = by_vars, fn = "add_pop_counts")
@@ -54,11 +68,28 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     }
 
     if (identical(race_scheme, "legacy")) {
+        ## D-SCHEMESELECT: "legacy" and "bridged" share the race labels
+        ## white/black/other/total, so a bridged-intent by-race join left on the
+        ## legacy default silently gets single-race-alone denominators. No guard
+        ## can distinguish them (label-identical), so nudge once per session in
+        ## the bridged-overlap span. message() (not a warning/output) keeps the
+        ## legacy return value byte-for-byte identical.
+        if ("race" %in% by_vars && "year" %in% names(df) &&
+            any(df[["year"]] %in% 2000:2020, na.rm = TRUE)) {
+            .inform_once("legacy_bridged_overlap", paste0(
+                "add_pop_counts(): race_scheme = \"legacy\" pairs bridged-race ",
+                "death counts with single-race-alone PEP denominators for ",
+                "2000-2020 (the denominator runs low; see ?add_pop_counts). For ",
+                "coherent bridged-race denominators use race_scheme = ",
+                "\"bridged\"; for 2022+ single-race deaths use \"single\"."))
+        }
         pop_slice <- dplyr::select(narcan::pop_est, -age_cat)
         return(.guarded_pop_join(df, pop_slice, by_vars, scheme = "legacy"))
     }
 
-    ## race_scheme == "single".
+    ## Strict schemes ("single", "bridged"): shared call-site guards, then
+    ## scheme-aware geography routing. Every per-row correctness guard runs in
+    ## .guarded_pop_join(); these are the call-site framing checks.
     if (!identical(hispanic, "all")) {
         stop("add_pop_counts(): `hispanic` must be \"all\" in this release; ",
              "the death-side Hispanic join arrives in narcan 0.5.2. Use ",
@@ -78,46 +109,99 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     if (length(stray) > 0L) {
         stop(sprintf(
             paste0("add_pop_counts(): `df` carries population-dimension ",
-                   "column(s) %s not in `by_vars`; under race_scheme = ",
-                   "\"single\" the denominator would be silently summed over ",
-                   "them. Add them to `by_vars`, or drop them from `df` to ",
-                   "aggregate that dimension."),
+                   "column(s) %s not in `by_vars`; under a strict race_scheme ",
+                   "(\"single\"/\"bridged\") the denominator would be silently ",
+                   "summed over them. Add them to `by_vars`, or drop them from ",
+                   "`df` to aggregate that dimension."),
             paste0("`", stray, "`", collapse = ", ")), call. = FALSE)
     }
-    ## add_county_fips() names its state column `st_fips`, but the single-race
-    ## population keys on `state_fips`/`county_fips`. If `st_fips` is present and
-    ## NO geography key is in `by_vars`, a state-stratified frame would silently
-    ## get the national denominator -- hard-error instead. (It is harmless and
+    ## add_county_fips() names its state column `st_fips`, but the population
+    ## keys on `state_fips`/`county_fips`. If `st_fips` is present and NO
+    ## geography key is in `by_vars`, a state-stratified frame would silently get
+    ## the national denominator -- hard-error instead. (It is harmless and
     ## redundant when `county_fips` is already the join key.)
     if ("st_fips" %in% names(df) &&
         !any(c("state_fips", "county_fips") %in% by_vars)) {
         stop("add_pop_counts(): `df` has `st_fips` (from add_county_fips()) but ",
-             "no geography key in `by_vars`. The single-race population keys on ",
+             "no geography key in `by_vars`. The population keys on ",
              "`state_fips`/`county_fips`: rename `st_fips` to `state_fips` and ",
              "add it for a state join, use `county_fips` for a county join, or ",
              "drop geography for a national join.", call. = FALSE)
     }
-    ## `year`-pooling is rarely intended: with no `year` in by_vars the single
-    ## denominator is summed over 2020-2024. Warn (do not error -- age pooling to
-    ## a crude rate is legitimate, but a 5-year pooled denominator usually is not).
-    if (!"year" %in% by_vars) {
+    ## Year handling by scheme: single MAY pool (warn, crude-rate use is
+    ## legitimate); bridged REQUIRES year. The bridged check is also enforced in
+    ## .check_bridged_death_keys() (the definitive guard, shared with the
+    ## accessors), but it is hoisted HERE ahead of .route_pop_slice() so a missing
+    ## `year` fails fast rather than first downloading a (possibly large) bridged
+    ## Release-asset parquet only to reject the frame.
+    if (identical(race_scheme, "single") && !"year" %in% by_vars) {
         warning("add_pop_counts(): `year` is not in `by_vars`; the single-race ",
-                "denominator is pooled over all covered years (2020-2024). Add ",
-                "`year` to `by_vars` for year-specific denominators.",
-                call. = FALSE)
+                "denominator is pooled over all covered years. Add `year` to ",
+                "`by_vars` for year-specific denominators.", call. = FALSE)
     }
-    if ("county_fips" %in% by_vars) {
-        pop_slice <- .load_pop_county(
-            scheme = "single",
-            states = if ("state_fips" %in% names(df)) unique(df$state_fips) else NULL,
-            counties = if ("county_fips" %in% names(df)) unique(df$county_fips) else NULL,
-            years = if ("year" %in% names(df)) unique(df$year) else NULL)
-    } else if ("state_fips" %in% by_vars) {
-        pop_slice <- narcan::pop_singlerace_state
-    } else {
-        pop_slice <- narcan::pop_singlerace
+    if (identical(race_scheme, "bridged") && !"year" %in% by_vars) {
+        stop("add_pop_counts(): race_scheme = \"bridged\" requires `year` in ",
+             "`by_vars`. The valid race and Hispanic-origin sets are ",
+             "era-dependent (SEER resolves AIAN/API and Hispanic origin only ",
+             "from 1990), so `year` must be a join key.", call. = FALSE)
     }
-    .guarded_pop_join(df, pop_slice, by_vars, scheme = "single")
+
+    pop_slice <- .route_pop_slice(df, by_vars, race_scheme)
+    .guarded_pop_join(df, pop_slice, by_vars, scheme = race_scheme)
+}
+
+## The frozen single-race coverage (0.5.0): the year span of the bundled
+## dependency-free pop_singlerace table. The county "narrow" default and any
+## "does this request stay inside the frozen window" test derive their year
+## window from this, so they track the frozen data in lockstep instead of a
+## magic 2020:2024 literal.
+.narrow_single_years <- function() sort(unique(narcan::pop_singlerace$year))
+
+## Route a strict-scheme death frame to its population slice by geography
+## (by_vars membership). single: national bundled (frozen pop_singlerace 2020-2024,
+## or pop_singlerace_full 2000-2024 when a pre-2020 year is present), state via
+## the same split (frozen .rda vs the *_full parquet), county via parquet.
+## bridged: bundled national .rda, state + county parquet (too large to bundle).
+## Every guard still runs downstream in .guarded_pop_join(); this only selects
+## the source table.
+.route_pop_slice <- function(df, by_vars, scheme) {
+    county <- "county_fips" %in% by_vars
+    state  <- "state_fips" %in% by_vars
+    yrs <- if ("year" %in% names(df)) unique(df$year) else NULL
+    sts <- if ("state_fips" %in% names(df)) unique(df$state_fips) else NULL
+    cts <- if ("county_fips" %in% names(df)) unique(df$county_fips) else NULL
+    ## Single-race spans 2000-2024, but the bundled frozen 0.5.0 tables cover
+    ## 2020-2024 only; a request reaching any pre-2020 year routes to the *_full
+    ## backfill. Use the project's as.numeric(as.character(.)) idiom
+    ## (add_county_fips.R:166 / extract_year.R:34) so a factor year -- whose
+    ## as.integer() is a level CODE, not the year -- does not silently mis-route.
+    pre2020 <- !is.null(yrs) &&
+        any(suppressWarnings(as.numeric(as.character(yrs))) < 2020, na.rm = TRUE)
+    if (identical(scheme, "single")) {
+        if (county) {
+            return(.load_pop_parquet(
+                "single", "county", states = sts, counties = cts,
+                years = if (!is.null(yrs)) yrs else .narrow_single_years()))
+        }
+        if (state) {
+            if (pre2020) {
+                return(.load_pop_parquet("single", "state", states = sts,
+                                         years = yrs))
+            }
+            return(narcan::pop_singlerace_state)
+        }
+        if (pre2020) return(narcan::pop_singlerace_full)
+        return(narcan::pop_singlerace)
+    }
+    ## bridged
+    if (county) {
+        return(.load_pop_parquet("bridged", "county", states = sts,
+                                 counties = cts, years = yrs))
+    }
+    if (state) {
+        return(.load_pop_parquet("bridged", "state", states = sts, years = yrs))
+    }
+    narcan::pop_bridged
 }
 
 

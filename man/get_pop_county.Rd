@@ -2,10 +2,10 @@
 % Please edit documentation in R/get_pop.R
 \name{get_pop_county}
 \alias{get_pop_county}
-\title{Retrieve county-level single-race population denominators}
+\title{Retrieve county-level population denominators}
 \usage{
 get_pop_county(
-  scheme = "single",
+  scheme = c("single", "bridged"),
   states = NULL,
   counties = NULL,
   years = NULL,
@@ -14,13 +14,15 @@ get_pop_county(
 )
 }
 \arguments{
-\item{scheme}{denominator scheme; only \code{"single"} is available}
+\item{scheme}{denominator scheme: \code{"single"} (default) or
+\code{"bridged"}}
 
 \item{states}{optional 2-digit state FIPS codes to keep}
 
 \item{counties}{optional 5-digit county FIPS codes to keep}
 
-\item{years}{optional numeric vector of years to keep}
+\item{years}{optional numeric vector of years to keep (single-race defaults
+to the frozen 2020-2024 window; request pre-2020 years for the backfill)}
 
 \item{hispanic_origin}{\code{"all"} (default), \code{"non_hispanic"}, or
 \code{"hispanic"}}
@@ -29,15 +31,20 @@ get_pop_county(
 Release asset, downloaded on first use)}
 }
 \value{
-a tibble with the county single-race schema plus metadata
+a tibble with the county population schema plus metadata
 }
 \description{
-Reads the county single-race parquet (Census PEP Vintage 2024, 2020-2024) with
-DuckDB predicate pushdown. The county table is too large to bundle, so it is
-fetched once from the tag-pinned GitHub Release asset and cached (see
-\code{download_pop_data()}); pass \code{parquet} to read a local copy instead.
-Like \code{get_pop_state()}, this returns population rows for descriptive use
-and does NOT guard a hand-join.
+Reads the county population parquet with DuckDB predicate pushdown. The county
+table is too large to bundle, so it is fetched once from the tag-pinned GitHub
+Release asset and cached (see \code{download_pop_data()}); pass \code{parquet}
+to read a local copy instead. Like \code{get_pop_state()}, this returns
+population rows for descriptive use and does NOT guard a hand-join.
+}
+\details{
+Default-span asymmetry (mirrors \code{get_pop_state()}): with
+\code{scheme = "single"} and no \code{years}, this defaults to the frozen
+2020-2024 window; request pre-2020 \code{years} to reach the 2000-2024
+backfill. \code{scheme = "bridged"} defaults to its full 1969-2024 span.
 }
 \examples{
 \dontrun{

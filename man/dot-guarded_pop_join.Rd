@@ -9,14 +9,15 @@
 \arguments{
 \item{deaths}{death frame (grouping, incl. rowwise, is preserved).}
 
-\item{pop_slice}{population table for the chosen scheme/geography. For
-\code{"single"} it holds only the finest cells; marginals are synthesized
+\item{pop_slice}{population table for the chosen scheme/geography. For the
+strict schemes it holds only the finest cells; marginals are synthesized
 here from the death frame's reserved tokens.}
 
 \item{by_vars}{join keys.}
 
 \item{scheme}{\code{"legacy"} (frozen \code{pop_est}, warn+NA on unmatched,
-byte-for-byte current behavior) or \code{"single"} (guarded, no silent NA).}
+byte-for-byte current behavior), \code{"single"} (single-race, guarded, no
+silent NA), or \code{"bridged"} (SEER bridged, guarded, year-aware).}
 }
 \value{
 \code{deaths} with a \code{pop} column, original grouping restored.

@@ -13,16 +13,16 @@
 
 library(duckdb)
 
+## Stable R_user_dir defaults with env overrides -- never a session scratchpad
+## path baked into the package.
 raw_path <- Sys.getenv(
     "NARCAN_CC_EST2024",
-    "/private/tmp/claude-503/-Users-mvk-Dropbox-Projects-Active-narcan-c/166f2dd4-54f6-4c01-9086-8451e616674c/scratchpad/p5_cache/cc-est2024-alldata.csv"
-)
+    file.path(tools::R_user_dir("narcan", "cache"), "raw",
+              "cc-est2024-alldata.csv"))
 stopifnot(file.exists(raw_path))
 
-out_dir <- Sys.getenv(
-    "NARCAN_P5_BUILD",
-    "/private/tmp/claude-503/-Users-mvk-Dropbox-Projects-Active-narcan-c/166f2dd4-54f6-4c01-9086-8451e616674c/scratchpad/p5_build"
-)
+out_dir <- Sys.getenv("NARCAN_P5_BUILD",
+                      file.path(tools::R_user_dir("narcan", "cache"), "build"))
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 out_parquet <- file.path(out_dir, "pop_singlerace_county.parquet")
 fixture_parquet <- "inst/extdata/pop_singlerace_county_fixture.parquet"

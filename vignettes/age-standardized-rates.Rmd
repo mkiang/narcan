@@ -1,0 +1,178 @@
+---
+title: "Age-standardized fentanyl death rates by sex"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Age-standardized fentanyl death rates by sex}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This vignette turns multiple-cause-of-death (MCOD) records into an
+age-standardized synthetic-opioid death rate by sex, for US residents only,
+across 1999-2024. "Fentanyl" here means synthetic opioids other than methadone
+(ICD-10 **T40.4**), flagged by `flag_opioid_types()` as `other_synth_present`.
+T40.4 is the CDC-standard fentanyl proxy, but it is a *proxy* -- it also captures
+tramadol, U-47700, and other synthetics, so a small share of these deaths are not
+fentanyl. Denominators are the **SEER bridged-race** estimates
+(`race_scheme = "bridged"`, 1969-2024), one era-consistent series that predates
+the fentanyl surge, so a 1999-vs-2024 comparison is not confounded by a change in
+how the Census counts people.
+
+All death data below are **small inline synthetic counts, clearly labelled
+illustrative**; only the bundled population denominators are real. No chunk reads
+a restricted record, an external file, or the network.
+
+```{r libs}
+library(narcan)
+```
+
+## From records to a fentanyl flag
+
+Start with a handful of illustrative record-level rows. Real MCOD data carry
+`restatus` (residency), `ucod` (underlying cause), and `f_records_all` (the
+space-joined multiple-cause T-code string) that the flag helpers key on.
+
+```{r records}
+records <- data.frame(
+    year          = 2020L,
+    restatus      = c(1L, 1L, 4L, 2L, 3L),
+    ucod          = c("X42", "X44", "X42", "I250", "X42"),
+    f_records_all = c("T404 T519", "T404", "T404", "I250", "T400"),
+    age           = c(35L, 40L, 55L, 60L, 25L),
+    sex           = c("male", "female", "male", "male", "female"),
+    stringsAsFactors = FALSE
+)
+records
+```
+
+`subset_residents()` keeps `restatus %in% 1:3` and drops the column. The
+non-resident row (`restatus == 4`) is removed.
+
+```{r residents}
+resid <- subset_residents(records)
+resid
+```
+
+`flag_drug_deaths()` adds `drug_death` (ISW7 rule: a drug `ucod` **and** a T-code).
+The cardiac death (`I250`) is not a drug death.
+
+```{r drug}
+resid <- flag_drug_deaths(resid, year = 2020)
+resid[, c("ucod", "f_records_all", "drug_death")]
+```
+
+`flag_opioid_deaths()` adds `opioid_death`. `flag_opioid_types()` then splits the
+opioid into type flags; `other_synth_present` is the T40.4 fentanyl proxy. Note
+the T40.0-only row (opium/"other narcotic") is an opioid death but **not** a
+synthetic-opioid death.
+
+```{r opioid}
+resid <- resid |>
+    flag_opioid_deaths(year = 2020) |>
+    flag_opioid_types(year = 2020)
+resid[, c("f_records_all", "opioid_death", "other_synth_present")]
+```
+
+The fentanyl-proxy deaths are the rows with `other_synth_present == 1`:
+
+```{r keep}
+resid[resid$other_synth_present == 1, c("ucod", "f_records_all", "age", "sex")]
+```
+
+## Aggregate to counts, then rate
+
+In practice you flag every record this way, then aggregate the fentanyl deaths to
+`year x age x sex` counts before computing rates. We build that aggregated frame
+directly here. **These counts are illustrative** -- a deterministic Poisson draw
+tuned to rise steeply over time (the real synthetic-opioid surge) and to run
+higher for males. `age` is the 5-year bin start (0, 5, ..., 85); `sex` is
+`"male"`/`"female"`.
+
+```{r counts}
+counts <- expand.grid(
+    year = c(1999L, 2010L, 2020L),
+    age  = seq(0L, 85L, 5L),
+    sex  = c("male", "female"),
+    stringsAsFactors = FALSE
+)
+age_weight <- c(0, 0, .02, .2, .6, .9, 1, .95, .85, .7, .5, .3, .15, .07, .03,
+                .01, 0, 0)
+names(age_weight) <- seq(0, 85, 5)
+year_factor <- c("1999" = 75, "2010" = 450, "2020" = 3000)   # ~40x rise
+sex_factor  <- c("male" = 1.9, "female" = 1)
+
+lambda <- year_factor[as.character(counts$year)] *
+    sex_factor[counts$sex] *
+    age_weight[as.character(counts$age)]
+set.seed(42)
+counts$deaths <- rpois(nrow(counts), lambda)
+counts <- counts[order(counts$year, counts$sex, counts$age), ]
+head(counts)
+```
+
+`add_pop_counts(race_scheme = "bridged")` joins the SEER bridged-race denominator
+and adds `pop`. Race is not a `by_var`, so `pop` is the all-race total for each
+`year x age x sex` cell; bridged **requires** `year` in `by_vars`. With no
+`state_fips`/`county_fips`, the national denominator is used automatically.
+
+```{r pop}
+counts <- add_pop_counts(counts, by_vars = c("year", "age", "sex"),
+                         race_scheme = "bridged")
+head(counts[, c("year", "age", "sex", "deaths", "pop")])
+```
+
+`add_std_pop()` adds the US 2000 standard population (`pop_std`) and its unit
+weights (`unit_w`, summing to 1 across the 18 five-year age groups).
+
+```{r std}
+counts <- add_std_pop(counts, std_cat = "s204", by_vars = "age")
+head(counts[, c("age", "pop_std", "unit_w")])
+```
+
+`calc_asrate_var()` adds the **age-specific** rate (`fentanyl_rate`, per 100,000)
+and its Poisson variance (`fentanyl_var`) for each age-sex-year cell -- the rate
+*before* standardization. Here are the 2020 male age-specific rates, which climb
+across midlife:
+
+```{r asrate}
+counts <- calc_asrate_var(counts, new_name = fentanyl, death_col = deaths,
+                          pop_col = pop)
+subset(counts, year == 2020L & sex == "male",
+       select = c("age", "deaths", "pop", "fentanyl_rate"))
+```
+
+`calc_stdrate_var()` collapses the age bins into one age-standardized rate per
+`year x sex`, reweighting each stratum to the US 2000 age structure. Pass the
+grouping columns (`year`, `sex`) explicitly -- they are not added automatically.
+
+```{r stdrate}
+std <- calc_stdrate_var(counts, fentanyl_rate, fentanyl_var, year, sex)
+as.data.frame(std)
+```
+
+## Reading the result
+
+In these illustrative data the male rate runs roughly twice the female rate in
+every year, and both rise about 35-40 fold from 1999 to 2020 -- the shape of the
+real synthetic-opioid epidemic, if not the exact levels. A 95% confidence
+interval follows from the returned variance as
+`fentanyl_rate +/- 1.96 * sqrt(fentanyl_var)`:
+
+```{r ci}
+std <- as.data.frame(std)
+std$lower <- std$fentanyl_rate - 1.96 * sqrt(std$fentanyl_var)
+std$upper <- std$fentanyl_rate + 1.96 * sqrt(std$fentanyl_var)
+std[, c("year", "sex", "fentanyl_rate", "lower", "upper")]
+```
+
+Because both sexes are standardized to the same US 2000 age structure, the
+male-female gap reflects differences in death *rates*, not in age composition --
+that is the point of age standardization.
+
+These counts are synthetic and illustrative only. A real analysis flags the
+restricted or public MCOD records exactly as shown above (see the "Classifying
+overdose deaths" vignette), aggregates them, and runs this same rate pipeline.

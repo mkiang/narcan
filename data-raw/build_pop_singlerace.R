@@ -11,10 +11,12 @@
 library(tidyverse)
 library(data.table)
 
-## Cached raw file (pull step drops it here; for the initial build we point at
-## the verification cache).
-raw_path <- Sys.getenv("NARCAN_SC_EST2024",
-    "/private/tmp/claude-503/-Users-mvk-Dropbox-Projects-Active-narcan-c/166f2dd4-54f6-4c01-9086-8451e616674c/scratchpad/p5_cache/sc-est2024-alldata6.csv")
+## Cached raw file (the pull step drops it here). Stable R_user_dir default with
+## an env override -- never a session scratchpad path baked into the package.
+raw_path <- Sys.getenv(
+    "NARCAN_SC_EST2024",
+    file.path(tools::R_user_dir("narcan", "cache"), "raw",
+              "sc-est2024-alldata6.csv"))
 stopifnot(file.exists(raw_path))
 
 raw <- fread(raw_path)

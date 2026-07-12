@@ -1,0 +1,118 @@
+---
+title: "Harmonizing geography with FIPS"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Harmonizing geography with FIPS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+County identifiers are not stable across data years. New counties appear, a few
+merge or are renamed, and -- more disruptively -- NCHS does not encode state the
+same way in every era. Public MCOD files use NCHS numeric state codes through
+2002 and 2-letter postal abbreviations from 2003 on, and the numeric schemes
+overlap while meaning different states (NCHS `"06"` is Colorado; FIPS `"06"` is
+California). `add_county_fips()` translates whichever scheme a file uses into one
+5-digit `county_fips` that is comparable across years.
+
+**Public-data caveat.** Public-use MCOD carries state and county geography only
+through **2004**. From 2005 on, any sub-national analysis requires the restricted
+NCHS All-County files. Every example below therefore uses data years
+**1999-2004**, and nothing here works for later years without the restricted data.
+
+All data here are small synthetic frames plus bundled narcan crosswalks
+(`st_fips_map`, `ihme_fips`); no chunk downloads anything and no restricted NCHS
+records are used.
+
+```{r libs}
+library(narcan)
+```
+
+## `state_abbrev_to_fips()` -- one column at a time
+
+The simplest helper maps a postal abbreviation to its zero-padded 2-digit state
+FIPS. Pair the input with the output to see the mapping:
+
+```{r abbrev}
+abbrevs <- c("CA", "NY", "TX", "PA")
+data.frame(abbrev = abbrevs, state_fips = state_abbrev_to_fips(abbrevs))
+```
+
+`"CA"` becomes `"06"`, not `"6"` -- the zero-padding is what lets the result feed
+a FIPS-keyed join. Unrecognized abbreviations and the foreign/unknown code `"ZZ"`
+return `NA` (with a warning) rather than passing through unconverted.
+
+## `add_county_fips()` -- the core call
+
+Feed `add_county_fips()` the raw county column as **character** (`countyrs` for
+county of residence, `countyoc` for occurrence). A numeric column is refused,
+because numeric input has already dropped the leading zero (`01001` reads as
+`1001`, whose first two digits parse as a different state). Pass `year` -- a
+scalar or a `year` column -- so the coding scheme is chosen deterministically.
+
+Start with a small synthetic frame that straddles the 2002/2003 boundary. The
+1999-2002 rows carry NCHS numeric state codes; the 2003-2004 rows carry postal
+abbreviations, exactly as the public files do:
+
+```{r deaths_frame}
+deaths <- tibble::tibble(
+    id       = 1:5,
+    year     = c(1999L, 2001L, 2002L, 2003L, 2004L),
+    countyrs = c("06031", "36061", "48059", "CA075", "TX201")
+)
+deaths
+```
+
+Now harmonize. The call adds two columns -- `st_fips` (2-digit state) and
+`county_fips` (5-digit state + county) -- decoding each row under its own era's
+scheme:
+
+```{r add_fips}
+harmonized <- add_county_fips(deaths, countyrs)
+harmonized[c("id", "year", "countyrs", "st_fips", "county_fips")]
+```
+
+Read the before/after together. The raw `countyrs` string `"06031"` (1999) maps
+to `st_fips` `"08"` and `county_fips` `"08031"` -- NCHS `"06"` is **Colorado**,
+not California. In 2003, California enters instead through the abbreviation
+`"CA"`, giving `"06075"`. A single numeric code like `"06..."` is therefore
+ambiguous on its own; `add_county_fips()` resolves it row by row from the year,
+so one frame spanning both eras comes out on a consistent 5-digit FIPS grain.
+Codes it cannot place -- `"ZZ"` foreign residence, or the ambiguous NCHS code
+`"62"` -- yield `NA` rather than a spurious string.
+
+## The bundled crosswalks
+
+Both helpers read `st_fips_map`, which lines up state name, postal abbreviation,
+FIPS code, and NCHS code so the two numeric schemes can be told apart:
+
+```{r st_fips_map}
+head(st_fips_map)
+```
+
+`ihme_fips` handles the other half of the problem -- counties that split, merge,
+or are renamed over a long series. It collapses unstable `orig_fips` codes to a
+temporally stable `ihme_fips` (from Dwyer-Lindgren et al., JAMA 2016), so a
+county can be compared across periods:
+
+```{r ihme_fips}
+head(ihme_fips)
+```
+
+For a multi-year county analysis, remap `county_fips` through `ihme_fips` before
+comparing -- several Alaska areas and Virginia independent cities are otherwise
+not comparable across the 1999-2004 window.
+
+## From FIPS to denominators
+
+Once `county_fips` or a `state_fips` column exists, it is the join key for
+sub-national denominators. `add_county_fips()` names its state column `st_fips`;
+`add_pop_counts()` keys on `state_fips`, so rename `st_fips` to `state_fips` for a
+state join, or use the 5-digit `county_fips` directly for a county join (see the
+companion *Population denominators* vignette). As above, this path is only valid
+for **1999-2004** public data -- 2005+ sub-national denominators require the
+restricted NCHS All-County files.

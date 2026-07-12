@@ -86,6 +86,46 @@
     invisible(dest)
 }
 
+## Resolve (download + verify + cache) the SINGLE processed parquet asset for a
+## given (scheme, grain). A scheme can carry several parquets (state + county),
+## so the asset is selected by (scheme, grain) rather than "the first asset row"
+## -- picking the first would silently return the wrong grain/coverage. Returns
+## the local cached path.
+.pop_asset_path <- function(scheme, grain, refresh = FALSE, dest = NULL) {
+    m <- .pop_manifest()
+    rows <- m[m$scheme == scheme & m$grain == grain & nzchar(m$asset_url), ,
+              drop = FALSE]
+    if (nrow(rows) == 0L) {
+        stop(sprintf(paste0(
+            "no downloadable %s %s parquet in the manifest (national/state ",
+            "data may be bundled; see pop_sources())."), scheme, grain),
+            call. = FALSE)
+    }
+    rows <- rows[!duplicated(rows[, c("asset_url", "asset_sha256")]), ,
+                 drop = FALSE]
+    ## D-COUNTYASSET (supersede): exactly one asset per (scheme, grain). Benign
+    ## exact-duplicate rows (same URL AND sha256) were collapsed just above, so >1
+    ## row here means genuinely ambiguous assets -- a different URL, OR the same
+    ## URL with a conflicting sha256 -- refuse rather than silently taking the
+    ## first. Guards 0.5.2's future assets too.
+    if (nrow(rows) > 1L) {
+        stop(sprintf(paste0(
+            "pop manifest is ambiguous: %d distinct downloadable assets for ",
+            "(scheme = %s, grain = %s); expected exactly one. Fix the manifest ",
+            "so a single asset supersedes the rest."),
+            nrow(rows), scheme, grain), call. = FALSE)
+    }
+    dir <- if (is.null(dest)) .pop_cache_dir() else dest
+    if (!dir.exists(dir)) dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+    url <- rows$asset_url[1L]
+    p <- file.path(dir, basename(url))
+    if (refresh || !file.exists(p)) {
+        .download_file(url, p)
+    }
+    .verify_sha256(p, rows$asset_sha256[1L], basename(url))
+    p
+}
+
 #' Print the bundled population-data provenance manifest
 #'
 #' Shows every population dataset narcan can provide -- scheme, grain, vintage,
@@ -119,10 +159,9 @@ pop_sources <- function() {
 #' flat-files are used (never the Census Data API); requests carry a generic
 #' \code{narcan/<version>} User-Agent and no personal identifiers.
 #'
-#' @param scheme denominator scheme; only \code{"single"} is available in this
-#'   release
-#' @param years optional numeric vector; reserved for multi-file sources (the
-#'   0.5.0 Census files are single files covering 2020-2024)
+#' @param scheme denominator scheme: \code{"single"} (default) or
+#'   \code{"bridged"}
+#' @param years optional numeric vector; reserved for multi-file sources
 #' @param raw if \code{FALSE} (default), fetch the processed Release-asset
 #'   parquet; if \code{TRUE}, fetch the original Census source file(s)
 #' @param refresh re-download even if a cached copy exists
@@ -137,9 +176,9 @@ pop_sources <- function() {
 #' # original Census source files (reproduce from scratch)
 #' download_pop_data(scheme = "single", raw = TRUE)
 #' }
-download_pop_data <- function(scheme = "single", years = NULL, raw = FALSE,
-                              refresh = FALSE, dest = NULL) {
-    scheme <- match.arg(scheme, "single")
+download_pop_data <- function(scheme = c("single", "bridged"), years = NULL,
+                              raw = FALSE, refresh = FALSE, dest = NULL) {
+    scheme <- match.arg(scheme)
     m <- .pop_manifest()
     m <- m[m$scheme == scheme, , drop = FALSE]
 

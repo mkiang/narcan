@@ -1,0 +1,43 @@
+#' Bridged-race population estimates, national, 1969-2024
+#'
+#' Annual US resident population by age (5-year bins, 18 groups), sex,
+#' bridged-race group, and Hispanic origin, from the SEER U.S. Population Data
+#' (Vintage 2024). This is the SEER-uniform bridged series: use it with
+#' bridged-race death counts (\code{categorize_race()} for deaths coded 2020 and
+#' earlier). It is NOT comparable to the single-race \code{pop_singlerace} or to
+#' the legacy single-race-alone \code{pop_est}.
+#'
+#' The series is era-ragged, reflecting what SEER resolves: 1969-1989 carries
+#' race \code{white}/\code{black}/\code{other} with \code{hispanic_origin =
+#' "all"} only (no Hispanic detail before 1990); 1990-2024 carries
+#' \code{white}/\code{black}/\code{american_indian}/\code{api} with
+#' \code{hispanic_origin} \code{non_hispanic}/\code{hispanic}. Asian and Pacific
+#' Islander are combined as \code{api} (SEER has no finer Asian detail). Only the
+#' finest cells are stored; \code{"total"}/\code{"both"}/\code{"all"} are
+#' synthesized on demand, never stored, so aggregation never double-counts a
+#' marginal.
+#'
+#' State- and county-level bridged denominators are distributed separately (too
+#' large to bundle) and fetched via \code{download_pop_data(scheme = "bridged")}
+#' / \code{get_pop_county(scheme = "bridged")}.
+#'
+#' @docType data
+#'
+#' @format A data frame with 12348 rows and 9 columns
+#' \describe{
+#'   \item{year}{year of observation (1969-2024)}
+#'   \item{age}{starting age for the 5-year age bin (0, 5, ..., 85 = 85+)}
+#'   \item{sex}{\code{"male"} or \code{"female"}}
+#'   \item{race}{bridged-race group. 1969-1989: \code{white}, \code{black},
+#'     \code{other}. 1990-2024: \code{white}, \code{black},
+#'     \code{american_indian}, \code{api} (Asian + Pacific Islander combined)}
+#'   \item{hispanic_origin}{\code{"non_hispanic"} or \code{"hispanic"} (1990+);
+#'     \code{"all"} only for 1969-1989}
+#'   \item{pop}{population count}
+#'   \item{scheme}{race scheme (\code{"bridged"})}
+#'   \item{source}{data source (\code{"seer_uspop"})}
+#'   \item{vintage}{SEER vintage (\code{"SEER2024"})}
+#' }
+#' @source \url{https://seer.cancer.gov/popdata/}
+#' @keywords datasets
+"pop_bridged"

@@ -7,7 +7,7 @@
 add_pop_counts(
   df,
   by_vars = c("year", "age", "sex", "race"),
-  race_scheme = c("legacy", "single"),
+  race_scheme = c("legacy", "single", "bridged"),
   hispanic = "all"
 )
 }
@@ -17,7 +17,8 @@ add_pop_counts(
 \item{by_vars}{variables to match on}
 
 \item{race_scheme}{denominator scheme: \code{"legacy"} (bridged-race
-\code{pop_est}, the default) or \code{"single"} (single-race, 2020-2024)}
+\code{pop_est}, the default), \code{"single"} (single-race), or
+\code{"bridged"} (SEER-uniform bridged-race, 1969-2024)}
 
 \item{hispanic}{Hispanic-origin denominator to use; only \code{"all"} is
 supported in this release}
@@ -37,9 +38,13 @@ byte-for-byte: unmatched keys warn and leave \code{pop = NA}. Use this to
 reproduce published bridged-race rates.
 
 \code{race_scheme = "single"} joins the single-race denominators
-(\code{pop_singlerace}, 2020-2024) for deaths coded with \code{remap_race()}
-/\code{categorize_race()} codes 101-106. This scheme is strict: it guarantees
-no silent NA denominator, so out-of-domain \code{age}/\code{sex}/\code{race}
+(\code{pop_singlerace_full}, 2000-2024; the frozen \code{pop_singlerace}
+2020-2024 slice is used unchanged when no pre-2020 year is requested) for
+deaths coded with \code{remap_race()}/\code{categorize_race()} codes 101-106.
+\code{race_scheme = "bridged"} joins
+the SEER-uniform bridged-race denominators (\code{pop_bridged}, 1969-2024) for
+deaths coded with the bridged categories. Both are strict: they guarantee no
+silent NA denominator, so out-of-domain \code{age}/\code{sex}/\code{race}
 values hard-error rather than passing through. Geography is routed by
 \code{by_vars} membership -- include \code{state_fips} for state denominators
 or \code{county_fips} (5-digit, as produced by \code{add_county_fips()}) for
@@ -50,13 +55,22 @@ state join. Any population dimension present in \code{df} must appear in
 over); to aggregate a dimension, drop it from \code{df} or use its reserved
 token. The \code{"total"} (race), \code{"both"} (sex), and \code{"all"}
 (Hispanic origin) aggregate tokens are synthesized on demand.
+
+The \code{"bridged"} scheme is era-ragged: SEER resolves AIAN/API and Hispanic
+origin only from 1990 (pre-1990 is white/black/other only), so it REQUIRES
+\code{year} in \code{by_vars} and validates the race set per row against that
+row's era. Asian/Pacific-Islander subgroups (chinese/japanese/hawaiian/
+filipino) have no separate bridged denominator; collapse them to \code{api}
+(numerator and denominator together) before joining.
 }
 \note{
-Bridged-race (\code{"legacy"}, 2020 and earlier) and single-race
-  (\code{"single"}, 2022+) schemes are NOT comparable and must not be chained
-  into a single trend. In this release the death-side join is pinned to
-  all-origin denominators (\code{hispanic = "all"}); the Hispanic-stratified
-  death join arrives in a later version.
+Legacy bridged-race (\code{"legacy"}), SEER bridged (\code{"bridged"}),
+  and single-race (\code{"single"}) schemes are NOT comparable and must not be
+  chained into a single trend. \code{"legacy"} and \code{"bridged"} share the
+  labels white/black/other/total, so passing the wrong \code{race_scheme}
+  cannot be detected automatically -- set it deliberately. In this release the
+  death-side join is pinned to all-origin denominators (\code{hispanic =
+  "all"}); the Hispanic-stratified death join arrives in a later version.
 }
 \examples{
 df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")

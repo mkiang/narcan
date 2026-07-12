@@ -5,7 +5,7 @@
 \title{Download single-race population data (processed asset or raw source)}
 \usage{
 download_pop_data(
-  scheme = "single",
+  scheme = c("single", "bridged"),
   years = NULL,
   raw = FALSE,
   refresh = FALSE,
@@ -13,11 +13,10 @@ download_pop_data(
 )
 }
 \arguments{
-\item{scheme}{denominator scheme; only \code{"single"} is available in this
-release}
+\item{scheme}{denominator scheme: \code{"single"} (default) or
+\code{"bridged"}}
 
-\item{years}{optional numeric vector; reserved for multi-file sources (the
-0.5.0 Census files are single files covering 2020-2024)}
+\item{years}{optional numeric vector; reserved for multi-file sources}
 
 \item{raw}{if \code{FALSE} (default), fetch the processed Release-asset
 parquet; if \code{TRUE}, fetch the original Census source file(s)}

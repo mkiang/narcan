@@ -1,3 +1,57 @@
+# narcan 0.5.1
+
+## New features -- single-race backfill to 2000 + SEER-uniform bridged denominators
+
+* **Single-race denominators extended back to 2000.** `pop_singlerace_full`
+  (national, bundled) now spans **2000-2024**, backfilling the 0.5.0 tables
+  (which covered 2020-2024). State and county backfills ship as Release assets.
+  The 0.5.0 `pop_singlerace`/`pop_singlerace_state` (2020-2024) are **frozen
+  byte-for-byte**; the backfill is additive and its 2020-2024 slice is identical
+  to the frozen tables.
+* **SEER-uniform bridged-race denominators, 1969-2024.** New `pop_bridged`
+  (national, bundled) plus state/county Release assets give a single, internally
+  consistent bridged-race series from the SEER U.S. Population Data. Unlike the
+  legacy `pop_est` (pieced-together vintages, stops at 2020), this one series
+  covers 1969-2024 at national/state/county. It is **era-ragged**: SEER resolves
+  AIAN/API and Hispanic origin only from 1990 (pre-1990 is white/black/other
+  only), so the bridged scheme requires `year` and validates the race set per
+  row's era.
+* **`add_pop_counts()` gains `race_scheme = "bridged"`** alongside `"legacy"`
+  (default) and `"single"`. Both strict schemes guarantee no silent `NA`
+  denominator; a request that reaches a year outside a scheme's coverage is a
+  hard error, not a silent empty result. Single-race requests routed to a
+  pre-2020 year automatically use the backfill; 2020-2024-only requests stay on
+  the dependency-free bundled tables.
+* **`get_pop_state()`/`get_pop_county()` gain the bridged scheme** and honor the
+  backfill (pass pre-2020 `years` to reach 2000-2024); `get_pop_state()` gains a
+  `parquet=` argument. `download_pop_data(scheme = "bridged")` fetches the bridged
+  parquets; `pop_sources()` lists every single-race and bridged dataset.
+* **New vignettes:** `classifying-overdose-deaths` (ISW7 drug/opioid flagging),
+  `age-standardized-rates` (an end-to-end age-standardized synthetic-opioid rate
+  by sex, US residents), `population-denominators` (choosing among the three
+  schemes; supersedes `single-race-rates`), `geography-fips` (FIPS harmonization,
+  public geography 1999-2004), and `unspecified-drug-deaths` (the specificity
+  problem over time).
+
+## Guards
+
+* **The strict-scheme join now asserts the population slice is unique on its
+  finest cell before aggregating**, so a corrupted or duplicated denominator
+  asset can no longer silently double a rate's denominator (the many-to-one join
+  could not catch this on its own). Year handling in the accessors is factor-safe.
+
+## Notes
+
+* The bundled population manifest now points the single-race county asset at the
+  2000-2024 backfill (superseding the 0.5.0 2020-2024 asset); the 0.5.0 asset
+  remains available at the `v0.5.0` tag for reproducing 0.5.0 rates.
+* Legacy bridged-race (`"legacy"`), SEER bridged (`"bridged"`), and single-race
+  (`"single"`) denominators are **not comparable** and must not be chained into
+  one trend. The bridged Hispanic-origin dimension ships now, but the death-side
+  Hispanic join is still deferred to a later release.
+* Nothing was renamed or removed; all new datasets and arguments are additive and
+  the frozen `pop_est`/`pop_singlerace`/`pop_singlerace_state` are unchanged.
+
 # narcan 0.5.0
 
 ## New features -- single-race population denominators (2020-2024)
