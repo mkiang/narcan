@@ -15,9 +15,14 @@
 #' no silent NA denominator, so out-of-domain \code{age}/\code{sex}/\code{race}
 #' values hard-error rather than passing through. Geography is routed by
 #' \code{by_vars} membership -- include \code{state_fips} for state denominators
-#' (county support arrives with the Release-asset parquet). The \code{"total"}
-#' (race), \code{"both"} (sex), and \code{"all"} (Hispanic origin) aggregate
-#' tokens are synthesized on demand.
+#' or \code{county_fips} (5-digit, as produced by \code{add_county_fips()}) for
+#' county (fetched via \code{download_pop_data()}). Note \code{add_county_fips()}
+#' names its state column \code{st_fips}; rename it to \code{state_fips} for a
+#' state join. Any population dimension present in \code{df} must appear in
+#' \code{by_vars}, or it is a hard error (it would otherwise be silently summed
+#' over); to aggregate a dimension, drop it from \code{df} or use its reserved
+#' token. The \code{"total"} (race), \code{"both"} (sex), and \code{"all"}
+#' (Hispanic origin) aggregate tokens are synthesized on demand.
 #'
 #' @note Bridged-race (\code{"legacy"}, 2020 and earlier) and single-race
 #'   (\code{"single"}, 2022+) schemes are NOT comparable and must not be chained
@@ -78,6 +83,28 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
                    "them. Add them to `by_vars`, or drop them from `df` to ",
                    "aggregate that dimension."),
             paste0("`", stray, "`", collapse = ", ")), call. = FALSE)
+    }
+    ## add_county_fips() names its state column `st_fips`, but the single-race
+    ## population keys on `state_fips`/`county_fips`. If `st_fips` is present and
+    ## NO geography key is in `by_vars`, a state-stratified frame would silently
+    ## get the national denominator -- hard-error instead. (It is harmless and
+    ## redundant when `county_fips` is already the join key.)
+    if ("st_fips" %in% names(df) &&
+        !any(c("state_fips", "county_fips") %in% by_vars)) {
+        stop("add_pop_counts(): `df` has `st_fips` (from add_county_fips()) but ",
+             "no geography key in `by_vars`. The single-race population keys on ",
+             "`state_fips`/`county_fips`: rename `st_fips` to `state_fips` and ",
+             "add it for a state join, use `county_fips` for a county join, or ",
+             "drop geography for a national join.", call. = FALSE)
+    }
+    ## `year`-pooling is rarely intended: with no `year` in by_vars the single
+    ## denominator is summed over 2020-2024. Warn (do not error -- age pooling to
+    ## a crude rate is legitimate, but a 5-year pooled denominator usually is not).
+    if (!"year" %in% by_vars) {
+        warning("add_pop_counts(): `year` is not in `by_vars`; the single-race ",
+                "denominator is pooled over all covered years (2020-2024). Add ",
+                "`year` to `by_vars` for year-specific denominators.",
+                call. = FALSE)
     }
     if ("county_fips" %in% by_vars) {
         pop_slice <- .load_pop_county(

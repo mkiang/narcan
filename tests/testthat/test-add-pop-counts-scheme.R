@@ -167,7 +167,7 @@ test_that("race='total' synthesizes the race marginal (incl. multiracial)", {
     expect_equal(chk$pop, chk$pop_exp)
 })
 
-# ---- single scheme: geography routing (H2) ------------------------------------
+# ---- single scheme: geography routing ------------------------------------
 
 test_that("a stratifier carried but absent from by_vars hard-errors (no silent sum)", {
     # geography: sub-national deaths must not collapse onto a national count
@@ -191,6 +191,26 @@ test_that("a stratifier carried but absent from by_vars hard-errors (no silent s
         add_pop_counts(s, race_scheme = "single",
                        by_vars = c("year", "age", "race")),
         "population-dimension")
+})
+
+test_that("st_fips (add_county_fips) without a geography key hard-errors", {
+    inp <- single_input(2024L)
+    inp$st_fips <- "06"                              # add_county_fips's name
+    expect_error(add_pop_counts(inp, race_scheme = "single"), "st_fips")
+})
+
+test_that("single scheme warns when year is pooled (omitted from by_vars)", {
+    d <- data.frame(age = 40L, sex = "male", race = "asian_only", deaths = 3)
+    expect_warning(
+        out <- add_pop_counts(d, race_scheme = "single",
+                              by_vars = c("age", "sex", "race")),
+        "pooled over all covered years")
+    expect_false(anyNA(out$pop))
+    exp <- sum(narcan::pop_singlerace$pop[
+        narcan::pop_singlerace$race == "asian_only" &
+            narcan::pop_singlerace$sex == "male" &
+            narcan::pop_singlerace$age == 40L])
+    expect_equal(out$pop, exp)
 })
 
 test_that("legacy does NOT apply the single-scheme stratifier guard", {

@@ -66,8 +66,8 @@
     ## Single-scheme join asserts many-to-one: the synthesized slice is unique on
     ## by_vars, so this is a belt-and-suspenders check that a synthesis bug can
     ## never silently fan out the denominator. Legacy is a bare join -- identical
-    ## to the historical behavior, including dplyr's own many-to-many warning on a
-    ## narrow by_vars (no new failure mode on the frozen path).
+    ## to the historical (0.4.2) behavior on the frozen path, with no new failure
+    ## mode (a narrow by_vars fans out exactly as it did before).
     x <- if (identical(scheme, "single")) {
         dplyr::left_join(deaths, pop_slice, by = by_vars,
                          relationship = "many-to-one")

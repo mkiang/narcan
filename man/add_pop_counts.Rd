@@ -42,9 +42,14 @@ reproduce published bridged-race rates.
 no silent NA denominator, so out-of-domain \code{age}/\code{sex}/\code{race}
 values hard-error rather than passing through. Geography is routed by
 \code{by_vars} membership -- include \code{state_fips} for state denominators
-(county support arrives with the Release-asset parquet). The \code{"total"}
-(race), \code{"both"} (sex), and \code{"all"} (Hispanic origin) aggregate
-tokens are synthesized on demand.
+or \code{county_fips} (5-digit, as produced by \code{add_county_fips()}) for
+county (fetched via \code{download_pop_data()}). Note \code{add_county_fips()}
+names its state column \code{st_fips}; rename it to \code{state_fips} for a
+state join. Any population dimension present in \code{df} must appear in
+\code{by_vars}, or it is a hard error (it would otherwise be silently summed
+over); to aggregate a dimension, drop it from \code{df} or use its reserved
+token. The \code{"total"} (race), \code{"both"} (sex), and \code{"all"}
+(Hispanic origin) aggregate tokens are synthesized on demand.
 }
 \note{
 Bridged-race (\code{"legacy"}, 2020 and earlier) and single-race
