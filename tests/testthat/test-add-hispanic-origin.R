@@ -70,3 +70,29 @@ test_that("a zero-row frame returns a zero-row frame with the column", {
     expect_equal(nrow(out), 0L)
     expect_true("hispanic_origin" %in% names(out))
 })
+
+test_that("a 3-way multi-era bind_rows is labeled per row (multi-decade panel)", {
+    ## The realistic scenario these helpers exist for: pooling pre-1989, 9-cat,
+    ## and 14-cat data years in one frame. bind_rows() leaves both `year` and
+    ## `datayear` present, each NA outside its era; every row must resolve its own.
+    df <- dplyr::bind_rows(
+        data.frame(datayear = 85, hspanicr = 1),   # 1985: pre-1989 -> NA
+        data.frame(year = 2020, hspanicr = 6),      # 9-cat nonhispanic_white
+        data.frame(year = 2023, hspanicr = 7)       # 14-cat other_hispanic
+    )
+    out <- add_hispanic_origin(df)
+    expect_equal(out$hispanic_origin, c(NA, "non_hispanic", "hispanic"))
+})
+
+test_that("a tibble input is handled like a data.frame (class preserved)", {
+    df <- tibble::tibble(year = 2019, hspanicr = c(1, 6, 9))
+    out <- add_hispanic_origin(df)
+    expect_equal(out$hispanic_origin, c("hispanic", "non_hispanic", "unknown"))
+    expect_s3_class(out, "tbl_df")
+})
+
+test_that("NA hspanicr mixed with valid codes yields NA origin per row", {
+    df <- data.frame(year = 2019, hspanicr = c(1, NA, 6))
+    out <- add_hispanic_origin(df)
+    expect_equal(out$hispanic_origin, c("hispanic", NA, "non_hispanic"))
+})

@@ -83,6 +83,16 @@ test_that("a factor hspanicr_column is coerced by value, not level position", {
     expect_equal(got, c("hispanic", "non_hispanic", "unknown"))
 })
 
+test_that("double-digit factor codes recode by value where level order diverges", {
+    ## The load-bearing factor case: for 2022+ codes 10-14, alphabetical level
+    ## order != numeric order (levels(factor(c("10","9","2"))) == "10","2","9"),
+    ## so an as.integer(factor) position lookup would map 10/9/2 -> positions
+    ## 1/3/2 -> codes 1/3/2 -> all "hispanic". Value-coercion must give the true
+    ## codes: 10 = nonhispanic_aian, 9 = nonhispanic_black, 2 = puerto_rican.
+    got <- categorize_hispanic_origin(factor(c("10", "9", "2")), year = 2023)
+    expect_equal(got, c("non_hispanic", "non_hispanic", "hispanic"))
+})
+
 test_that("a mismatched year length errors", {
     expect_error(categorize_hispanic_origin(1:3, year = c(2019, 2023)),
                  "length 1 or the same length")
