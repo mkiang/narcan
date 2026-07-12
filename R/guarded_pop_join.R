@@ -480,20 +480,26 @@
     ## uniqueness assert above cannot see it (three distinct "unique" rows). Base
     ## R (no NSE) with na.rm so a stray NA never makes the predicate itself NA.
     if (all(c("hispanic_origin", "year") %in% names(pop_slice))) {
-        origin_by_year <- tapply(
+        ok_by_year <- tapply(
             as.character(pop_slice[["hispanic_origin"]]),
             pop_slice[["year"]],
             function(s) {
-                any(s == "all", na.rm = TRUE) &&
-                    any(s %in% c("hispanic", "non_hispanic"))
+                ## Valid: the year is entirely "all", OR entirely within
+                ## {hispanic,non_hispanic}. Anything else -- an "all" marginal
+                ## beside stratified cells (a double-count), OR a stray NA /
+                ## unrecognized label beside either -- is a corrupt slice.
+                all(!is.na(s) & s == "all") ||
+                    all(!is.na(s) & s %in% c("hispanic", "non_hispanic"))
             })
-        if (any(origin_by_year, na.rm = TRUE)) {
-            bad_years <- names(origin_by_year)[which(origin_by_year)]
+        if (!all(ok_by_year)) {
+            bad_years <- names(ok_by_year)[!ok_by_year]
             stop(sprintf(paste0(
-                "add_pop_counts(): the population slice stores an \"all\" origin ",
-                "marginal beside stratified (hispanic/non_hispanic) cells for ",
-                "year(s) %s; the denominator would be double-counted. The ",
-                "population asset may be corrupt -- re-download or rebuild it."),
+                "add_pop_counts(): the population slice has an invalid ",
+                "Hispanic-origin domain for year(s) %s -- each year must be ",
+                "entirely \"all\" OR entirely hispanic/non_hispanic (an \"all\" ",
+                "marginal beside stratified cells would double-count the ",
+                "denominator). The population asset may be corrupt -- ",
+                "re-download or rebuild it."),
                 paste(sort(bad_years), collapse = ", ")), call. = FALSE)
         }
     }

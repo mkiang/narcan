@@ -169,6 +169,73 @@ test_that("per-year invariant: an 'all'-beside-stratified corrupt slice errors",
         "double-count")
 })
 
+test_that("per-year invariant: an NA/stray origin label beside cells errors", {
+    ## Defense in depth: a stray NA (or unrecognized label) beside stratified
+    ## cells for a year is neither pure-"all" nor pure-stratified -> corrupt.
+    corrupt <- rbind(bridged_pop(), data.frame(
+        year = 2000L, age = 40L, sex = "male", race = "white",
+        hispanic_origin = NA_character_, pop = 999000, scheme = "bridged",
+        source = "seer_uspop", vintage = "SEER2024"))
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "all", deaths = 1)
+    expect_error(
+        narcan:::.guarded_pop_join(
+            d, corrupt, c("year", "age", "sex", "race", "hispanic_origin"),
+            "bridged"),
+        "invalid|double-count")
+})
+
+test_that("R3: .guarded_pop_join self-defends against a stray pop-dimension column", {
+    ## Direct internal call with hispanic_origin present but NOT in by_vars must
+    ## error (belt-and-suspenders; add_pop_counts blocks it at the call site).
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "hispanic", deaths = 1)
+    expect_error(
+        narcan:::.guarded_pop_join(d, bridged_pop(), by4, "bridged"),
+        "population-dimension column")
+})
+
+## A minimal 1995 stratified bridged slice for the CAVEAT-B nudge tests.
+bridged_pop_1995 <- function() {
+    p <- expand.grid(
+        year = 1995L, age = 40L, sex = "male", race = "white",
+        hispanic_origin = c("hispanic", "non_hispanic"),
+        stringsAsFactors = FALSE)
+    p$pop <- c(1000, 2000)
+    p$scheme <- "bridged"; p$source <- "seer_uspop"; p$vintage <- "SEER2024"
+    tibble::as_tibble(p)
+}
+
+test_that("CAVEAT-B nudges once for 1990-1996 bridged stratified, then stays silent", {
+    if (exists("bridged_hispanic_early_reporting", envir = narcan:::.narcan_state)) {
+        rm("bridged_hispanic_early_reporting", envir = narcan:::.narcan_state)
+    }
+    d <- data.frame(year = 1995L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "hispanic", deaths = 1)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    expect_message(
+        narcan:::.guarded_pop_join(d, bridged_pop_1995(), by5, "bridged"),
+        "1990-1996")
+    ## second call is silent (once per session)
+    expect_message(
+        narcan:::.guarded_pop_join(d, bridged_pop_1995(), by5, "bridged"),
+        NA)
+})
+
+test_that("CAVEAT-B nudge is NOT burned by a call that errors (DD6) before it", {
+    if (exists("bridged_hispanic_early_reporting", envir = narcan:::.narcan_state)) {
+        rm("bridged_hispanic_early_reporting", envir = narcan:::.narcan_state)
+    }
+    ## a 1995 frame mixing "all" + stratified -> DD6 errors BEFORE the nudge line
+    bad <- data.frame(year = 1995L, age = 40L, sex = "male", race = "white",
+                      hispanic_origin = c("all", "hispanic"), deaths = 1)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    expect_error(narcan:::.check_bridged_death_keys(bad, by5), "double-count")
+    ## the once-per-session flag must NOT have been set by the failed call
+    expect_false(exists("bridged_hispanic_early_reporting",
+                        envir = narcan:::.narcan_state))
+})
+
 # ---- D-SCHEMESELECT: legacy nudge in the bridged-overlap span -----------------
 
 test_that("legacy by-race join in 2000-2020 nudges once toward bridged", {

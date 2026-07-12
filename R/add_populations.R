@@ -71,14 +71,29 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     }
 
     if (identical(race_scheme, "legacy")) {
-        ## DD4: legacy pop_est has no Hispanic-origin denominator. Fail fast on
+        ## DD4: legacy pop_est has no Hispanic-origin denominator. Key on
+        ## names(df), NOT by_vars: a non-"all" hispanic_origin column left OUT of
+        ## by_vars (the documented add_hispanic_origin() -> add_pop_counts()
+        ## handoff, run with the legacy default) would otherwise be silently
+        ## summed over, giving BOTH strata of a cell the same all-origin pop_est
+        ## denominator. A pure-"all" (or absent) column is harmless. Fail fast on
         ## this structural error, before the bridged-overlap nudge below.
-        if ("hispanic_origin" %in% by_vars) {
-            stop(paste0(
-                "add_pop_counts(): race_scheme = \"legacy\" has no ",
-                "Hispanic-origin denominator (pop_est is not origin-stratified). ",
-                "Use race_scheme = \"single\" or \"bridged\" for ",
-                "Hispanic-stratified denominators."), call. = FALSE)
+        if ("hispanic_origin" %in% names(df)) {
+            ho <- df[["hispanic_origin"]]
+            ## Error if origin is a join key (any value -- pop_est has no origin
+            ## column to join on) OR a non-"all" passenger (the silent-sum trap).
+            ## A pure-"all" passenger is harmless and allowed.
+            if ("hispanic_origin" %in% by_vars || anyNA(ho) || !all(ho == "all")) {
+                stop(paste0(
+                    "add_pop_counts(): race_scheme = \"legacy\" has no ",
+                    "Hispanic-origin denominator (pop_est is not ",
+                    "origin-stratified), but `df` carries non-\"all\" ",
+                    "hispanic_origin values that would be silently summed over ",
+                    "(the same all-origin denominator on every stratum). Drop ",
+                    "the hispanic_origin column for an all-origin legacy join, ",
+                    "or use race_scheme = \"single\"/\"bridged\" for ",
+                    "Hispanic-stratified denominators."), call. = FALSE)
+            }
         }
         ## D-SCHEMESELECT: "legacy" and "bridged" share the race labels
         ## white/black/other/total, so a bridged-intent by-race join left on the

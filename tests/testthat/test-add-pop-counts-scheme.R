@@ -320,7 +320,7 @@ test_that("DD2: 'unknown' and NA hispanic_origin are non-denominable and error",
     err <- tryCatch(add_pop_counts(det, race_scheme = "single", by_vars = by5),
                     error = function(e) conditionMessage(e))
     expect_match(err, "unrecognized")
-    expect_no_match(err, "no denominator")
+    expect_false(grepl("no denominator", err))
 })
 
 test_that("DD6: mixing 'all' with a stratified origin in one frame errors", {
@@ -338,11 +338,28 @@ test_that("DD6: mixing 'all' with a stratified origin in one frame errors", {
 
 test_that("DD4: legacy scheme with hispanic_origin in by_vars errors cleanly", {
     inp <- rate_input(year = 2015L, sex = "male", race = "white")
-    inp$hispanic_origin <- "all"
+    inp$hispanic_origin <- "hispanic"
     expect_error(
         add_pop_counts(inp, by_vars = c("year", "age", "sex", "race",
                                         "hispanic_origin")),
         "no Hispanic-origin denominator")
+})
+
+test_that("DD4: legacy silently-summed stratified origin PASSENGER errors (not in by_vars)", {
+    ## The documented add_hispanic_origin() -> add_pop_counts() handoff with the
+    ## legacy DEFAULT: hispanic_origin present but not in by_vars would otherwise
+    ## give both strata the same all-origin pop_est denominator. Must error.
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "hispanic"
+    expect_error(suppressMessages(add_pop_counts(inp)),
+                 "no Hispanic-origin denominator")
+})
+
+test_that("legacy tolerates a pure-'all' hispanic_origin passenger (harmless)", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "all"
+    out <- suppressMessages(add_pop_counts(inp))
+    expect_false(anyNA(out$pop))
 })
 
 # ---- get_pop_state() accessor -------------------------------------------------
