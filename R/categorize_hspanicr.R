@@ -44,7 +44,11 @@ categorize_hspanicr <- function(hspanicr_column, year = NULL) {
                       "nonhispanic_nhopi", "nonhispanic_multi",
                       "hispanic_unknown")
 
-    code <- as.integer(hspanicr_column)
+    ## Coerce by VALUE, not factor position: as.integer(factor("9")) returns the
+    ## level's ordinal position, not 9, so a factor-valued hspanicr would silently
+    ## mis-recode (alphabetical level order diverges from numeric for codes 10-14).
+    ## as.character() first -- the idiom this file already uses for `year` below.
+    code <- as.integer(as.character(hspanicr_column))
     n <- length(code)
 
     if (is.null(year)) {

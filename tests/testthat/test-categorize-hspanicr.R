@@ -77,6 +77,17 @@ test_that("categorize_hspanicr errors on a mismatched year length", {
     expect_error(categorize_hspanicr(1:3, year = c(2000, 2023)), "length")
 })
 
+test_that("categorize_hspanicr reads a factor hspanicr by value, not level position", {
+    ## as.integer(factor(...)) would return the level's ordinal position. For
+    ## 2022+ codes 10-14 alphabetical level order diverges from numeric
+    ## (levels(factor(c("10","9","2"))) == "10","2","9"), so a position lookup
+    ## would map 10/9/2 -> positions 1/3/2 -> codes 1/3/2 (mexican/cuban/
+    ## puerto_rican). Value-coercion must give the true codes.
+    lab <- categorize_hspanicr(factor(c("10", "9", "2")), year = 2023)
+    expect_equal(as.character(lab),
+                 c("nonhispanic_aian", "nonhispanic_black", "puerto_rican"))
+})
+
 test_that("categorize_hspanicr covers every 2022+ 14-category code (synthetic, codebook-keyed)", {
     ## The real-data fixture only exercises codes 1, 8, 9, 10, 11, 13, leaving
     ## dominican / central_american / south_american / other_hispanic and
