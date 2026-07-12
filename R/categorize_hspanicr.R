@@ -18,6 +18,10 @@
 #'   assumed (with a warning) for backward compatibility.
 #'
 #' @return an ordered factor
+#' @seealso \code{\link{categorize_hispanic_origin}} for the binary
+#'   \code{hispanic}/\code{non_hispanic} origin axis used for population joins
+#'   (this function returns the full 9/14-category ethnicity recode, for
+#'   descriptive counts, which has no matching denominator).
 #' @export
 #'
 #' @examples
