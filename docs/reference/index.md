@@ -18,6 +18,8 @@ Read raw fixed-width MCOD files and download source data.
   : Download the multiple cause of death data as a DTA file
 - [`download_natality_ascii()`](https://mkiang.github.io/narcan/reference/download_natality_ascii.md)
   : Download NCHS Natality (Live Births) Data from the CDC FTP (ASCII)
+- [`download_pop_data()`](https://mkiang.github.io/narcan/reference/download_pop_data.md)
+  : Download population data (processed asset or primary source)
 - [`mkdir_p()`](https://mkiang.github.io/narcan/reference/mkdir_p.md) :
   Wrapper to make a directory (and subdirectories) if necessary
 
@@ -51,6 +53,8 @@ Prepare imported records for flagging.
 
 Classify drug, opioid, intent, suicide, and maternal deaths.
 
+- [`flag_all_deaths()`](https://mkiang.github.io/narcan/reference/flag_all_deaths.md)
+  : Run the canonical MCOD flagging pipeline
 - [`flag_drug_deaths()`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)
   : Flag drug deaths according to ISW7 rules
 - [`flag_heroin_present()`](https://mkiang.github.io/narcan/reference/flag_heroin_present.md)
@@ -110,17 +114,24 @@ Classify drug, opioid, intent, suicide, and maternal deaths.
 
 ## Recode demographics & geography
 
-Year-aware race, Hispanic origin, age, occupation, and FIPS recodes.
+Year-aware race, sex, Hispanic origin, age, occupation, and FIPS
+recodes.
 
 - [`remap_race()`](https://mkiang.github.io/narcan/reference/remap_race.md)
   : Remaps the race column to a standardized code across data years
 - [`categorize_race()`](https://mkiang.github.io/narcan/reference/categorize_race.md)
   : Create a categorical race column from a standardized race column
+- [`categorize_sex()`](https://mkiang.github.io/narcan/reference/categorize_sex.md)
+  : Categorize the NCHS sex field across coding eras
+- [`categorize_female()`](https://mkiang.github.io/narcan/reference/categorize_female.md)
+  : Flag female deaths across coding eras
 - [`categorize_hspanicr()`](https://mkiang.github.io/narcan/reference/categorize_hspanicr.md)
   : Create a categorical Hispanic origin/race column from the hspanicr
   column
 - [`add_hspanicr_column()`](https://mkiang.github.io/narcan/reference/add_hspanicr_column.md)
   : Add an NA hspanicr column if one doesn't exist
+- [`remap_age()`](https://mkiang.github.io/narcan/reference/remap_age.md)
+  : Remap the raw NCHS detail-age field to age in completed years
 - [`categorize_age_5()`](https://mkiang.github.io/narcan/reference/categorize_age_5.md)
   : Create a categorical age column from a converted ager27 column
 - [`categorize_age_5u1()`](https://mkiang.github.io/narcan/reference/categorize_age_5u1.md)
@@ -141,9 +152,14 @@ Year-aware race, Hispanic origin, age, occupation, and FIPS recodes.
 
 Population denominators and (standardized) mortality rates.
 
+- [`get_pop_state()`](https://mkiang.github.io/narcan/reference/get_pop_state.md)
+  : Retrieve state-level population denominators
+- [`get_pop_county()`](https://mkiang.github.io/narcan/reference/get_pop_county.md)
+  : Retrieve county-level population denominators
+- [`pop_sources()`](https://mkiang.github.io/narcan/reference/pop_sources.md)
+  : Print the bundled population-data provenance manifest
 - [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
-  : Given a dataframe with year, age, sex, and race, returns population
-  estimate
+  : Join population denominators to a death frame
 - [`add_std_pop()`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
   : Given a dataframe with age, returns a standard population
 - [`calc_asrate_var()`](https://mkiang.github.io/narcan/reference/calc_asrate_var.md)
@@ -171,8 +187,16 @@ Bundled reference tables and crosswalks.
   : Fixed-width column dictionary for RESTRICTED-use MCOD files
 - [`mcod_public_fwf_dicts`](https://mkiang.github.io/narcan/reference/mcod_public_fwf_dicts.md)
   : Fixed-width column dictionary for PUBLIC-use MCOD files
+- [`pop_bridged`](https://mkiang.github.io/narcan/reference/pop_bridged.md)
+  : Bridged-race population estimates, national, 1969-2024
 - [`pop_est`](https://mkiang.github.io/narcan/reference/pop_est.md) :
-  Dataframe of annual population counts by age and race, 1979-2015
+  Dataframe of annual population counts by age and race, 1979-2020
+- [`pop_singlerace`](https://mkiang.github.io/narcan/reference/pop_singlerace.md)
+  : Single-race population estimates, national, 2020-2024
+- [`pop_singlerace_full`](https://mkiang.github.io/narcan/reference/pop_singlerace_full.md)
+  : Single-race population estimates, national, 2000-2024 (backfill)
+- [`pop_singlerace_state`](https://mkiang.github.io/narcan/reference/pop_singlerace_state.md)
+  : Single-race population estimates, state, 2020-2024
 - [`st_fips_map`](https://mkiang.github.io/narcan/reference/st_fips_map.md)
   : Mapping of state/territory name to abbreviation to FIPS code
 - [`std_pops`](https://mkiang.github.io/narcan/reference/std_pops.md) :

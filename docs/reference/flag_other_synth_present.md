@@ -8,7 +8,12 @@ involved other synthetic opioid.
 ## Usage
 
 ``` r
-flag_other_synth_present(processed_df, year = NULL, missing_val = 0)
+flag_other_synth_present(
+  processed_df,
+  year = NULL,
+  missing_val = 0,
+  opioid_deaths_only = TRUE
+)
 ```
 
 ## Arguments
@@ -24,6 +29,13 @@ flag_other_synth_present(processed_df, year = NULL, missing_val = 0)
 - missing_val:
 
   value to indicate missing (i.e., code did not exist)
+
+- opioid_deaths_only:
+
+  if \`TRUE\` (default) the flag fires only on opioid deaths
+  (\`opioid_death == 1\`); if \`FALSE\`, it fires wherever the code
+  appears (including contributory-only records) and the caller is
+  expected to \`filter(opioid_death == 1)\` themselves.
 
 ## Value
 

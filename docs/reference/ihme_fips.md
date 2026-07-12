@@ -35,4 +35,4 @@ A data frame with 77 rows and 4 columns
 
 ## Source
 
-<http://jamanetwork.com/journals/jama/fullarticle/2592499>
+<https://jamanetwork.com/journals/jama/fullarticle/2592499>

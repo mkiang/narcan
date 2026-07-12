@@ -7,7 +7,12 @@ This function flags all opioid deaths that involved opium.
 ## Usage
 
 ``` r
-flag_opium_present(processed_df, year = NULL, missing_val = 0)
+flag_opium_present(
+  processed_df,
+  year = NULL,
+  missing_val = 0,
+  opioid_deaths_only = TRUE
+)
 ```
 
 ## Arguments
@@ -23,6 +28,14 @@ flag_opium_present(processed_df, year = NULL, missing_val = 0)
 - missing_val:
 
   value to indicate missing (i.e., code did not exist)
+
+- opioid_deaths_only:
+
+  if \`TRUE\` (default) the flag fires only when the record is an opioid
+  death (\`opioid_death == 1\`); if \`FALSE\`, it fires wherever the
+  opioid code appears (including contributory-only records that are not
+  opioid deaths) – the caller is then expected to \`filter(opioid_death
+  == 1)\` themselves.
 
 ## Value
 

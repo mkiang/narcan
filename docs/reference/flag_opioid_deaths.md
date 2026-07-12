@@ -29,6 +29,12 @@ flag_opioid_deaths(processed_df, year = NULL, keep_cols = FALSE)
 
 new dataframe with a binary opioid_death column
 
+## Note
+
+"Any opioid" includes T40.6 ("other and unspecified narcotics"),
+following ISW7 and NCHS. Per the ISW7 (2012) Appendix B1 footnote, T40.6
+can capture non-opioids (e.g., cocaine) in some jurisdictions.
+
 ## Examples
 
 ``` r

@@ -14,7 +14,7 @@ std_pops
 
 ## Format
 
-A data frame with 855 rows and 5 columns
+A data frame with 1015 rows and 5 columns
 
 - age_cat:
 
@@ -22,7 +22,9 @@ A data frame with 855 rows and 5 columns
 
 - standard_cat:
 
-  factor, description of standard population
+  factor, description of standard population. Five raw SEER standards
+  (`s13`-`s17`) are currently unlabeled (`NA`); reference them by their
+  `standard` code.
 
 - pop_std:
 

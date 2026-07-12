@@ -6,7 +6,7 @@ opioid
 ## Usage
 
 ``` r
-flag_other_op_present(processed_df, year = NULL)
+flag_other_op_present(processed_df, year = NULL, opioid_deaths_only = TRUE)
 ```
 
 ## Arguments
@@ -18,6 +18,13 @@ flag_other_op_present(processed_df, year = NULL)
 - year:
 
   if NULL, will attempt to detect
+
+- opioid_deaths_only:
+
+  if \`TRUE\` (default) the flag fires only on opioid deaths
+  (\`opioid_death == 1\`); if \`FALSE\`, it fires wherever the code
+  appears (including contributory-only records) and the caller is
+  expected to \`filter(opioid_death == 1)\` themselves.
 
 ## Value
 

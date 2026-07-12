@@ -12,15 +12,25 @@ summarize_binary_columns(df, ...)
 
 - df:
 
-  a dataframe with binary flag columns to indicate type of death
+  a dataframe with binary flag columns to indicate type of death, plus
+  the required grouping columns \`year\`, \`age\`, and \`age_cat\`
 
 - ...:
 
-  grouping variables (in addition to year and age)
+  grouping variables (in addition to year, age, and age_cat)
 
 ## Value
 
 dataframe
+
+## Details
+
+Rows are grouped by \`year\`, \`age\`, and \`age_cat\` (plus any bare
+variables passed in \`...\`); all three columns are required. The
+function stops early with a clear message if any is missing, rather than
+failing with a cryptic dplyr error deep inside \`group_by()\`. Create
+\`age_cat\` with \[categorize_age_5()\]. Every remaining non-grouping
+column is summed as a 0/1 flag.
 
 ## Examples
 

@@ -7,7 +7,12 @@ death as defined by flag_opioid_death().
 ## Usage
 
 ``` r
-flag_heroin_present(processed_df, year = NULL, keep_cols = FALSE)
+flag_heroin_present(
+  processed_df,
+  year = NULL,
+  keep_cols = FALSE,
+  opioid_deaths_only = TRUE
+)
 ```
 
 ## Arguments
@@ -23,6 +28,13 @@ flag_heroin_present(processed_df, year = NULL, keep_cols = FALSE)
 - keep_cols:
 
   keep intermediate columns
+
+- opioid_deaths_only:
+
+  if \`TRUE\` (default) the flag fires only on opioid deaths
+  (\`opioid_death == 1\`); if \`FALSE\`, it fires wherever the heroin
+  code appears (including contributory-only records) and the caller is
+  expected to \`filter(opioid_death == 1)\` themselves.
 
 ## Value
 

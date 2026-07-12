@@ -25,4 +25,4 @@ A dictionary
 
 ## Source
 
-<ftp://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/>
+<https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/DVS/mortality/>

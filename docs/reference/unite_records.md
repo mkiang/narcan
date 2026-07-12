@@ -35,5 +35,5 @@ df <- data.frame(
 unite_records(df, year = 2019)
 #>   year f_records_all
 #> 1 2019      X42 T401
-#> 2 2019         I250 
+#> 2 2019          I250
 ```

@@ -22,5 +22,7 @@ None
 ## Examples
 
 ``` r
-mkdir_p('./test_directory')
+d <- file.path(tempdir(), "narcan_example_dir")
+mkdir_p(d)
+unlink(d, recursive = TRUE)
 ```

@@ -22,11 +22,11 @@ A data frame with 60 rows and 3 columns
 
 - fips:
 
-  character, FIPS code
+  numeric, FIPS state code (zero-pad to 2 digits for a FIPS string)
 
 - nchs:
 
-  character, NCHS state code
+  numeric, NCHS state code (zero-pad to 2 digits)
 
 ## Source
 

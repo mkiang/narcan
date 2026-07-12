@@ -8,7 +8,7 @@ opioid.
 ## Usage
 
 ``` r
-flag_opioid_types(processed_df, year = NULL)
+flag_opioid_types(processed_df, year = NULL, opioid_deaths_only = TRUE)
 ```
 
 ## Arguments
@@ -20,6 +20,16 @@ flag_opioid_types(processed_df, year = NULL)
 - year:
 
   if NULL, will attempt to detect
+
+- opioid_deaths_only:
+
+  if \`TRUE\` (default), types are flagged only for opioid deaths
+  (\`opioid_death == 1\`) – the historical behavior. If \`FALSE\`, an
+  opioid \*type\* is flagged wherever its code appears in the
+  contributory causes, even when the death is not an opioid death under
+  the ISW7 combined rule; the presence of an opioid in contributory
+  causes does NOT mean the death was an opioid death, so the caller is
+  expected to \`filter(opioid_death == 1)\` themselves. See issue \#2.
 
 ## Value
 

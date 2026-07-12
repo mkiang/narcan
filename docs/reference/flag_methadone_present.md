@@ -5,7 +5,12 @@ This function flags all opioid deaths that involved methadone.
 ## Usage
 
 ``` r
-flag_methadone_present(processed_df, year = NULL, keep_cols = FALSE)
+flag_methadone_present(
+  processed_df,
+  year = NULL,
+  keep_cols = FALSE,
+  opioid_deaths_only = TRUE
+)
 ```
 
 ## Arguments
@@ -21,6 +26,13 @@ flag_methadone_present(processed_df, year = NULL, keep_cols = FALSE)
 - keep_cols:
 
   keep intermediate columns
+
+- opioid_deaths_only:
+
+  if \`TRUE\` (default) the flag fires only on opioid deaths
+  (\`opioid_death == 1\`); if \`FALSE\`, it fires wherever the methadone
+  code appears (including contributory-only records) and the caller is
+  expected to \`filter(opioid_death == 1)\` themselves.
 
 ## Value
 

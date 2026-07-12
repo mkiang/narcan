@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,6 +16,14 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -84,6 +92,13 @@
 
         </dt>
         <dd>Download NCHS Natality (Live Births) Data from the CDC FTP (ASCII)</dd>
+
+        <dt>
+
+          <code><a href="download_pop_data.html">download_pop_data()</a></code>
+
+        </dt>
+        <dd>Download population data (processed asset or primary source)</dd>
 
         <dt>
 
@@ -181,6 +196,13 @@
 
 
       <dl><dt>
+
+          <code><a href="flag_all_deaths.html">flag_all_deaths()</a></code>
+
+        </dt>
+        <dd>Run the canonical MCOD flagging pipeline</dd>
+
+        <dt>
 
           <code><a href="flag_drug_deaths.html">flag_drug_deaths()</a></code>
 
@@ -350,7 +372,7 @@
       </dl></div><div class="section level2">
       <h2 id="recode-demographics-geography">Recode demographics &amp; geography<a class="anchor" aria-label="anchor" href="#recode-demographics-geography"></a></h2>
 
-      <div class="section-desc"><p>Year-aware race, Hispanic origin, age, occupation, and FIPS recodes.</p></div>
+      <div class="section-desc"><p>Year-aware race, sex, Hispanic origin, age, occupation, and FIPS recodes.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -373,6 +395,20 @@
 
         <dt>
 
+          <code><a href="categorize_sex.html">categorize_sex()</a></code>
+
+        </dt>
+        <dd>Categorize the NCHS sex field across coding eras</dd>
+
+        <dt>
+
+          <code><a href="categorize_female.html">categorize_female()</a></code>
+
+        </dt>
+        <dd>Flag female deaths across coding eras</dd>
+
+        <dt>
+
           <code><a href="categorize_hspanicr.html">categorize_hspanicr()</a></code>
 
         </dt>
@@ -384,6 +420,13 @@
 
         </dt>
         <dd>Add an NA hspanicr column if one doesn't exist</dd>
+
+        <dt>
+
+          <code><a href="remap_age.html">remap_age()</a></code>
+
+        </dt>
+        <dd>Remap the raw NCHS detail-age field to age in completed years</dd>
 
         <dt>
 
@@ -445,10 +488,31 @@
 
       <dl><dt>
 
+          <code><a href="get_pop_state.html">get_pop_state()</a></code>
+
+        </dt>
+        <dd>Retrieve state-level population denominators</dd>
+
+        <dt>
+
+          <code><a href="get_pop_county.html">get_pop_county()</a></code>
+
+        </dt>
+        <dd>Retrieve county-level population denominators</dd>
+
+        <dt>
+
+          <code><a href="pop_sources.html">pop_sources()</a></code>
+
+        </dt>
+        <dd>Print the bundled population-data provenance manifest</dd>
+
+        <dt>
+
           <code><a href="add_pop_counts.html">add_pop_counts()</a></code>
 
         </dt>
-        <dd>Given a dataframe with year, age, sex, and race, returns population estimate</dd>
+        <dd>Join population denominators to a death frame</dd>
 
         <dt>
 
@@ -531,10 +595,38 @@
 
         <dt>
 
+          <code><a href="pop_bridged.html">pop_bridged</a></code>
+
+        </dt>
+        <dd>Bridged-race population estimates, national, 1969-2024</dd>
+
+        <dt>
+
           <code><a href="pop_est.html">pop_est</a></code>
 
         </dt>
-        <dd>Dataframe of annual population counts by age and race, 1979-2015</dd>
+        <dd>Dataframe of annual population counts by age and race, 1979-2020</dd>
+
+        <dt>
+
+          <code><a href="pop_singlerace.html">pop_singlerace</a></code>
+
+        </dt>
+        <dd>Single-race population estimates, national, 2020-2024</dd>
+
+        <dt>
+
+          <code><a href="pop_singlerace_full.html">pop_singlerace_full</a></code>
+
+        </dt>
+        <dd>Single-race population estimates, national, 2000-2024 (backfill)</dd>
+
+        <dt>
+
+          <code><a href="pop_singlerace_state.html">pop_singlerace_state</a></code>
+
+        </dt>
+        <dd>Single-race population estimates, state, 2020-2024</dd>
 
         <dt>
 

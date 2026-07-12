@@ -16,7 +16,7 @@ state_abbrev_to_fips(column)
 
 ## Value
 
-a new vector with state FIPS
+a new vector with state FIPS (\`NA\` for unrecognized abbreviations)
 
 ## Examples
 

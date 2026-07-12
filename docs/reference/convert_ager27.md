@@ -22,6 +22,13 @@ convert_ager27(icd_df, remove_age27 = TRUE)
 
 dataframe
 
+## Details
+
+Expects \`ager27\` in its documented domain (codes 1-27, where 27 is
+"age not stated" and maps to \`NA\`). A non-\`NA\` value outside 1-27
+triggers a warning, since it would otherwise collapse silently into the
+85+ bin or produce a negative age.
+
 ## Examples
 
 ``` r

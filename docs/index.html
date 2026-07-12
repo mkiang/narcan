@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,16 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
+    <li><a class="dropdown-item" href="articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
+    <li><a class="dropdown-item" href="articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -56,6 +66,47 @@
 <h2 id="warning">Warning<a class="anchor" aria-label="anchor" href="#warning"></a>
 </h2>
 <p><strong>This package is not intended for public use.</strong> It is occasionally maintained for personal use only, so bugs may abound. User beware.</p>
+<p>Development and maintenance are assisted by Claude (Anthropic).</p>
+</div>
+<div class="section level2">
+<h2 id="what-it-does">What it does<a class="anchor" aria-label="anchor" href="#what-it-does"></a>
+</h2>
+<p><code>narcan</code> implements the Injury Surveillance Workgroup (ISW7) definitions for drug- and opioid-involved deaths in US multiple-cause-of-death (MCOD) data. A drug death is a drug-poisoning underlying cause (ICD-10 X40-X44, X60-X64, X85, Y10-Y14) together with a contributory poisoning T-code (T36-T50); opioid involvement adds the opioid T-codes (T40.0-T40.4 and T40.6). The package also covers the ICD-9 era (1979-1998), harmonizes race/Hispanic-origin and county recodes across NCHS coding changes, and computes age-standardized rates.</p>
+</div>
+<div class="section level2">
+<h2 id="start-here">Start here<a class="anchor" aria-label="anchor" href="#start-here"></a>
+</h2>
+<p>New users should begin with the <em>Classifying overdose deaths</em> vignette, then work through the rest in order. Read them under Articles on the <a href="https://mkiang.github.io/narcan/articles/">pkgdown site</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"mkiang/narcan"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h2>
+<p>Flag drug- and opioid-involved deaths from a set of cause-of-death records:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mkiang/narcan" class="external-link">narcan</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">deaths</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  year <span class="op">=</span> <span class="fl">2019</span>,</span>
+<span>  ucod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X42"</span>, <span class="st">"I250"</span>, <span class="st">"X44"</span><span class="op">)</span>,</span>
+<span>  f_records_all <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"T401 T402"</span>, <span class="st">"I250"</span>, <span class="st">"T436"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">deaths</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/flag_drug_deaths.html">flag_drug_deaths</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2019</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/flag_opioid_deaths.html">flag_opioid_deaths</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2019</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  year ucod f_records_all drug_death opioid_death</span></span>
+<span><span class="co">#&gt;  2019  X42     T401 T402          1            1</span></span>
+<span><span class="co">#&gt;  2019 I250          I250          0            0</span></span>
+<span><span class="co">#&gt;  2019  X44          T436          1            0</span></span></code></pre></div>
+<p>The X42 death is drug- and opioid-involved (heroin, T40.1); the X44 death is a drug poisoning but not an opioid (psychostimulant, T43.6); the I250 death is neither.</p>
+<p>Full function reference: <a href="https://mkiang.github.io/narcan/" class="uri">https://mkiang.github.io/narcan/</a>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

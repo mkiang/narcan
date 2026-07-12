@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,6 +16,14 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
+  </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -32,6 +40,179 @@
       <small>Source: <a href="https://github.com/mkiang/narcan/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.1" id="narcan-051">narcan 0.5.1<a class="anchor" aria-label="anchor" href="#narcan-051"></a></h2>
+<div class="section level3">
+<h3 id="new-features--single-race-backfill-to--seer-uniform-bridged-denominators-0-5-1">New features – single-race backfill to 2000 + SEER-uniform bridged denominators<a class="anchor" aria-label="anchor" href="#new-features--single-race-backfill-to--seer-uniform-bridged-denominators-0-5-1"></a></h3>
+<ul><li>
+<strong>Single-race denominators extended back to 2000.</strong> <code>pop_singlerace_full</code> (national, bundled) now spans <strong>2000-2024</strong>, backfilling the 0.5.0 tables (which covered 2020-2024). State and county backfills ship as Release assets. The 0.5.0 <code>pop_singlerace</code>/<code>pop_singlerace_state</code> (2020-2024) are <strong>frozen byte-for-byte</strong>; the backfill is additive and its 2020-2024 slice is identical to the frozen tables.</li>
+<li>
+<strong>SEER-uniform bridged-race denominators, 1969-2024.</strong> New <code>pop_bridged</code> (national, bundled) plus state/county Release assets give a single, internally consistent bridged-race series from the SEER U.S. Population Data. Unlike the legacy <code>pop_est</code> (pieced-together vintages, stops at 2020), this one series covers 1969-2024 at national/state/county. It is <strong>era-ragged</strong>: SEER resolves AIAN/API and Hispanic origin only from 1990 (pre-1990 is white/black/other only), so the bridged scheme requires <code>year</code> and validates the race set per row’s era.</li>
+<li>
+<strong><code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> gains <code>race_scheme = "bridged"</code></strong> alongside <code>"legacy"</code> (default) and <code>"single"</code>. Both strict schemes guarantee no silent <code>NA</code> denominator; a request that reaches a year outside a scheme’s coverage is a hard error, not a silent empty result. Single-race requests routed to a pre-2020 year automatically use the backfill; 2020-2024-only requests stay on the dependency-free bundled tables.</li>
+<li>
+<strong><code><a href="../reference/get_pop_state.html">get_pop_state()</a></code>/<code><a href="../reference/get_pop_county.html">get_pop_county()</a></code> gain the bridged scheme</strong> and honor the backfill (pass pre-2020 <code>years</code> to reach 2000-2024); <code><a href="../reference/get_pop_state.html">get_pop_state()</a></code> gains a <code>parquet=</code> argument. <code>download_pop_data(scheme = "bridged")</code> fetches the bridged parquets; <code><a href="../reference/pop_sources.html">pop_sources()</a></code> lists every single-race and bridged dataset.</li>
+<li>
+<strong>New vignettes:</strong> <code>classifying-overdose-deaths</code> (ISW7 drug/opioid flagging), <code>age-standardized-rates</code> (an end-to-end age-standardized synthetic-opioid rate by sex, US residents), <code>population-denominators</code> (choosing among the three schemes; supersedes <code>single-race-rates</code>), <code>geography-fips</code> (FIPS harmonization, public geography 1999-2004), and <code>unspecified-drug-deaths</code> (the specificity problem over time).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-surfaced-by-the-pre-delivery-review-0-5-1">Bug fixes (surfaced by the pre-delivery review)<a class="anchor" aria-label="anchor" href="#bug-fixes-surfaced-by-the-pre-delivery-review-0-5-1"></a></h3>
+<p>A standing pre-delivery review (seven Opus + Sonnet-5 pairs, including passes over older, less-vetted code) found two pre-existing correctness bugs, now fixed. The pre-fix behavior is reproducible from the <code>v0.5.0</code> tag.</p>
+<ul><li>
+<strong><code><a href="../reference/unite_records.html">unite_records()</a></code> auto-cleans raw ICD-9 data, so the <code>flag_*</code> pipeline is correct on ICD-9-era records (data years 1979-1998) without a manual <code><a href="../reference/clean_icd9_data.html">clean_icd9_data()</a></code> step.</strong> For the ICD-9 era it now runs the idempotent <code><a href="../reference/clean_icd9_data.html">clean_icd9_data()</a></code> internally before collapsing the record columns. Previously, calling the documented pipeline (<code><a href="../reference/unite_records.html">unite_records()</a></code> -&gt; <code><a href="../reference/flag_drug_deaths.html">flag_drug_deaths()</a></code>/<code><a href="../reference/flag_opioid_deaths.html">flag_opioid_deaths()</a></code>/ <code><a href="../reference/flag_opioid_types.html">flag_opioid_types()</a></code>) on a <em>raw</em> ICD-9 frame silently returned all-zero drug/opioid flags (mis-formatted E-codes and nature-of-injury codes missed the ICD-9 regex) or errored on the <code>rniflag_</code>-named nature-of-injury columns (1991-1995 files). <strong>Blast radius:</strong> pre-1999 analyses that did not already call <code><a href="../reference/clean_icd9_data.html">clean_icd9_data()</a></code> first – their flag counts change from wrong to correct. Already-cleaned pipelines are unchanged (the cleaner is idempotent).</li>
+<li>
+<strong><code><a href="../reference/add_coded_occupation.html">add_coded_occupation()</a></code> returns type-stable, zero-padded codes.</strong> <code>occ_coded</code>/<code>ind_coded</code> are now zero-padded <em>character</em> in both eras. Previously the 1982-1999 Census (3-digit) scheme returned <em>numeric</em> codes with leading zeros dropped (e.g. <code>7</code> for occupation <code>"007"</code>), which broke 3-digit crosswalks and made a <code>bind_rows()</code> of a pre-2000 result with a 2020+ NIOSH (character) result error on the type clash.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="guards-0-5-1">Guards<a class="anchor" aria-label="anchor" href="#guards-0-5-1"></a></h3>
+<ul><li>
+<strong>The strict-scheme join now asserts the population slice is unique on its finest cell before aggregating</strong>, so a corrupted or duplicated denominator asset can no longer silently double a rate’s denominator (the many-to-one join could not catch this on its own). Year handling in the accessors is factor-safe.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="notes-0-5-1">Notes<a class="anchor" aria-label="anchor" href="#notes-0-5-1"></a></h3>
+<ul><li>The bundled population manifest now points the single-race county asset at the 2000-2024 backfill (superseding the 0.5.0 2020-2024 asset); the 0.5.0 asset remains available at the <code>v0.5.0</code> tag for reproducing 0.5.0 rates.</li>
+<li>Legacy bridged-race (<code>"legacy"</code>), SEER bridged (<code>"bridged"</code>), and single-race (<code>"single"</code>) denominators are <strong>not comparable</strong> and must not be chained into one trend. The bridged Hispanic-origin dimension ships now, but the death-side Hispanic join is still deferred to a later release.</li>
+<li>
+<code><a href="../reference/download_pop_data.html">download_pop_data()</a></code> dropped its <code>years</code> argument, which was reserved and never functional (no code path consumed it); the source/asset pull is otherwise unchanged. This is the only non-additive signature change in 0.5.1.</li>
+<li>Apart from that non-functional <code>years</code> argument, nothing was renamed or removed; all new datasets and arguments are additive and the frozen <code>pop_est</code>/<code>pop_singlerace</code>/<code>pop_singlerace_state</code> are unchanged.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.0" id="narcan-050">narcan 0.5.0<a class="anchor" aria-label="anchor" href="#narcan-050"></a></h2>
+<div class="section level3">
+<h3 id="new-features--single-race-population-denominators-0-5-0">New features – single-race population denominators (2020-2024)<a class="anchor" aria-label="anchor" href="#new-features--single-race-population-denominators-0-5-0"></a></h3>
+<ul><li>
+<strong>Single-race denominators for 2022+ deaths.</strong> From data year 2022 NCHS codes race with the single-race (OMB 1997) scheme; <code><a href="../reference/categorize_race.html">categorize_race()</a></code> labels those deaths <code>white_only</code>/<code>black_only</code>/<code>american_indian_only</code>/<code>asian_only</code>/ <code>nhopi_only</code>/<code>multiracial</code> (codes 101-106). This release adds matching Census Population Estimates Program (Vintage 2024) denominators for 2020-2024 so those deaths get correct rates. Bundled: <code>pop_singlerace</code> (national) and <code>pop_singlerace_state</code> (state). County estimates are too large to bundle and are fetched on demand (see below). Each dataset also carries a <code>hispanic_origin</code> dimension.</li>
+<li>
+<strong><code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> gains <code>race_scheme</code>.</strong> <code>race_scheme = "legacy"</code> (the <strong>default</strong>) joins the frozen bridged-race <code>pop_est</code> and reproduces existing bridged-race rates <em>byte-for-byte</em>. <code>race_scheme = "single"</code> joins the new single-race denominators. The single scheme guarantees no silent <code>NA</code> denominator: out-of-domain <code>age</code>/<code>sex</code>/<code>race</code> values and unmatched keys are hard errors, and passing single-race labels under the default scheme errors with a pointer to <code>race_scheme = "single"</code>. Geography is routed by <code>by_vars</code> membership – add <code>state_fips</code>/<code>county_fips</code> for sub-national denominators. The <code>"total"</code> (race), <code>"both"</code> (sex), and <code>"all"</code> (Hispanic origin) aggregate tokens are synthesized on demand.</li>
+<li>
+<strong>New accessors <code><a href="../reference/get_pop_state.html">get_pop_state()</a></code> and <code><a href="../reference/get_pop_county.html">get_pop_county()</a></code></strong> return population rows for descriptive use, with the Hispanic-origin dimension exposed.</li>
+<li>
+<strong><code><a href="../reference/download_pop_data.html">download_pop_data()</a></code></strong> fetches data too large to bundle. By default it fetches the analysis-ready county parquet from the tagged GitHub release and verifies its checksum; <code>raw = TRUE</code> fetches the original Census source files verbatim (the same pull the package’s own build uses), so the processed data can be reproduced from scratch. <code><a href="../reference/pop_sources.html">pop_sources()</a></code> prints the provenance manifest (source, vintage, coverage, delivery) for every dataset.</li>
+<li>
+<strong>New vignette</strong> <code>single-race-rates</code> walks through an <code>asian_only</code> age-standardized rate end to end.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-5-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-0"></a></h3>
+<ul><li>
+<strong><code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code> age-standardized variance corrected for cells with a missing age-specific rate.</strong> When a stratum’s rate was <code>NaN</code> (a legitimate <code>pop == 0</code> cell) or its weight was <code>NA</code>, the standardized rate renormalized over the surviving strata but the variance did not, so the reported variance (and confidence interval) was too small. The rate and variance now drop the same strata and renormalize identically. <strong>Complete-data rates are unchanged (byte-for-byte); complete-data variances are numerically unchanged</strong> (they differ by at most a few ULP from reordered floating-point operations). Only estimates with an empty/dropped stratum change materially (their variance was previously understated). An <code>NA</code> weight now drops that stratum from the rate too (previously it made the whole rate <code>NA</code>).</li>
+<li>
+<strong><code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> no longer silently misassigns state FIPS.</strong> A numeric <code>county_vector</code> (leading zeros already lost) is now refused with a clear error instead of parsing e.g. Alabama county 01001 as state 10. A frame whose per-row <code>year</code> straddles the 2002/2003 NCHS-&gt;FIPS boundary now resolves the coding scheme separately per era, so a mixed-era frame no longer decodes the minority era with the wrong scheme.</li>
+<li>
+<strong><code><a href="../reference/clean_icd9_data.html">clean_icd9_data()</a></code> is now idempotent.</strong> Cleaning an already-cleaned frame no longer NAs external-cause (E-code) UCODs; the record prefixer likewise never drops an in-range record to <code>NA</code> on a missing nature-of-injury flag.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="minor-changes-0-5-0">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-0-5-0"></a></h3>
+<ul><li>
+<code><a href="../reference/calc_asrate_var.html">calc_asrate_var()</a></code> now emits a warning when any cell has <code>pop == 0</code> (its rate is undefined). This is a diagnostic only – the numeric output is unchanged, so existing rate values are unaffected. Zero-population cells are common in fine single-race county strata.</li>
+<li>
+<code><a href="../reference/add_std_pop.html">add_std_pop()</a></code> warns when the chosen standard’s age granularity does not match the data (e.g. a single-year standard joined to 5-year bins), which would otherwise misweight standardized rates silently.</li>
+<li>
+<code><a href="../reference/remap_race.html">remap_race()</a></code> and <code><a href="../reference/remap_age.html">remap_age()</a></code> now warn when an input code falls outside the known set for its era (previously silently <code>NA</code>), matching the loud unmatched- code warnings in <code><a href="../reference/add_county_fips.html">add_county_fips()</a></code>.</li>
+<li>Documentation corrected: <code>std_pops</code> (1015 rows; five SEER standards s13-s17 are unlabeled) and <code>st_fips_map</code> (<code>fips</code>/<code>nchs</code> are numeric). <code>download_natality_ ascii()</code> now fetches over HTTPS (the CDC <code>ftp://</code> host was decommissioned).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="notes-0-5-0">Notes<a class="anchor" aria-label="anchor" href="#notes-0-5-0"></a></h3>
+<ul><li>Bridged-race (<code>"legacy"</code>, 2020 and earlier) and single-race (<code>"single"</code>, 2022+) denominators are <strong>not comparable</strong> and must not be chained into one trend. The frozen <code>pop_est</code> is unchanged; all new datasets and arguments are additive (nothing was renamed or removed).</li>
+<li>The Hispanic-origin dimension ships in the new denominator data now, but the death-side Hispanic join is deferred to a later release; the death-side join is currently pinned to all-origin denominators.</li>
+<li>narcan’s existing by-race rates for 2020 and earlier pair bridged-race death counts with single-race population estimates, which understates the denominator (most for smaller groups), so those rates run slightly high. A future release will add a bridged-race denominator series consistent across 1969-2024; for coherent single-race by-race rates from 2020 on, use the new single-race path.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.2" id="narcan-042">narcan 0.4.2<a class="anchor" aria-label="anchor" href="#narcan-042"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-4-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-4-2"></a></h3>
+<ul><li>
+<strong><code>pop_est</code> no longer contains the spurious <code>year == 420</code> block.</strong> The bundled data carried an extra 216-row year labeled <code>420</code> – an alternate-vintage copy of the 2020 estimates whose year field was mangled during the original build (every cell is within ~1.2% of the real 2020 block; the legitimate 2020 data are unchanged). The block is removed; <code>pop_est</code> now spans exactly 1979-2020 (9072 rows). No legitimate year or cell changed value. The data builder now asserts the year range so a future rebuild cannot reship the artifact.</li>
+<li>
+<strong><code>pop_est</code> documentation corrected.</strong> The help page said 1979-2015 / 7992 rows; it now reads 1979-2020 / 9072 rows.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.1" id="narcan-041">narcan 0.4.1<a class="anchor" aria-label="anchor" href="#narcan-041"></a></h2>
+<div class="section level3">
+<h3 id="new-features-p4-0-4-1">New features (0.4-P4)<a class="anchor" aria-label="anchor" href="#new-features-p4-0-4-1"></a></h3>
+<ul><li>
+<strong><code><a href="../reference/flag_opioid_types.html">flag_opioid_types()</a></code> and the six opioid-subtype flags gain <code>opioid_deaths_only</code> (default <code>TRUE</code>).</strong> The default is unchanged – a type is flagged only for opioid deaths. With <code>FALSE</code>, an opioid <em>type</em> is flagged wherever its code appears in the contributory causes, even when the death is not an opioid death under the ISW7 combined rule; the caller is then expected to <code>filter(opioid_death == 1)</code> themselves (an opioid in a contributory cause does not make the death an opioid death). Resolves issue <a href="https://github.com/mkiang/narcan/issues/2" class="external-link">#2</a>. <code>num_opioids</code> / <code>unspecified_op_present</code> stay coherent under <code>FALSE</code> (the residual keys off an “any opioid present” indicator, so it never fires on a non-opioid row).</li>
+<li>
+<strong><code><a href="../reference/categorize_sex.html">categorize_sex()</a></code> and <code><a href="../reference/categorize_female.html">categorize_female()</a></code></strong> – era-aware sex recodes. NCHS codes sex numerically (<code>1</code>/<code>2</code>) through 2002 and as characters (<code>"M"</code>/<code>"F"</code>) from 2003; these map either scheme to <code>"male"</code>/<code>"female"</code>/<code>NA</code> (matching the <code>sex</code> labels in <code>pop_est</code>) and to <code>1</code>/<code>0</code>/<code>NA</code>, respectively. Resolves issue <a href="https://github.com/mkiang/narcan/issues/11" class="external-link">#11</a>.</li>
+<li>
+<strong><code><a href="../reference/remap_age.html">remap_age()</a></code></strong> – converts the raw unit-coded NCHS detail-age field (<code>age</code>) to age in completed years in a new <code>age_years</code> column, dispatching on the 2003 encoding change; sub-year ages (months/weeks/days/hours/minutes) collapse to <code>0</code> and not-stated ages to <code>NA</code>. Resolves issue <a href="https://github.com/mkiang/narcan/issues/15" class="external-link">#15</a>.</li>
+<li>
+<strong><code><a href="../reference/flag_all_deaths.html">flag_all_deaths()</a></code></strong> – a convenience wrapper that runs the canonical pipeline (<code>unite_records</code> -&gt; <code>flag_drug_deaths</code> -&gt; <code>flag_opioid_deaths</code> -&gt; <code>flag_opioid_types</code> -&gt; <code>flag_od_intent</code>) in one call, resolving the data year once. Optional <code>types</code>/<code>intent</code>/<code>clean_icd9</code> toggles.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="second-pass-correctness-fixes-p2b-0-4-1">Second-pass correctness fixes (0.4-P2b)<a class="anchor" aria-label="anchor" href="#second-pass-correctness-fixes-p2b-0-4-1"></a></h3>
+<p>A second, exhaustive multi-agent review of the 0.4.0 code (weighted toward the areas the first pass rated “clean,” and toward the 0.4.0 fixes themselves) found several correctness issues the first pass missed – one of them introduced by a 0.4.0 fix. Point estimates on canonical national data are essentially unchanged; the behavior changes below are narrow. The 0.4.0 behavior is reproducible from the <code>v0.4.0</code> tag.</p>
+<div class="section level4">
+<h4 id="breaking-changes-0-4-1">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-4-1"></a></h4>
+<ul><li>
+<strong><code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> gains <code>year</code> and <code>scheme</code> arguments and resolves the state-coding scheme deterministically.</strong> NCHS mortality files code state as NCHS numeric codes through 2002 and as 2-letter postal abbreviations from 2003; the numeric NCHS codes overlap FIPS but mean different states (NCHS <code>"06"</code> is Colorado, FIPS California). The function now picks the scheme from <code>year</code> (a scalar, or a <code>year</code> column on the data). When no year is available it guesses from the codes and <strong>warns loudly</strong> on an ambiguous numeric code instead of silently guessing FIPS (the 0.4.0 subset-detection fix could resolve an isolated ambiguous code to the wrong state). Pass <code>scheme=</code> to force a scheme.</li>
+<li>
+<strong><code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> maps the ambiguous NCHS code 62 to <code>NA</code> (with a warning) instead of aborting.</strong> NCHS 62 is both American Samoa and the Northern Mariana Islands; the 0.4.0 <code>relationship = "many-to-one"</code> join errored on the whole batch if any 62 record was present. Those rows now become <code>NA</code> state FIPS and the rest of the batch proceeds.</li>
+<li>
+<strong><code><a href="../reference/flag_od_intent.html">flag_od_intent()</a></code> gates every intent flag on <code>drug_death == 1</code>.</strong> A poisoning UCOD with no contributory T-code (not a drug death under the combined rule) now yields all-zero intents (<code>"not_overdose"</code> after <code><a href="../reference/label_od_intent.html">label_od_intent()</a></code>), matching the <code><a href="../reference/flag_drug_deaths.html">flag_drug_deaths()</a></code> definition. Previously intent was assigned from the UCOD alone. Real-data effect is negligible (a poisoning UCOD essentially always co-occurs with a qualifying T-code).</li>
+<li>
+<strong>A two-digit <code>datayear</code> is normalized to its four-digit year.</strong> <code><a href="../reference/dot-extract_year.html">.extract_year()</a></code> (used by <code><a href="../reference/remap_race.html">remap_race()</a></code>, the <code>flag_*</code> family, and <code><a href="../reference/unite_records.html">unite_records()</a></code>) maps a 1979-1995 <code>datayear</code> such as <code>85</code> to <code>1985</code>. As a result the <code>flag_*</code> family now correctly dispatches a <code>datayear</code>-coded ICD-9 file to the ICD-9 branch, rather than erroring on the two-digit value (superseding the 0.4.0 behavior). An explicit two-digit <code>year</code> argument still errors.</li>
+<li>
+<strong><code><a href="../reference/add_coded_occupation.html">add_coded_occupation()</a></code> recognizes the 3-digit occupation/industry scheme from data year 1982</strong> (was 1985). The byte-verified dictionary carries real, non-suppressed <code>occup</code>/<code>industry</code> from 1982, so 1982-1984 records were being silently dropped to <code>occ_available = FALSE</code>.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="fixed-0-4-1">Fixed<a class="anchor" aria-label="anchor" href="#fixed-0-4-1"></a></h4>
+<ul><li>
+<code><a href="../reference/calc_asrate_var.html">calc_asrate_var()</a></code> returns variance <code>0</code> (not <code>NaN</code>) for a zero-death cell. The variance is now <code>deaths * (1e5 / pop)^2</code> rather than the algebraically identical <code>rate^2 / deaths</code>, which was <code>0/0</code> when <code>deaths == 0</code>. Age-specific rate CIs for zero-count strata (ubiquitous in stratified data) were <code>NaN</code>; standardized rates were already shielded by <code>na.rm</code>.</li>
+<li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> returns <code>NA</code> for a missing county code instead of the literal string <code>"NANA"</code>, and raises a clean error when every state code is missing (previously it silently produced <code>"NANA"</code>).</li>
+<li>
+<code><a href="../reference/remap_race.html">remap_race()</a></code> errors on an impossible data year instead of emitting a bare <code>"Invalid year"</code> warning and passing raw, unmapped race codes through.</li>
+<li>
+<code><a href="../reference/state_abbrev_to_fips.html">state_abbrev_to_fips()</a></code> maps an unrecognized or wrong-case abbreviation to <code>NA</code> with a warning, instead of returning it unchanged to fail a downstream join silently.</li>
+<li>
+<code><a href="../reference/unite_records.html">unite_records()</a></code> strips a leading <code>"NA"</code> token (not only interior/trailing ones) when collapsing the record columns.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="guards--warnings-0-4-1">Guards / warnings<a class="anchor" aria-label="anchor" href="#guards--warnings-0-4-1"></a></h4>
+<ul><li>
+<code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code> warns when a multi-year frame is passed without <code>year</code> in the grouping (which would collapse all years into one rate) and when standardization weights are <code>NA</code> or sum to zero; the <code>...</code> documentation now states that grouping is not added automatically.</li>
+<li>
+<code><a href="../reference/summarize_binary_columns.html">summarize_binary_columns()</a></code> warns when a non-binary column would be summed as a flag, and sums with <code>na.rm = TRUE</code> (warning when a flag column has <code>NA</code>s so a flag total may differ from <code>deaths</code>).</li>
+</ul></div>
+</div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.0" id="narcan-040">narcan 0.4.0<a class="anchor" aria-label="anchor" href="#narcan-040"></a></h2>
+<div class="section level3">
+<h3 id="verified-review-correctness-fixes-p2-0-4-0">Verified-review correctness fixes (0.4-P2)<a class="anchor" aria-label="anchor" href="#verified-review-correctness-fixes-p2-0-4-0"></a></h3>
+<p>Fixes correctness issues surfaced by a systematic, primary-source-anchored review of the ISW7 flag logic and the geography/rate machinery. Point estimates for canonical NCHS data are essentially unchanged; the behavior changes below are narrow. The pre-fix state is tagged <code>v0.3.0</code> for reproducibility.</p>
+<div class="section level4">
+<h4 id="breaking-changes-0-4-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-4-0"></a></h4>
+<ul><li>
+<strong><code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> errors on an ambiguous NCHS state code instead of silently duplicating rows.</strong> NCHS code 62 maps to both American Samoa and the Northern Mariana Islands in <code>st_fips_map</code>, so an NCHS-coded “62” record previously fanned into two output rows. The NCHS join now uses <code>relationship = "many-to-one"</code>. Real-world impact is nil (code 62 does not appear in national MCOD files; public-MCOD-anchor estimate). Now requires <code>dplyr (&gt;= 1.1.0)</code>.</li>
+<li>
+<strong><code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code> renormalizes the age-standardized variance</strong> by the weights actually present. Previously <code>sum(w^2 * var)</code> was correct only when the weights summed to 1; if age bins were dropped upstream the reported variance was under-stated (the point rate, already renormalized by <code><a href="https://rdrr.io/r/stats/weighted.mean.html" class="external-link">weighted.mean()</a></code>, is unchanged). Reported variances/CIs change ONLY for analyses passing incomplete age bins (e.g. county-level sparse-bin standardized rates); complete-bin analyses are unaffected.</li>
+<li>
+<strong>The <code>flag_*</code> family errors on a 2-digit <code>datayear</code> or a 4-digit year before 1979</strong> (shared <code><a href="../reference/dot-dispatch_era.html">.dispatch_era()</a></code> guard) instead of silently routing the record into the ICD-10 branch. Valid 4-digit years (1979+) are unaffected.</li>
+<li>
+<strong><code>.regex_drug_icd10()</code> no longer matches T51-T59</strong> (non-medicinal toxic effects); the drug T-code range is now T36.0-T50.9 as intended. Effect on <code>drug_death</code> counts is negligible: 8-26 records per year (&lt;= 0.07%) across public data years 2005-2023 (public-MCOD-anchor estimate).</li>
+<li>
+<strong><code>.regex_drug_icd9()</code> no longer matches the unassigned E859</strong>; the accidental E-code range is now E850-E858. No effect on real data: E859 is unassigned in WHO ICD-9 (zero E859 records in 1998 public data; public-MCOD-anchor estimate).</li>
+</ul></div>
+<div class="section level4">
+<h4 id="fixed-0-4-0">Fixed<a class="anchor" aria-label="anchor" href="#fixed-0-4-0"></a></h4>
+<ul><li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> detects the state-coding scheme (postal / NCHS / FIPS) by subset membership, so it works on a single state or filtered batch instead of requiring the entire national code space; an unrecognized scheme raises an informative error.</li>
+<li>
+<code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> warns when join keys have no match in <code>pop_est</code> (previously a silent NA population) and errors early on a pre-existing <code>pop</code> column; <code><a href="../reference/add_std_pop.html">add_std_pop()</a></code> errors early on a pre-existing <code>pop_std</code>/<code>unit_w</code> column.</li>
+<li>
+<code><a href="../reference/flag_od_intent.html">flag_od_intent()</a></code> intent patterns and the opioid-subtype flags (<code><a href="../reference/flag_heroin_present.html">flag_heroin_present()</a></code> etc.) use anchored code patterns consistent with the death-flag definitions, removing latent substring over-match.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="internal-0-4-0">Internal<a class="anchor" aria-label="anchor" href="#internal-0-4-0"></a></h4>
+<ul><li>Added <code><a href="../reference/dot-dispatch_era.html">.dispatch_era()</a></code> as the single source of truth for ICD-9/ICD-10 era selection, shared by <code><a href="../reference/unite_records.html">unite_records()</a></code> and the <code>flag_*</code> family.</li>
+<li>Expanded tests: an ICD-oracle golden test (codes -&gt; expected flags, primary- source-cited), direct unit tests for the ICD-9 munging helpers, era-dispatch boundary tests, and regression tests for each fix above.</li>
+</ul></div>
+</div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="narcan-030">narcan 0.3.0<a class="anchor" aria-label="anchor" href="#narcan-030"></a></h2>
 <div class="section level3">
