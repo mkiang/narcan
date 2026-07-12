@@ -9,7 +9,8 @@ add_std_pop(df, std_cat = "s204", by_vars = "age")
 \arguments{
 \item{df}{dataframe with age column (in 5-year bins)}
 
-\item{std_cat}{standard population to use (default: US 2000 standard pop)}
+\item{std_cat}{standard population to use (default: US 2000 standard pop);
+must share `df`'s age grouping (see Details)}
 
 \item{by_vars}{variables to merge on}
 }
@@ -17,10 +18,19 @@ add_std_pop(df, std_cat = "s204", by_vars = "age")
 dataframe
 }
 \description{
-Returns the US 2000 population by default, by any population from the
-narcan::std_pop$std_cat column is valid.
+Attaches a standard-population column (`pop_std`) and its unit weights
+(`unit_w`, summing to 1 across the standard's age groups), matched on `age`.
+The default `"s204"` is the US 2000 standard in 18 five-year age groups
+(0, 5, ..., 85), which matches narcan's binned `age`.
+}
+\details{
+The `std_cat` must use the SAME age grouping as `df`. The 18-group five-year
+standards match narcan's 5-year bins; a single-year standard (e.g. `"s202"`,
+`"s205"`) joined to 5-year-binned ages matches only the bin-start years and
+silently misweights every stratum. When the joined weights do not sum to ~1,
+this warns.
 }
 \examples{
-df <- data.frame(age = c(0, 5, 25, 85))
+df <- data.frame(age = seq(0, 85, 5))
 add_std_pop(df)
 }

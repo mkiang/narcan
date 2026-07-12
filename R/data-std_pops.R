@@ -8,10 +8,12 @@
 #'
 #' @docType data
 #'
-#' @format A data frame with 855 rows and 5 columns
+#' @format A data frame with 1015 rows and 5 columns
 #' \describe{
 #'   \item{age_cat}{factor, age group}
-#'   \item{standard_cat}{factor, description of standard population}
+#'   \item{standard_cat}{factor, description of standard population. Five raw
+#'     SEER standards (\code{s13}-\code{s17}) are currently unlabeled (\code{NA});
+#'     reference them by their \code{standard} code.}
 #'   \item{pop_std}{count, population in that age group for that standard}
 #'   \item{standard}{code, character code for that standard population}
 #'   \item{age}{starting age of that age group}

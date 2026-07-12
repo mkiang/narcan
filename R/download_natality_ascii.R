@@ -20,7 +20,9 @@
 
 download_natality_ascii <- function(year, download_dir = './raw_data',
                                     return_path = FALSE) {
-    base_url <- paste0("ftp://ftp.cdc.gov/pub/Health_Statistics/",
+    ## ftp.cdc.gov now serves over HTTPS; the old ftp:// scheme was decommissioned
+    ## (see download_mcod_fwf()).
+    base_url <- paste0("https://ftp.cdc.gov/pub/Health_Statistics/",
                        "NCHS/Datasets/DVS/natality")
 
     ## Inconsistent CDC file naming

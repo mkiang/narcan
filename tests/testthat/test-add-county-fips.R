@@ -91,11 +91,27 @@ test_that("an NA in the year argument is handled like an NA year column (re-revi
     expect_equal(arg$st_fips, col$st_fips)             # both paths agree
 })
 
-test_that("a boundary-spanning numeric year warns honestly, defaults to FIPS (re-review #2)", {
+test_that("a boundary-spanning per-row year decodes each era with its own scheme", {
+    # Per-row year straddling 2002/2003: resolve the scheme SEPARATELY per era so
+    # a single global scheme cannot mis-decode the minority era. "06" is NCHS
+    # Colorado (-> FIPS 08) in 2002 but assumed FIPS California ("06") in 2003.
     df <- tibble::tibble(countyrs = c("06031", "06005"), year = c(2002, 2003))
-    expect_warning(out <- add_county_fips(df, countyrs),
-                   "spans the 2002/2003 boundary")
-    expect_equal(out$st_fips, c("06", "06"))
+    expect_warning(out <- add_county_fips(df, countyrs), "already|FIPS")
+    expect_equal(out$st_fips, c("08", "06"))
+    expect_equal(out$county_fips, c("08031", "06005"))
+})
+
+test_that("a mixed-era frame decodes NCHS-only and FIPS codes to the right states", {
+    # AZ NCHS "03" (2002) and TX FIPS "48" (2003): the old global scheme decoded
+    # TX as NCHS Washington; per-era decoding keeps them Arizona and Texas.
+    df <- tibble::tibble(countyrs = c("03013", "48001"), year = c(2002, 2003))
+    out <- suppressWarnings(add_county_fips(df, countyrs))
+    expect_equal(out$county_fips, c("04013", "48001"))
+})
+
+test_that("a numeric county_vector is refused (leading zeros already lost)", {
+    df <- data.frame(countyrs = c(6031, 1001), year = 2000)
+    expect_error(add_county_fips(df, countyrs, year = 2000), "numeric")
 })
 
 test_that("whitespace-padded state codes still resolve (re-review #3)", {

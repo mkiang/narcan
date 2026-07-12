@@ -32,12 +32,42 @@
 * **New vignette** `single-race-rates` walks through an `asian_only`
   age-standardized rate end to end.
 
+## Bug fixes
+
+* **`calc_stdrate_var()` age-standardized variance corrected for cells with a
+  missing age-specific rate.** When a stratum's rate was `NaN` (a legitimate
+  `pop == 0` cell) or its weight was `NA`, the standardized rate renormalized
+  over the surviving strata but the variance did not, so the reported variance
+  (and confidence interval) was too small. The rate and variance now drop the
+  same strata and renormalize identically. **Complete-data results are
+  unchanged**; only estimates with an empty/dropped stratum are affected (their
+  variance was previously understated). An `NA` weight now drops that stratum
+  from the rate too (previously it made the whole rate `NA`).
+* **`add_county_fips()` no longer silently misassigns state FIPS.** A numeric
+  `county_vector` (leading zeros already lost) is now refused with a clear error
+  instead of parsing e.g. Alabama county 01001 as state 10. A frame whose
+  per-row `year` straddles the 2002/2003 NCHS->FIPS boundary now resolves the
+  coding scheme separately per era, so a mixed-era frame no longer decodes the
+  minority era with the wrong scheme.
+* **`clean_icd9_data()` is now idempotent.** Cleaning an already-cleaned frame no
+  longer NAs external-cause (E-code) UCODs; the record prefixer likewise never
+  drops an in-range record to `NA` on a missing nature-of-injury flag.
+
 ## Minor changes
 
 * `calc_asrate_var()` now emits a warning when any cell has `pop == 0` (its rate
   is undefined). This is a diagnostic only -- the numeric output is unchanged, so
   existing rate values are unaffected. Zero-population cells are common in fine
   single-race county strata.
+* `add_std_pop()` warns when the chosen standard's age granularity does not match
+  the data (e.g. a single-year standard joined to 5-year bins), which would
+  otherwise misweight standardized rates silently.
+* `remap_race()` and `remap_age()` now warn when an input code falls outside the
+  known set for its era (previously silently `NA`), matching the loud unmatched-
+  code warnings in `add_county_fips()`.
+* Documentation corrected: `std_pops` (1015 rows; five SEER standards s13-s17 are
+  unlabeled) and `st_fips_map` (`fips`/`nchs` are numeric). `download_natality_
+  ascii()` now fetches over HTTPS (the CDC `ftp://` host was decommissioned).
 
 ## Notes
 

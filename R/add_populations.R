@@ -123,18 +123,27 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
 
 #' Given a dataframe with age, returns a standard population
 #'
-#' Returns the US 2000 population by default, by any population from the
-#' narcan::std_pop$std_cat column is valid.
+#' Attaches a standard-population column (`pop_std`) and its unit weights
+#' (`unit_w`, summing to 1 across the standard's age groups), matched on `age`.
+#' The default `"s204"` is the US 2000 standard in 18 five-year age groups
+#' (0, 5, ..., 85), which matches narcan's binned `age`.
+#'
+#' The `std_cat` must use the SAME age grouping as `df`. The 18-group five-year
+#' standards match narcan's 5-year bins; a single-year standard (e.g. `"s202"`,
+#' `"s205"`) joined to 5-year-binned ages matches only the bin-start years and
+#' silently misweights every stratum. When the joined weights do not sum to ~1,
+#' this warns.
 #'
 #' @param df dataframe with age column (in 5-year bins)
-#' @param std_cat standard population to use (default: US 2000 standard pop)
+#' @param std_cat standard population to use (default: US 2000 standard pop);
+#'   must share `df`'s age grouping (see Details)
 #' @param by_vars variables to merge on
 #'
 #' @return dataframe
 #' @importFrom dplyr filter select mutate left_join
 #' @export
 #' @examples
-#' df <- data.frame(age = c(0, 5, 25, 85))
+#' df <- data.frame(age = seq(0, 85, 5))
 #' add_std_pop(df)
 add_std_pop <- function(df, std_cat = "s204", by_vars = "age") {
     .check_mcod_df(df, need = by_vars, fn = "add_std_pop")
@@ -150,5 +159,23 @@ add_std_pop <- function(df, std_cat = "s204", by_vars = "age") {
         dplyr::mutate(unit_w = pop_std / sum(pop_std))
 
     x <- dplyr::left_join(df, std_pop_df, by = by_vars)
+
+    ## Guard the standard's age granularity against `df`'s. If the joined weights
+    ## do not sum to ~1 over the distinct ages present, either the standard is
+    ## finer-grained than `df` (e.g. single-year weights on 5-year bins, which
+    ## misweights every stratum) or `df` omits age groups.
+    ages_w <- unique(x[, c(by_vars, "unit_w"), drop = FALSE])
+    if (anyNA(x[["unit_w"]])) {
+        warning("add_std_pop(): some ages in `df` have no match in standard \"",
+                std_cat, "\" (unit_w = NA); check that `age` uses the standard's ",
+                "age grouping.", call. = FALSE)
+    } else if (abs(sum(ages_w[["unit_w"]], na.rm = TRUE) - 1) > 1e-4) {
+        warning(sprintf(paste0(
+            "add_std_pop(): joined standard weights sum to %.3f, not 1. The ",
+            "standard \"%s\" may have a different age granularity than `df` ",
+            "(e.g. single-year vs 5-year bins), which misweights standardized ",
+            "rates; or `df` omits age groups."),
+            sum(ages_w[["unit_w"]], na.rm = TRUE), std_cat), call. = FALSE)
+    }
     return(x)
 }

@@ -40,13 +40,19 @@ remap_age <- function(df, year = NULL) {
 
     if (year >= 1979 && year <= 2002) {
         df$age_years <- .remap_age_pre2003(age_raw)
+        na_by_design <- 999
     } else if (year >= 2003) {
         df$age_years <- .remap_age_2003plus(age_raw)
+        na_by_design <- c(1999, 9999)
     } else {
         stop(sprintf(
             paste0("remap_age(): cannot map age for year %s (expected a 4-digit ",
                    "MCOD data year >= 1979)."), year), call. = FALSE)
     }
+
+    ## Not-stated codes (999 / 1999 / 9999) map to NA by design; anything else
+    ## that fell through the recode is a genuinely unrecognized unit code.
+    .warn_unmapped(age_raw, df$age_years, "remap_age", exclude = na_by_design)
 
     df
 }

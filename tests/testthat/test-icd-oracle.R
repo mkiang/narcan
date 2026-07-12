@@ -63,6 +63,71 @@ test_that("ICD-10 combined-rule paired cases (primary regressions incl. T40.5/T4
     expect_equal(do_flags("X42", "T406", 2019L), c(1, 1))   # T40.6 included (freeze)
 })
 
+## Full pipeline through subtype + intent, for the oracle's subtype/intent cols.
+flag_full <- function(ucod, records, year) {
+    df <- data.frame(year = year, ucod = ucod, f_records_all = records,
+                     stringsAsFactors = FALSE)
+    suppressWarnings(
+        df |>
+            flag_drug_deaths(year = year, keep_cols = TRUE) |>
+            flag_opioid_deaths(year = year, keep_cols = TRUE) |>
+            flag_opioid_types(year = year) |>
+            flag_od_intent(year = year)
+    )
+}
+.subtype_map <- c(opium = "opium_present", heroin = "heroin_present",
+                  natural_semisynth = "other_natural_present",
+                  methadone = "methadone_present",
+                  synthetic = "other_synth_present",
+                  other_opioid = "other_op_present")
+.intent_map <- c(unintentional = "unintended_intent",
+                 suicide = "suicide_intent", homicide = "homicide_intent",
+                 undetermined = "undetermined_intent")
+
+test_that("ICD-10 record subtypes match the frozen oracle expect_subtype", {
+    rec <- oracle[oracle$era == "icd10" & oracle$position == "record" &
+                      !is.na(oracle$stored) & !is.na(oracle$expect_subtype) &
+                      oracle$expect_subtype != "na", ]
+    expect_gt(nrow(rec), 0)
+    cols <- unname(.subtype_map)
+    for (i in seq_len(nrow(rec))) {
+        out <- flag_full("X42", rec$stored[i], 2019L)
+        got <- vapply(cols, function(cc) as.integer(out[[cc]][1]), integer(1))
+        got[is.na(got)] <- 0L
+        lab <- rec$expect_subtype[i]
+        if (identical(lab, "none")) {
+            expect_true(all(got == 0L),
+                        info = paste("expected no subtype for", rec$code[i]))
+        } else {
+            want <- .subtype_map[[lab]]
+            expect_identical(as.integer(out[[want]][1]), 1L,
+                             info = paste(lab, "for", rec$code[i]))
+            expect_true(all(got[setdiff(cols, want)] == 0L),
+                        info = paste("only", lab, "fires for", rec$code[i]))
+        }
+    }
+})
+
+test_that("ICD-10 intent matches the frozen oracle expect_intent (opioid death)", {
+    uc <- oracle[oracle$era == "icd10" & oracle$position == "ucod" &
+                     !is.na(oracle$stored) & !grepl("[+(]", oracle$code) &
+                     oracle$expect_drug_death == 1 &
+                     !is.na(oracle$expect_intent) & oracle$expect_intent != "na", ]
+    expect_gt(nrow(uc), 0)
+    cols <- unname(.intent_map)
+    for (i in seq_len(nrow(uc))) {
+        out <- flag_full(uc$stored[i], "T401", 2019L)   # pair with heroin T-code
+        want <- .intent_map[[uc$expect_intent[i]]]
+        expect_identical(as.integer(out[[want]][1]), 1L,
+                         info = paste(uc$expect_intent[i], "for", uc$code[i]))
+        others <- setdiff(cols, want)
+        got_other <- vapply(others, function(cc) as.integer(out[[cc]][1]), integer(1))
+        got_other[is.na(got_other)] <- 0L
+        expect_true(all(got_other == 0L),
+                    info = paste("only", uc$expect_intent[i], "for", uc$code[i]))
+    }
+})
+
 test_that("ICD-9 flags on curated 5-char stored codes (incl. #5 E859 boundary)", {
     expect_equal(do_flags("E8500", "", 1990L), c(1, 1))     # heroin
     expect_equal(do_flags("E8501", "", 1990L), c(1, 1))     # methadone

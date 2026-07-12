@@ -32,50 +32,31 @@ flag_od_intent <- function(processed_df, year = NULL) {
         year <- .extract_year(processed_df)
     }
 
-    if (.dispatch_era(year) == "icd9") {
-        new_df <- processed_df |>
-            dplyr::mutate(
-                unintended_intent = dplyr::case_when(
-                    drug_death == 1 &
-                        grepl(ucod, pattern = "\\<E85[012345678]\\d{1}\\>") ~ 1,
-                    TRUE ~ 0),
-                suicide_intent = dplyr::case_when(
-                    drug_death == 1 &
-                        grepl(ucod, pattern = "\\<E950[012345]\\>") ~ 1,
-                    TRUE ~ 0),
-                homicide_intent = dplyr::case_when(
-                    drug_death == 1 & grepl(ucod, pattern = "\\<E9620\\>") ~ 1,
-                    TRUE ~ 0),
-                undetermined_intent = dplyr::case_when(
-                    drug_death == 1 &
-                        grepl(ucod, pattern = "\\<E980[012345]\\>") ~ 1,
-                    drug_death == 1 &
-                        unintended_intent == 0 &
-                        suicide_intent == 0 &
-                        homicide_intent == 0 ~ 1,
-                    TRUE ~ 0))
-    } else {
-        new_df <- processed_df |>
-            dplyr::mutate(
-                unintended_intent = dplyr::case_when(
-                    drug_death == 1 &
-                        grepl(ucod, pattern = "\\<X4[01234]\\d{0,1}\\>") ~ 1,
-                    TRUE ~ 0),
-                suicide_intent = dplyr::case_when(
-                    drug_death == 1 &
-                        grepl(ucod, pattern = "\\<X6[01234]\\d{0,1}\\>") ~ 1,
-                    TRUE ~ 0),
-                homicide_intent = dplyr::case_when(
-                    drug_death == 1 & grepl(ucod, pattern = "\\<X85\\d{0,1}\\>") ~ 1,
-                    TRUE ~ 0),
-                undetermined_intent = dplyr::case_when(
-                    drug_death == 1 &
-                        grepl(ucod, pattern = "\\<Y1[01234]\\d{0,1}\\>") ~ 1,
-                    drug_death == 1 &
-                        unintended_intent == 0 &
-                        suicide_intent == 0 &
-                        homicide_intent == 0 ~ 1,
-                    TRUE ~ 0))
-    }
+    ## Derive the four intent UCOD patterns from the single source of truth so
+    ## the intent partition can never diverge from the drug-death definition.
+    intents <- .drug_ucod_intents(.dispatch_era(year))
+
+    new_df <- processed_df |>
+        dplyr::mutate(
+            unintended_intent = dplyr::case_when(
+                drug_death == 1 &
+                    grepl(ucod, pattern = intents[["unintended"]]) ~ 1,
+                TRUE ~ 0),
+            suicide_intent = dplyr::case_when(
+                drug_death == 1 &
+                    grepl(ucod, pattern = intents[["suicide"]]) ~ 1,
+                TRUE ~ 0),
+            homicide_intent = dplyr::case_when(
+                drug_death == 1 &
+                    grepl(ucod, pattern = intents[["homicide"]]) ~ 1,
+                TRUE ~ 0),
+            undetermined_intent = dplyr::case_when(
+                drug_death == 1 &
+                    grepl(ucod, pattern = intents[["undetermined"]]) ~ 1,
+                drug_death == 1 &
+                    unintended_intent == 0 &
+                    suicide_intent == 0 &
+                    homicide_intent == 0 ~ 1,
+                TRUE ~ 0))
     return(new_df)
 }

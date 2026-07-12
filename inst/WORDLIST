@@ -18,6 +18,7 @@ Natality
 Pre
 Stata
 UCOD
+UCODs
 Workgroup
 ZZ
 ager
@@ -53,6 +54,9 @@ industryr
 injectable
 jama
 mcod
+mis
+misassigns
+misweight
 mkdir
 mortYYYYus
 narcan's
@@ -74,11 +78,13 @@ pmin
 popest
 pre
 preconverted
+prefixer
 psychostimulant
 pushdown
 readr
 regex'ing
 regexing
+renormalize
 renormalized
 renormalizes
 restatus

@@ -14,7 +14,7 @@
 #' @return dataframe with two new columns
 #' @importFrom rlang :=
 #' @importFrom dplyr group_by summarize group_vars pull
-#' @importFrom stats weighted.mean na.omit
+#' @importFrom stats na.omit
 #' @export
 #' @examples
 #' df <- data.frame(
@@ -45,28 +45,51 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
                 call. = FALSE)
     }
 
-    ## Guard: NA/zero weights make the rate and variance disagree -- the rate
-    ## (weighted.mean) goes NA on any NA weight, while the variance renormalizes
-    ## over the non-NA weights.
+    ## Guard: an NA weight (e.g. an age that is not a 5-year-bin start) or an
+    ## NaN age-specific rate (a legitimate pop == 0 stratum) drops that stratum.
+    ## Both the rate and the variance drop the SAME strata and renormalize over
+    ## the survivors (see .std_rate/.std_var), so they stay consistent -- but the
+    ## result then standardizes to a *truncated* standard, which is worth a flag.
     w <- dplyr::pull(df, {{ weight_col }})
     if (all(is.na(w)) || sum(w, na.rm = TRUE) == 0) {
         warning("Standardization weights are all missing or sum to zero; the ",
-                "standardized rate will be NA/NaN.", call. = FALSE)
+                "standardized rate will be NA. ", call. = FALSE)
     } else if (anyNA(w)) {
         warning("Some standardization weights are NA (e.g. ages that are not ",
-                "5-year-bin starts); the standardized rate drops those rows ",
-                "while the variance renormalizes over the rest. Check that ",
-                "`add_std_pop()` was applied to binned ages.", call. = FALSE)
+                "5-year-bin starts); those strata are dropped from both the ",
+                "standardized rate and its variance, so the result standardizes ",
+                "to a truncated standard. Check that `add_std_pop()` was applied ",
+                "to binned ages.", call. = FALSE)
     }
 
     grouped |>
         dplyr::summarize(
-            "{{ asrate_col }}" := stats::weighted.mean({{ asrate_col }},
-                                                {{ weight_col }},
-                                                na.rm = TRUE),
-            "{{ asvar_col }}" := sum(
-                ({{ weight_col }} / sum({{ weight_col }}, na.rm = TRUE))^2 *
-                    {{ asvar_col }},
-                na.rm = TRUE)
+            "{{ asrate_col }}" := .std_rate({{ asrate_col }}, {{ asvar_col }},
+                                            {{ weight_col }}),
+            "{{ asvar_col }}" := .std_var({{ asrate_col }}, {{ asvar_col }},
+                                          {{ weight_col }})
         )
+}
+
+## The age-standardized rate and its variance MUST agree on which strata
+## contributed. A stratum is dropped iff its rate, variance, or weight is NA/NaN
+## (a pop == 0 cell gives a NaN rate+variance; an unbinned age gives an NA
+## weight). Both statistics then renormalize over the identical surviving set:
+## rate = sum(w*r)/sum(w); var = sum(w^2*v)/sum(w)^2, over survivors. With no
+## missing strata (the usual case) this is byte-for-byte the old weighted.mean +
+## sum((w/sum w)^2 v).
+.std_keep <- function(asrate, asvar, weight) {
+    !is.na(asrate) & !is.na(asvar) & !is.na(weight)
+}
+
+.std_rate <- function(asrate, asvar, weight) {
+    k <- .std_keep(asrate, asvar, weight)
+    if (!any(k)) return(NA_real_)
+    sum(weight[k] * asrate[k]) / sum(weight[k])
+}
+
+.std_var <- function(asrate, asvar, weight) {
+    k <- .std_keep(asrate, asvar, weight)
+    if (!any(k)) return(NA_real_)
+    sum(weight[k]^2 * asvar[k]) / sum(weight[k])^2
 }

@@ -11,8 +11,11 @@
 #' @examples
 #' prefix_e_to_ucod(c(7951, 8001, 9992, 6000, 4000))
 prefix_e_to_ucod <- function(icd9_ucod) {
-    new_col <- ifelse(as.numeric(icd9_ucod) >= 8000 &
-                          as.numeric(icd9_ucod) <= 9999,
+    ## Coerce once; an already-prefixed value (e.g. "E8500") is non-numeric ->
+    ## NA -> left unchanged, so re-running clean_icd9_data() is idempotent
+    ## rather than silently NA-ing every external-cause UCOD.
+    num <- suppressWarnings(as.numeric(icd9_ucod))
+    new_col <- ifelse(!is.na(num) & num >= 8000 & num <= 9999,
                       paste0("E", icd9_ucod),
                       icd9_ucod)
     return(new_col)

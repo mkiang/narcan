@@ -1,4 +1,25 @@
 ## Regex helpers
+
+## Single source of truth for the drug-poisoning UCOD set, split by ISW7/NCHS
+## intent (unintentional, suicide, homicide, undetermined). Both the drug UCOD
+## regex and flag_od_intent() derive from this so the intent partition and the
+## drug-death definition can never silently diverge. The ICD-9 E-code set IS
+## exactly these four partitions; the ICD-10 drug UCOD regex unions them (with
+## X4/X6 collapsed to the equivalent X[46] class in .regex_drug_icd10).
+.drug_ucod_intents <- function(era) {
+    if (identical(era, "icd9")) {
+        c(unintended   = "\\<E85[0-8]\\d\\>",
+          suicide      = "\\<E950[012345]\\>",
+          homicide     = "\\<E9620\\>",
+          undetermined = "\\<E980[012345]\\>")
+    } else {
+        c(unintended   = "\\<X4[01234]\\d{0,1}\\>",
+          suicide      = "\\<X6[01234]\\d{0,1}\\>",
+          homicide     = "\\<X85\\d{0,1}\\>",
+          undetermined = "\\<Y1[01234]\\d{0,1}\\>")
+    }
+}
+
 .regex_drug_icd9 <- function(n_codes = FALSE, e_codes = TRUE) {
     ## Just returns the regex for all drug deaths as defined by the ISW7
     ##
@@ -32,12 +53,8 @@
     }
 
     if (e_codes) {
-        e_1 <- "\\<E85[0-8]\\d\\>"
-        e_2 <- "\\<E950[012345]\\>"
-        e_3 <- "\\<E9620\\>"
-        e_4 <- "\\<E980[012345]\\>"
-
-        search_term <- c(search_term, e_1, e_2, e_3, e_4)
+        ## The E-code drug set is exactly the four intent partitions.
+        search_term <- c(search_term, unname(.drug_ucod_intents("icd9")))
     }
 
     return(paste0(search_term, collapse = "|"))

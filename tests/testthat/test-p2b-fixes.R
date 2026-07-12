@@ -21,8 +21,11 @@ test_that("calc_stdrate_var: a multi-year frame without year grouping warns (R2)
 })
 
 test_that("calc_stdrate_var: an NA standardization weight warns (R3)", {
-    df <- add_std_pop(data.frame(race = "white", age = c(20, 23),
-                                 opioid_rate = c(5, 8), opioid_var = c(.4, .9)))
+    # age 23 is not a 5-year-bin start -> add_std_pop() now also warns on the
+    # unmatched age; suppress that setup warning and assert only the target one.
+    df <- suppressWarnings(add_std_pop(data.frame(race = "white",
+                                 age = c(20, 23),
+                                 opioid_rate = c(5, 8), opioid_var = c(.4, .9))))
     expect_warning(calc_stdrate_var(df, opioid_rate, opioid_var, race),
                    "weights are NA")
 })

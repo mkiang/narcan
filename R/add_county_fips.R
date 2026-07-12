@@ -44,7 +44,7 @@
 #'   then from the codes) or force `"nchs"`, `"abbrev"`, or `"fips"`.
 #'
 #' @return same dataframe with new `st_fips` and `county_fips` columns
-#' @importFrom dplyr mutate left_join if_else
+#' @importFrom dplyr mutate left_join if_else pull bind_rows
 #' @export
 #' @examples
 #' ## Modern (2003+) abbreviation-coded data
@@ -57,6 +57,17 @@
 add_county_fips <- function(df, county_vector, year = NULL,
                             scheme = c("auto", "nchs", "abbrev", "fips")) {
     scheme <- match.arg(scheme)
+
+    ## A numeric county column has already lost its leading zeros before we see
+    ## it (Alabama county 01001 -> 1001, whose first two digits "10" parse as a
+    ## different, valid state) -- refuse it rather than silently mis-assign.
+    cv <- dplyr::pull(df, {{ county_vector }})
+    if (is.numeric(cv)) {
+        stop("add_county_fips(): `county_vector` is numeric, so leading zeros ",
+             "are already lost (e.g. Alabama county 01001 reads as 1001, parsed ",
+             "as state 10). Supply it as character -- re-read the source with ",
+             "the county field as character.", call. = FALSE)
+    }
 
     ## Trim whitespace so a padded fixed-width extract (" CA001") is not
     ## silently dropped to NA.
@@ -73,11 +84,43 @@ add_county_fips <- function(df, county_vector, year = NULL,
              "cannot add county FIPS. Check the input column.", call. = FALSE)
     }
 
-    if (scheme == "auto") {
-        scheme <- .detect_fips_scheme(codes, year, df)
+    ## Resolve per-row years (the `year` argument overrides a `year` column; a
+    ## scalar is recycled). Used only to pick the coding scheme.
+    yr <- if (!is.null(year)) year else if ("year" %in% names(df)) df$year else NA
+    yr <- suppressWarnings(as.numeric(as.character(yr)))
+    if (length(yr) == 1L) {
+        yr <- rep(yr, nrow(df))
     }
 
-    df <- .apply_fips_scheme(df, scheme)
+    if (scheme == "auto" && length(yr) == nrow(df) &&
+        any(yr <= 2002, na.rm = TRUE) && any(yr >= 2003, na.rm = TRUE)) {
+        ## The frame straddles the 2002/2003 NCHS->FIPS boundary with a per-row
+        ## year. Resolve AND apply the scheme separately per era, so one global
+        ## scheme cannot silently mis-decode the minority era (e.g. a 2003 FIPS
+        ## "48" decoded as NCHS Washington). Rows are recombined in input order.
+        era <- ifelse(is.na(yr), "na", ifelse(yr <= 2002, "pre", "post"))
+        parts <- lapply(split(seq_len(nrow(df)), era), function(idx) {
+            sub <- df[idx, , drop = FALSE]
+            sub_codes <- unique(sub$state_substr)
+            sub_codes <- sort(sub_codes[!is.na(sub_codes) & sub_codes != ""])
+            sch <- if (length(sub_codes) == 0) {
+                "nchs"
+            } else {
+                .detect_fips_scheme(sub_codes, unique(yr[idx]), NULL)
+            }
+            sub <- .apply_fips_scheme(sub, sch)
+            sub[[".orig_row"]] <- idx
+            sub
+        })
+        df <- dplyr::bind_rows(parts)
+        df <- df[order(df[[".orig_row"]]), , drop = FALSE]
+        df[[".orig_row"]] <- NULL
+    } else {
+        if (scheme == "auto") {
+            scheme <- .detect_fips_scheme(codes, year, df)
+        }
+        df <- .apply_fips_scheme(df, scheme)
+    }
 
     df |>
         dplyr::mutate(

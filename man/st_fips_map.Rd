@@ -9,8 +9,8 @@ A data frame with 60 rows and 3 columns
 \describe{
   \item{name}{character, name of territory}
   \item{abbrev}{character, abbreviation}
-  \item{fips}{character, FIPS code}
-  \item{nchs}{character, NCHS state code}
+  \item{fips}{numeric, FIPS state code (zero-pad to 2 digits for a FIPS string)}
+  \item{nchs}{numeric, NCHS state code (zero-pad to 2 digits)}
 }
 }
 \source{

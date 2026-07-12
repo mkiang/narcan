@@ -30,11 +30,17 @@ remap_race <- function(icd_df, year = NULL) {
 
     ## Run appropriate function depending on year
     if (year >= 1979 & year <= 1988) {
-        icd_df$race <- .remap_race_1979_1988(icd_df$race)
+        orig <- icd_df$race
+        icd_df$race <- .remap_race_1979_1988(orig)
+        .warn_unmapped(orig, icd_df$race, "remap_race")
     } else if (year >= 1989 & year <= 1991) {
-        icd_df$race <- .remap_race_1989_1991(icd_df$race)
+        orig <- icd_df$race
+        icd_df$race <- .remap_race_1989_1991(orig)
+        .warn_unmapped(orig, icd_df$race, "remap_race")
     } else if (year >= 1992 & year <= 2020) {
-        icd_df$race <- .remap_race_1992_2020(icd_df$race)
+        orig <- icd_df$race
+        icd_df$race <- .remap_race_1992_2020(orig)
+        .warn_unmapped(orig, icd_df$race, "remap_race")
     } else if (year == 2021) {
         warning("race is retired in 2021 (bridged race dropped; single-race ",
                 "recodes not populated until 2022); setting race to NA.")
@@ -47,7 +53,9 @@ remap_race <- function(icd_df, year = NULL) {
         warning("2022+ race uses the single-race Race Recode 6 mapped to codes ",
                 "101-106; these are NOT comparable to the bridged race scheme ",
                 "(2020 and earlier).")
-        icd_df$race <- .remap_race_2022plus(icd_df$racer5)
+        orig <- icd_df$racer5
+        icd_df$race <- .remap_race_2022plus(orig)
+        .warn_unmapped(orig, icd_df$race, "remap_race")
     } else {
         stop(sprintf(
             paste0("remap_race(): cannot map race for year %s. Expected a ",
@@ -120,4 +128,21 @@ remap_race <- function(icd_df, year = NULL) {
         racer5_col == 6 ~ 106
     )
     return(new_col)
+}
+
+## Warn (do not abort) when an era recoder maps a non-missing input code to NA,
+## i.e. a code outside the enumerated set for that era. Mirrors the loud
+## unmatched-code warnings in add_county_fips()/state_abbrev_to_fips(); the
+## case_when()-based recoders would otherwise drop unknown codes silently.
+## `exclude` lists inputs that map to NA BY DESIGN (e.g. not-stated age codes),
+## so they are not reported as unmapped.
+.warn_unmapped <- function(input, output, fn = "", exclude = NULL) {
+    bad <- unique(input[!is.na(input) & is.na(output) & !input %in% exclude])
+    if (length(bad) > 0L) {
+        warning(sprintf(paste0(
+            "%s(): %d input code(s) fell outside the known set for this era ",
+            "and became NA: %s."), fn, length(bad),
+            paste(sort(bad), collapse = ", ")), call. = FALSE)
+    }
+    invisible(NULL)
 }
