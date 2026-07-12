@@ -169,11 +169,38 @@ test_that("race='total' synthesizes the race marginal (incl. multiracial)", {
 
 # ---- single scheme: geography routing (H2) ------------------------------------
 
-test_that("state_fips carried but absent from by_vars hard-errors", {
+test_that("a stratifier carried but absent from by_vars hard-errors (no silent sum)", {
+    # geography: sub-national deaths must not collapse onto a national count
     inp <- single_input(2024L)
-    inp$state_fips <- "06"                           # carried, not in by_vars
+    inp$state_fips <- "06"                            # carried, not in by_vars
     expect_error(add_pop_counts(inp, race_scheme = "single"),
-                 "geography column")
+                 "population-dimension")
+
+    # race omitted while stratified: the HIGH silent-13x-deflation case
+    r <- data.frame(year = 2024L, age = 30L, sex = "male", race = "asian_only",
+                    deaths = 1)
+    expect_error(
+        add_pop_counts(r, race_scheme = "single",
+                       by_vars = c("year", "age", "sex")),
+        "population-dimension")
+
+    # sex omitted while stratified: silent ~2x
+    s <- data.frame(year = 2024L, age = 30L, sex = "male", race = "asian_only",
+                    deaths = 1)
+    expect_error(
+        add_pop_counts(s, race_scheme = "single",
+                       by_vars = c("year", "age", "race")),
+        "population-dimension")
+})
+
+test_that("legacy does NOT apply the single-scheme stratifier guard", {
+    # legacy is frozen: a narrow by_vars is a bare join (not the single guard)
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    # sex present in df, omitted from by_vars -> under legacy this must NOT hit
+    # the population-dimension guard (that guard is single-only)
+    out <- suppressWarnings(
+        add_pop_counts(inp, by_vars = c("year", "age", "race")))
+    expect_true("pop" %in% names(out))
 })
 
 test_that("county routing joins the county parquet (via fixture)", {

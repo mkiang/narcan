@@ -122,6 +122,14 @@ get_pop_county <- function(scheme = "single", states = NULL, counties = NULL,
                      parquet), call. = FALSE)
     }
 
+    if (!is.null(years)) {
+        yi <- suppressWarnings(as.integer(years))
+        if (anyNA(yi)) {
+            stop("get_pop_county(): `years` must be numeric year(s) ",
+                 "(e.g. 2020:2024).", call. = FALSE)
+        }
+    }
+
     ## SQL string literals (single-quoted, escaped) -- shQuote's OS convention
     ## would use double quotes (identifiers) on Windows.
     sqlq <- function(x) paste0("'", gsub("'", "''", x), "'")

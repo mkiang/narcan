@@ -59,11 +59,12 @@
     }
     got <- .sha256_file(path)
     if (is.na(got)) {
-        warning(sprintf(paste0(
-            "Could not verify the sha256 of %s (install 'openssl' or 'digest', ",
-            "or use R >= 4.5). Downloaded file kept unverified."), what),
+        ## Never keep an unverified download: fail loud rather than silently
+        ## trust an unchecked file.
+        stop(sprintf(paste0(
+            "Cannot verify the sha256 of %s: no hasher available. Install ",
+            "'openssl' or 'digest', or use R >= 4.5, then retry."), what),
             call. = FALSE)
-        return(invisible(NULL))
     }
     if (!identical(tolower(got), tolower(expected))) {
         stop(sprintf(paste0(
@@ -146,6 +147,7 @@ download_pop_data <- function(scheme = "single", years = NULL, raw = FALSE,
         rows <- m[nzchar(m$source_url), , drop = FALSE]
         rows <- rows[!duplicated(rows$source_url), , drop = FALSE]
         dir <- if (is.null(dest)) .pop_cache_dir("raw") else dest
+        if (!dir.exists(dir)) dir.create(dir, recursive = TRUE, showWarnings = FALSE)
         paths <- vapply(seq_len(nrow(rows)), function(i) {
             url <- rows$source_url[i]
             p <- file.path(dir, basename(url))
@@ -167,6 +169,7 @@ download_pop_data <- function(scheme = "single", years = NULL, raw = FALSE,
              call. = FALSE)
     }
     dir <- if (is.null(dest)) .pop_cache_dir() else dest
+    if (!dir.exists(dir)) dir.create(dir, recursive = TRUE, showWarnings = FALSE)
     paths <- vapply(seq_len(nrow(rows)), function(i) {
         url <- rows$asset_url[i]
         p <- file.path(dir, basename(url))

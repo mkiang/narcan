@@ -64,8 +64,22 @@ test_that("get_pop_county() filters years + counties via pushdown", {
 })
 
 test_that("get_pop_county() names the duckdb fix when duckdb is absent", {
-    # simulate absence by pointing requireNamespace at a bogus lib is hard;
-    # instead assert the error path exists for a missing parquet.
+    # mock duckdb (and DBI) absence at the source
+    local_mocked_bindings(requireNamespace = function(package, ...) FALSE,
+                          .package = "base")
+    expect_error(get_pop_county(states = "56"), "needs the 'duckdb' package")
+
+    # add_pop_counts()'s county auto-route must give the SAME named-fix error
+    df <- data.frame(state_fips = "56", county_fips = "56001", year = 2024L,
+                     age = 40L, sex = "male", race = "asian_only", deaths = 1)
+    expect_error(
+        add_pop_counts(df, race_scheme = "single",
+                       by_vars = c("state_fips", "county_fips", "year", "age",
+                                   "sex", "race")),
+        "needs the 'duckdb' package")
+})
+
+test_that("get_pop_county() errors clearly on a missing parquet", {
     skip_if_not_installed("duckdb")
     expect_error(
         get_pop_county(parquet = tempfile(fileext = ".parquet")),
@@ -98,7 +112,6 @@ local_file_manifest <- function(env = parent.frame()) {
 }
 
 test_that("download_pop_data() fetches + sha256-verifies the processed asset", {
-    skip_on_cran()
     mani <- local_file_manifest()
     cache <- withr::local_tempdir()
     withr::local_options(narcan.pop_manifest_path = mani)
@@ -106,13 +119,14 @@ test_that("download_pop_data() fetches + sha256-verifies the processed asset", {
     p <- download_pop_data(scheme = "single", dest = cache)
     expect_true(file.exists(p[[1]]))
     expect_identical(names(p), "pop_singlerace_county")
-    # a second call is a cache hit (file already present) and still verifies
+    # a second call is a cache hit: same path AND not re-downloaded (mtime held)
+    mt <- file.mtime(p[[1]])
     p2 <- download_pop_data(scheme = "single", dest = cache)
     expect_identical(unname(p2), unname(p))
+    expect_identical(file.mtime(p2[[1]]), mt)
 })
 
 test_that("download_pop_data(raw = TRUE) fetches + verifies the source file", {
-    skip_on_cran()
     mani <- local_file_manifest()
     cache <- withr::local_tempdir()
     withr::local_options(narcan.pop_manifest_path = mani)
@@ -122,7 +136,6 @@ test_that("download_pop_data(raw = TRUE) fetches + verifies the source file", {
 })
 
 test_that("download_pop_data() errors on a corrupt (sha256-mismatch) asset", {
-    skip_on_cran()
     fx <- county_fixture()
     cache <- withr::local_tempdir()
     mani <- withr::local_tempfile(fileext = ".csv")

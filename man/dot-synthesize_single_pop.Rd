@@ -18,7 +18,7 @@ a population slice with columns \code{by_vars} + \code{pop}.
 }
 \description{
 Collapses the stored finest cells to exactly \code{by_vars}: pins Hispanic
-origin to \code{"all"} (H8), relabels a dimension to its reserved token when
+origin to \code{"all"}, relabels a dimension to its reserved token when
 the death frame is aggregated there (so the group-sum yields the matching
 marginal), sums over every dimension not in \code{by_vars}, and drops all
 metadata. The result is unique on \code{by_vars} (asserted by the many-to-one

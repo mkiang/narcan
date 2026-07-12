@@ -5,7 +5,7 @@
 ## fixture. DuckDB does the WIDE->long reshape (UNPIVOT) driven by the shipped
 ## 36-column allowlist/decode table; R only orchestrates. Quiet; run from root.
 ##
-## H7 (no double-count): STORE only the 24 NH*/H* x {MALE,FEMALE} finest
+## No double-count: STORE only the 24 NH*/H* x {MALE,FEMALE} finest
 ## crossings (hispanic_origin non_hispanic/hispanic). The 12 all-origin race
 ## columns + TOT_POP are VALIDATION-ONLY (WA == NHWA + HWA; 6-race sum ==
 ## TOT_POP) then dropped. The 30 *C_ "alone-or-in-combination" columns are NEVER
@@ -46,7 +46,7 @@ qcol <- function(x) paste0("\"", x, "\"")          # double-quote any identifier
 hdr <- names(q(sprintf("SELECT * FROM read_csv_auto(%s) LIMIT 0", qraw)))
 stopifnot(all(decode$column %in% hdr))
 
-## --- Validation identities (H7), across ALL county x year x age rows before
+## --- Validation identities, across ALL county x year x age rows before
 ## dropping the marginals: all-origin == NH + H (per race x sex), 6-race-alone
 ## sum == TOT_POP. ---
 stems <- c("WA", "BA", "IA", "AA", "NA", "TOM")
@@ -59,7 +59,7 @@ val <- q(sprintf("
   SELECT (%s) AS origin_breaks,
          SUM(CASE WHEN TOT_POP <> (%s) THEN 1 ELSE 0 END) AS tot_breaks
   FROM read_csv_auto(%s)
-  WHERE SUMLEV = 50 AND YEAR BETWEEN 2 AND 6 AND AGEGRP BETWEEN 1 AND 18",
+  WHERE SUMLEV = '050' AND YEAR BETWEEN 2 AND 6 AND AGEGRP BETWEEN 1 AND 18",
     origin_break_sql, paste(qcol(alone_cols), collapse = " + "), qraw))
 stopifnot(val$origin_breaks == 0L, val$tot_breaks == 0L)
 
@@ -80,7 +80,7 @@ build_sql <- sprintf("
       (AGEGRP - 1) * 5 AS age,
       %s
     FROM read_csv_auto(%s)
-    WHERE SUMLEV = 50 AND YEAR BETWEEN 2 AND 6 AND AGEGRP BETWEEN 1 AND 18
+    WHERE SUMLEV = '050' AND YEAR BETWEEN 2 AND 6 AND AGEGRP BETWEEN 1 AND 18
   ),
   long AS (UNPIVOT src ON %s INTO NAME col_name VALUE pop)
   SELECT

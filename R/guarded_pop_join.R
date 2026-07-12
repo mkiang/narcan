@@ -12,7 +12,8 @@
 
 ## Reserved aggregate tokens, one per collapsible dimension. A death frame that
 ## carries the token means "already summed over this dimension"; the matching
-## population marginal is synthesized on demand (never stored -- see H7).
+## population marginal is synthesized on demand (only finest cells are stored,
+## so synthesis can never double-count a stored marginal).
 .pop_reserved <- c(race = "total", sex = "both", hispanic_origin = "all")
 
 #' Guarded death-to-population join (single entry point)
@@ -62,10 +63,17 @@
         pop_slice <- .synthesize_single_pop(deaths, pop_slice, by_vars)
     }
 
-    ## Universal many-to-one join: errors on ANY fan-out (geography, Hispanic,
-    ## a stray vintage column) rather than silently inflating denominators.
-    x <- dplyr::left_join(deaths, pop_slice, by = by_vars,
-                          relationship = "many-to-one")
+    ## Single-scheme join asserts many-to-one: the synthesized slice is unique on
+    ## by_vars, so this is a belt-and-suspenders check that a synthesis bug can
+    ## never silently fan out the denominator. Legacy is a bare join -- identical
+    ## to the historical behavior, including dplyr's own many-to-many warning on a
+    ## narrow by_vars (no new failure mode on the frozen path).
+    x <- if (identical(scheme, "single")) {
+        dplyr::left_join(deaths, pop_slice, by = by_vars,
+                         relationship = "many-to-one")
+    } else {
+        dplyr::left_join(deaths, pop_slice, by = by_vars)
+    }
 
     if (identical(scheme, "single")) {
         ## No silent NA: the single regime guarantees a matched denominator.
@@ -98,9 +106,10 @@
         }
     }
 
-    ## Restore the caller's grouping.
+    ## Restore the caller's grouping. group_vars() also captures a rowwise frame's
+    ## kept variables (rowwise(df, x)), so pass them back through.
     if (was_rowwise) {
-        x <- dplyr::rowwise(x)
+        x <- dplyr::rowwise(x, dplyr::all_of(grp_vars))
     } else if (length(grp_vars) > 0L) {
         x <- dplyr::group_by(x, dplyr::across(dplyr::all_of(grp_vars)))
     }
@@ -172,7 +181,7 @@
 #' Synthesize the single-race population slice to the join grain
 #'
 #' Collapses the stored finest cells to exactly \code{by_vars}: pins Hispanic
-#' origin to \code{"all"} (H8), relabels a dimension to its reserved token when
+#' origin to \code{"all"}, relabels a dimension to its reserved token when
 #' the death frame is aggregated there (so the group-sum yields the matching
 #' marginal), sums over every dimension not in \code{by_vars}, and drops all
 #' metadata. The result is unique on \code{by_vars} (asserted by the many-to-one
@@ -185,7 +194,7 @@
 #' @importFrom dplyr group_by across all_of summarize mutate
 #' @keywords internal
 .synthesize_single_pop <- function(deaths, pop_slice, by_vars) {
-    ## H8: pin Hispanic origin to "all" by summing the origin dimension, then
+    ## Pin Hispanic origin to "all" by summing the origin dimension, then
     ## re-labeling it so it can still serve as a join key if requested.
     if ("hispanic_origin" %in% names(pop_slice)) {
         keep <- setdiff(names(pop_slice),

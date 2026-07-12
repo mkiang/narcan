@@ -60,18 +60,24 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
              "get_pop_state()/get_pop_county() for Hispanic-stratified counts.",
              call. = FALSE)
     }
-    ## H2: geography is routed by by_vars MEMBERSHIP. A frame that carries a
-    ## geography column absent from by_vars would silently collapse sub-national
-    ## deaths onto a national denominator -> hard-error instead.
-    stray_geo <- setdiff(intersect(c("state_fips", "county_fips"), names(df)),
-                         by_vars)
-    if (length(stray_geo) > 0L) {
+    ## Every population dimension present in `df` must also be in `by_vars`. A
+    ## stratifier left out of `by_vars` (geography OR sex/race/age/origin) would
+    ## be silently summed over -- e.g. asian_only deaths joined without `race`
+    ## get the all-race population, and sub-national deaths would collapse onto a
+    ## national count. To aggregate a dimension, drop it from `df` (or use its
+    ## reserved token: race "total", sex "both"), never omit it while it is still
+    ## a column. Geography is also routed by this membership.
+    pop_dims <- c("year", "age", "sex", "race", "hispanic_origin",
+                  "state_fips", "county_fips")
+    stray <- setdiff(intersect(pop_dims, names(df)), by_vars)
+    if (length(stray) > 0L) {
         stop(sprintf(
-            paste0("add_pop_counts(): `df` carries geography column(s) %s not ",
-                   "in `by_vars`. Add them to `by_vars` for a sub-national ",
-                   "join, or drop them for a national join (never a silent ",
-                   "national join on sub-national deaths)."),
-            paste0("`", stray_geo, "`", collapse = ", ")), call. = FALSE)
+            paste0("add_pop_counts(): `df` carries population-dimension ",
+                   "column(s) %s not in `by_vars`; under race_scheme = ",
+                   "\"single\" the denominator would be silently summed over ",
+                   "them. Add them to `by_vars`, or drop them from `df` to ",
+                   "aggregate that dimension."),
+            paste0("`", stray, "`", collapse = ", ")), call. = FALSE)
     }
     if ("county_fips" %in% by_vars) {
         pop_slice <- .load_pop_county(

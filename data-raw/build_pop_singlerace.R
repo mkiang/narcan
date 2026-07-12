@@ -3,7 +3,7 @@
 ## cached raw file (see download_pop_singlerace.R for the pull) and writes the
 ## bundled national + state .rda. Quiet; run from the package root.
 ##
-## H7 (no double-count): store ONLY finest cells -- sex {male,female}, race (the
+## No double-count: store ONLY finest cells -- sex {male,female}, race (the
 ## six OMB single-race groups), hispanic_origin {non_hispanic, hispanic}, 5-year
 ## age bins. total/both/all are SYNTHESIZED downstream, never stored. The Census
 ## provided marginals (SEX=0, ORIGIN=0) are read for VALIDATION ONLY, then dropped.
@@ -23,9 +23,10 @@ yrcols <- paste0("POPESTIMATE", 2020:2024)
 race_lab <- c("white_only", "black_only", "american_indian_only",
               "asian_only", "nhopi_only", "multiracial")
 
-## --- Validation (H7): provided marginals must equal sums of finest cells ---
-## National 2020 total from the provided SEX=0/ORIGIN=0 marginal.
-tot_marginal_2020 <- raw[SEX == 0 & ORIGIN == 0, sum(POPESTIMATE2020)]
+## --- Validation: provided marginals must equal sums of finest cells ---
+## National 2020 total from the provided SEX=0/ORIGIN=0 marginal (all races).
+tot_marginal_2020 <- raw[SEX == 0 & ORIGIN == 0 & RACE %in% 1:6,
+                         sum(POPESTIMATE2020)]
 ## National 2020 total from the finest cells (SEX 1/2, ORIGIN 1/2, RACE 1-6).
 tot_finest_2020 <- raw[SEX %in% 1:2 & ORIGIN %in% 1:2 & RACE %in% 1:6,
                        sum(POPESTIMATE2020)]
