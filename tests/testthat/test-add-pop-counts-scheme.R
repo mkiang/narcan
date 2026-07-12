@@ -371,6 +371,17 @@ test_that("legacy tolerates a pure-'all' hispanic_origin passenger (harmless)", 
     expect_false(anyNA(out$pop))
 })
 
+test_that("legacy rejects a sub-national geography column (national pop_est)", {
+    ## pop_est is national: a state_fips/county_fips/st_fips passenger would
+    ## silently attach the national denominator to every area. Must error.
+    for (col in c("state_fips", "county_fips", "st_fips")) {
+        inp <- rate_input(year = 2015L, sex = "male", race = "white")
+        inp[[col]] <- "06"
+        expect_error(suppressMessages(add_pop_counts(inp)),
+                     "no geographic denominator", info = col)
+    }
+})
+
 # ---- get_pop_state() accessor -------------------------------------------------
 
 test_that("get_pop_state() filters and collapses origin", {

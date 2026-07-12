@@ -94,6 +94,21 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
                     "Hispanic-stratified denominators."), call. = FALSE)
             }
         }
+        ## Geography: pop_est is NATIONAL, so a sub-national key (st_fips from
+        ## add_county_fips(), or state_fips/county_fips) would silently attach the
+        ## national denominator to every area -- the same silent-sum class as the
+        ## origin guard above. Reject up front. (Strict schemes DO support
+        ## geography, so this is legacy-only.)
+        geo <- intersect(c("st_fips", "state_fips", "county_fips"), names(df))
+        if (length(geo) > 0L) {
+            stop(sprintf(paste0(
+                "add_pop_counts(): race_scheme = \"legacy\" uses the national ",
+                "pop_est and has no geographic denominator, but `df` carries ",
+                "%s. Drop the geography column(s) for a national legacy join, or ",
+                "use race_scheme = \"single\"/\"bridged\" (which support ",
+                "state_fips/county_fips denominators)."),
+                paste0("`", geo, "`", collapse = ", ")), call. = FALSE)
+        }
         ## D-SCHEMESELECT: "legacy" and "bridged" share the race labels
         ## white/black/other/total, so a bridged-intent by-race join left on the
         ## legacy default silently gets single-race-alone denominators. No guard
