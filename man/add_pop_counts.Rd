@@ -7,8 +7,7 @@
 add_pop_counts(
   df,
   by_vars = c("year", "age", "sex", "race"),
-  race_scheme = c("legacy", "single", "bridged"),
-  hispanic = "all"
+  race_scheme = c("legacy", "single", "bridged")
 )
 }
 \arguments{
@@ -19,9 +18,6 @@ add_pop_counts(
 \item{race_scheme}{denominator scheme: \code{"legacy"} (bridged-race
 \code{pop_est}, the default), \code{"single"} (single-race), or
 \code{"bridged"} (SEER-uniform bridged-race, 1969-2024)}
-
-\item{hispanic}{Hispanic-origin denominator to use; only \code{"all"} is
-supported in this release}
 }
 \value{
 dataframe
@@ -68,9 +64,15 @@ Legacy bridged-race (\code{"legacy"}), SEER bridged (\code{"bridged"}),
   and single-race (\code{"single"}) schemes are NOT comparable and must not be
   chained into a single trend. \code{"legacy"} and \code{"bridged"} share the
   labels white/black/other/total, so passing the wrong \code{race_scheme}
-  cannot be detected automatically -- set it deliberately. In this release the
-  death-side join is pinned to all-origin denominators (\code{hispanic =
-  "all"}); the Hispanic-stratified death join arrives in a later version.
+  cannot be detected automatically -- set it deliberately. For
+  Hispanic-stratified denominators, add a \code{hispanic_origin} column
+  (\code{"hispanic"}/\code{"non_hispanic"}, from \code{add_hispanic_origin()})
+  to \code{by_vars} under \code{"single"} (2000+) or \code{"bridged"} (1990+);
+  \code{"unknown"}/\code{NA} origin is non-denominable and hard-errors. Two
+  caveats apply to origin-stratified rates: (A) numerator origin (death
+  certificate) and denominator origin (Census/SEER) are separately measured
+  and differentially misclassified; (B) origin was phased onto state death
+  certificates through ~1997, so 1990-1996 rates are biased low.
 }
 \examples{
 df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")

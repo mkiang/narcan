@@ -273,20 +273,76 @@ test_that("single scheme coerces a categorize_race() factor and joins", {
     expect_false(anyNA(out$pop))
 })
 
-# ---- single scheme: Hispanic pin ----------------------------------------------
+# ---- single scheme: Hispanic-origin join (0.5.2 pin lifted) -------------------
 
-test_that("non-'all' hispanic argument and by_vars origin both error", {
+test_that("single-race origin-stratified join succeeds per origin (0.5.2)", {
+    ## Build a finest-cell frame that INCLUDES hispanic_origin, then join with
+    ## origin as a key: each origin must get its OWN denominator, not the sum.
+    keys <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race, hispanic_origin)
+    keys$deaths <- seq_len(nrow(keys))
+    inp <- tibble::as_tibble(keys)
+    out <- add_pop_counts(
+        inp, race_scheme = "single",
+        by_vars = c("year", "age", "sex", "race", "hispanic_origin"))
+    expect_false(anyNA(out$pop))
+    expect_setequal(unique(out$hispanic_origin), c("hispanic", "non_hispanic"))
+    ## per-origin, not all-origin: one concrete hispanic cell == its finest pop.
+    src <- narcan::pop_singlerace
+    cell <- out[out$hispanic_origin == "hispanic", ][1, ]
+    exp <- src$pop[src$year == 2024L & src$age == cell$age &
+                   src$sex == cell$sex & src$race == cell$race &
+                   src$hispanic_origin == "hispanic"]
+    expect_equal(cell$pop, sum(exp))
+})
+
+test_that("the removed `hispanic=` argument now errors (DD3 breaking change)", {
     inp <- single_input(2024L)
-    expect_error(add_pop_counts(inp, race_scheme = "single", hispanic = "hispanic"),
-                 "0.5.2")
-
-    inp2 <- inp
-    inp2$hispanic_origin <- "hispanic"
     expect_error(
-        add_pop_counts(inp2, race_scheme = "single",
-                       by_vars = c("year", "age", "sex", "race",
-                                   "hispanic_origin")),
-        "0.5.2")
+        add_pop_counts(inp, race_scheme = "single", hispanic = "hispanic"),
+        "unused argument")
+})
+
+test_that("DD2: 'unknown' and NA hispanic_origin are non-denominable and error", {
+    keys <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    unk <- keys; unk$hispanic_origin <- "unknown"; unk$deaths <- 1
+    expect_error(add_pop_counts(unk, race_scheme = "single", by_vars = by5),
+                 "no denominator")
+    na <- keys; na$hispanic_origin <- NA_character_; na$deaths <- 1
+    expect_error(add_pop_counts(na, race_scheme = "single", by_vars = by5),
+                 "no denominator")
+    ## a detailed categorize_hspanicr() label reads the GENERIC message (no carve-out)
+    det <- keys; det$hispanic_origin <- "mexican"; det$deaths <- 1
+    err <- tryCatch(add_pop_counts(det, race_scheme = "single", by_vars = by5),
+                    error = function(e) conditionMessage(e))
+    expect_match(err, "unrecognized")
+    expect_no_match(err, "no denominator")
+})
+
+test_that("DD6: mixing 'all' with a stratified origin in one frame errors", {
+    keys <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    mixed <- rbind(
+        transform(keys[1, ], hispanic_origin = "all"),
+        transform(keys[1, ], hispanic_origin = "hispanic"))
+    mixed$deaths <- 1
+    expect_error(add_pop_counts(mixed, race_scheme = "single", by_vars = by5),
+                 "double-count")
+})
+
+test_that("DD4: legacy scheme with hispanic_origin in by_vars errors cleanly", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "all"
+    expect_error(
+        add_pop_counts(inp, by_vars = c("year", "age", "sex", "race",
+                                        "hispanic_origin")),
+        "no Hispanic-origin denominator")
 })
 
 # ---- get_pop_state() accessor -------------------------------------------------

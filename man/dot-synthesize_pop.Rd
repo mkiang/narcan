@@ -17,11 +17,14 @@
 a population slice with columns \code{by_vars} + \code{pop}.
 }
 \description{
-Collapses the stored finest cells to exactly \code{by_vars}: pins Hispanic
-origin to \code{"all"}, relabels a dimension to its reserved token when
-the death frame is aggregated there (so the group-sum yields the matching
-marginal), sums over every dimension not in \code{by_vars}, and drops all
-metadata. The result is unique on \code{by_vars} (asserted by the many-to-one
-join downstream). Scheme-agnostic: used by both "single" and "bridged".
+Collapses the stored finest cells to exactly \code{by_vars}: relabels a
+dimension (\code{race}/\code{sex}/\code{hispanic_origin}) to its reserved
+token when the death frame is aggregated there (so the group-sum yields the
+matching marginal -- e.g. an all-\code{"all"} origin frame collapses the
+finest origin cells to the all-origin denominator), sums over every dimension
+not in \code{by_vars}, and drops all metadata. First asserts finest-key
+uniqueness and the per-year origin invariant on the RAW input. The result is
+unique on \code{by_vars} (asserted by the many-to-one join downstream).
+Scheme-agnostic: used by both "single" and "bridged".
 }
 \keyword{internal}

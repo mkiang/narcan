@@ -16,7 +16,10 @@ invisibly NULL; stops on any violation.
 }
 \description{
 The scheme-agnostic domain checks used by both strict schemes. Reserved
-aggregate tokens (\code{"both"}, \code{"all"}) are exempt per dimension; the
-death-side Hispanic join is pinned to \code{"all"} in this release (0.5.2).
+aggregate tokens (\code{"both"}, \code{"all"}) are exempt per dimension.
+\code{hispanic_origin} must be \code{"hispanic"}/\code{"non_hispanic"}/
+\code{"all"} (\code{"unknown"} and \code{NA} are non-denominable and
+hard-error here, NOT \code{na.rm}-exempt); a frame mixing \code{"all"} with
+stratified values is rejected as an incoherent double-count.
 }
 \keyword{internal}

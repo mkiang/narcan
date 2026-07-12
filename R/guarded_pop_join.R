@@ -50,6 +50,15 @@
 ## so synthesis can never double-count a stored marginal).
 .pop_reserved <- c(race = "total", sex = "both", hispanic_origin = "all")
 
+## Every population dimension the strict schemes key on. A death frame carrying
+## one of these as a column MUST list it in by_vars, or the denominator would be
+## silently summed over it. Enforced at the add_pop_counts() call site AND, belt-
+## and-suspenders, in .guarded_pop_join() (below) so a direct internal call --
+## e.g. the future rate-helper routing -- cannot slip a silent miscount past the
+## framing check.
+.pop_dimensions <- c("year", "age", "sex", "race", "hispanic_origin",
+                     "state_fips", "county_fips")
+
 #' Guarded death-to-population join (single entry point)
 #'
 #' @param deaths death frame (grouping, incl. rowwise, is preserved).
@@ -75,6 +84,14 @@
     ## is value-neutral (the golden legacy test proves it does not shift output).
     if ("race" %in% names(deaths) && is.factor(deaths[["race"]])) {
         deaths[["race"]] <- as.character(deaths[["race"]])
+    }
+    ## Same value-neutral coercion for a factor-valued hispanic_origin join key,
+    ## so the string domain guard and the character-keyed pop join see labels, not
+    ## factor levels. add_hispanic_origin() emits character, but a user-supplied
+    ## factor must coerce before the guards run.
+    if ("hispanic_origin" %in% names(deaths) &&
+        is.factor(deaths[["hispanic_origin"]])) {
+        deaths[["hispanic_origin"]] <- as.character(deaths[["hispanic_origin"]])
     }
     ## A factor OR character year/age JOIN KEY passes the (factor-safe) routing
     ## and per-row coverage guards but then dplyr::left_join hard-errors on a type
@@ -113,6 +130,20 @@
 
     strict <- scheme %in% c("single", "bridged")
     if (strict) {
+        ## Belt-and-suspenders framing check (add_pop_counts() enforces this at
+        ## the call site too). A pop-dimension column present in `deaths` but not
+        ## in by_vars would be silently summed over by .synthesize_pop() and
+        ## attached to the wrong stratum -- a silent miscount. Re-assert here so a
+        ## direct internal caller cannot bypass it.
+        stray <- setdiff(intersect(.pop_dimensions, names(deaths)), by_vars)
+        if (length(stray) > 0L) {
+            stop(sprintf(paste0(
+                "add_pop_counts(): `deaths` carries population-dimension ",
+                "column(s) %s not in `by_vars`; under a strict race_scheme the ",
+                "denominator would be silently summed over them. Add them to ",
+                "`by_vars`, or drop them to aggregate that dimension."),
+                paste0("`", stray, "`", collapse = ", ")), call. = FALSE)
+        }
         if (identical(scheme, "single")) {
             .check_single_death_keys(deaths, by_vars)
         } else {
@@ -184,8 +215,11 @@
 #' Shared pre-join domain guards (sex, age, Hispanic origin)
 #'
 #' The scheme-agnostic domain checks used by both strict schemes. Reserved
-#' aggregate tokens (\code{"both"}, \code{"all"}) are exempt per dimension; the
-#' death-side Hispanic join is pinned to \code{"all"} in this release (0.5.2).
+#' aggregate tokens (\code{"both"}, \code{"all"}) are exempt per dimension.
+#' \code{hispanic_origin} must be \code{"hispanic"}/\code{"non_hispanic"}/
+#' \code{"all"} (\code{"unknown"} and \code{NA} are non-denominable and
+#' hard-error here, NOT \code{na.rm}-exempt); a frame mixing \code{"all"} with
+#' stratified values is rejected as an incoherent double-count.
 #'
 #' @param deaths ungrouped death frame.
 #' @param by_vars join keys.
@@ -216,11 +250,39 @@
     }
     if ("hispanic_origin" %in% by_vars && "hispanic_origin" %in% names(deaths)) {
         hv <- unique(deaths[["hispanic_origin"]])
-        if (!all(hv == "all", na.rm = TRUE)) {
-            stop("add_pop_counts(): Hispanic-stratified death joins arrive in ",
-                 "narcan 0.5.2. Use hispanic_origin = \"all\", or ",
-                 "get_pop_state()/get_pop_county() for descriptive ",
-                 "Hispanic-stratified counts.", call. = FALSE)
+        valid <- c("hispanic", "non_hispanic", .pop_reserved[["hispanic_origin"]])
+        ## DD2: NOT na.rm-exempt (unlike the sex/age checks above). NA and
+        ## "unknown" origin are non-denominable and must fail loud HERE, not slip
+        ## to the generic downstream no-silent-NA guard. `%in%` is FALSE for NA.
+        is_bad <- is.na(hv) | !(hv %in% valid)
+        bad <- hv[is_bad]
+        if (length(bad) > 0L) {
+            bad_disp <- ifelse(is.na(bad), "NA", paste0("'", bad, "'"))
+            msg <- sprintf(paste0(
+                "add_pop_counts(): unrecognized `hispanic_origin` value(s): %s; ",
+                "valid: hispanic/non_hispanic/all."),
+                paste(bad_disp, collapse = ", "))
+            ## Origin-unknown carve-out: only when the offenders are exactly NA
+            ## and/or "unknown" (a user who mis-passed categorize_hspanicr()'s
+            ## detailed labels, e.g. "mexican", reads the generic message instead).
+            if (all(is.na(bad) | bad %in% "unknown")) {
+                msg <- paste0(msg, " Origin-unknown deaths have no denominator: ",
+                    "exclude them from stratified rates (they belong in the ",
+                    "numerator only), or use hispanic_origin = \"all\".")
+            }
+            stop(msg, call. = FALSE)
+        }
+        ## DD6 mixed-era hard stop: "all" already sums the strata, so a frame
+        ## mixing "all" with hispanic/non_hispanic double-counts. Reached only
+        ## after the domain check, so hv is clean of NA/unknown here.
+        if (any(hv %in% c("hispanic", "non_hispanic")) &&
+            any(hv %in% .pop_reserved[["hispanic_origin"]])) {
+            stop(paste0(
+                "add_pop_counts(): `hispanic_origin` mixes \"all\" with ",
+                "stratified values (hispanic/non_hispanic) in one frame; \"all\" ",
+                "already sums the strata, so this double-counts. Use one origin ",
+                "granularity per join (all-origin, OR hispanic+non_hispanic); ",
+                "combine eras with separate calls + rbind."), call. = FALSE)
         }
     }
     invisible(NULL)
@@ -278,6 +340,15 @@
              "era-dependent (SEER resolves AIAN/API and Hispanic origin only ",
              "from 1990), so `year` must be a join key.", call. = FALSE)
     }
+    ## Per-row era from `year`, computed once (shared by the race guard and the
+    ## Hispanic-origin era guard). Factor-safe via as.character(): as.integer() on
+    ## a factor yields level CODES (~always < 1990), which would misclassify a
+    ## post-1990 factor year as pre-1990. Project idiom (see .route_pop_slice()).
+    yr <- if ("year" %in% names(deaths)) {
+        suppressWarnings(as.integer(as.numeric(as.character(deaths[["year"]]))))
+    } else {
+        integer(0)
+    }
     if ("race" %in% by_vars && "race" %in% names(deaths)) {
         rv <- deaths[["race"]]
         if (is.numeric(rv)) {
@@ -299,11 +370,6 @@
                        "tracked in issue #18."),
                 paste(shQuote(subs), collapse = ", ")), call. = FALSE)
         }
-        ## Factor-safe: as.integer() on a factor returns level CODES (small ints,
-        ## ~always < 1990), which would misclassify a post-1990 factor year as
-        ## pre-1990 and emit an actively-wrong "collapse to other" hint. Route
-        ## through as.character() first (project idiom, as in .route_pop_slice()).
-        yr <- suppressWarnings(as.integer(as.numeric(as.character(deaths[["year"]]))))
         pre_bad <- setdiff(unique(rv[!is.na(yr) & yr < 1990]),
                            c(.bridged_race_labels_pre1990, reserved))
         pre_bad <- pre_bad[!is.na(pre_bad)]
@@ -331,18 +397,55 @@
                 call. = FALSE)
         }
     }
+    ## Hispanic-origin era guard: SEER resolves origin only from 1990, so a
+    ## pre-1990 stratified (hispanic/non_hispanic) value is not denominable.
+    ## Pre-1990 "all" passes here; unknown/NA at any era are caught by DD2 below.
+    if ("hispanic_origin" %in% by_vars && "hispanic_origin" %in% names(deaths)) {
+        ho <- deaths[["hispanic_origin"]]
+        pre1990_strat <- unique(ho[!is.na(yr) & yr < 1990 &
+                                   ho %in% c("hispanic", "non_hispanic")])
+        if (length(pre1990_strat) > 0L) {
+            stop(paste0(
+                "add_pop_counts(): Hispanic-origin stratification is not ",
+                "available before 1990 under race_scheme = \"bridged\" (SEER ",
+                "resolves Hispanic origin only from 1990; pre-1990 rows carry ",
+                "origin \"all\" only). Restrict origin-stratified analysis to ",
+                "year >= 1990, or use hispanic_origin = \"all\" for the full ",
+                "span."), call. = FALSE)
+        }
+    }
+    ## DD2 (domain) + DD6 (mixed-era coherence) via the shared common-keys check.
     .check_common_death_keys(deaths, by_vars)
+    ## CAVEAT-B nudge LAST -- after every stop() above -- so the once-per-session
+    ## message is spent only on a fully-valid frame, never burned on a call that
+    ## then errors. 1990-1996 origin-stratified bridged numerators undercount
+    ## Hispanic deaths (origin phased onto state certificates through ~1997) ->
+    ## rates biased low.
+    if ("hispanic_origin" %in% by_vars && "hispanic_origin" %in% names(deaths)) {
+        ho <- deaths[["hispanic_origin"]]
+        if (any(!is.na(yr) & yr >= 1990 & yr <= 1996 &
+                ho %in% c("hispanic", "non_hispanic"))) {
+            .inform_once("bridged_hispanic_early_reporting", paste0(
+                "add_pop_counts(): Hispanic origin was phased onto state death ",
+                "certificates through ~1997, so 1990-1996 origin-stratified ",
+                "rates undercount Hispanic deaths (biased low). See ",
+                "?add_pop_counts."))
+        }
+    }
     invisible(NULL)
 }
 
 #' Synthesize the population slice to the join grain (strict schemes)
 #'
-#' Collapses the stored finest cells to exactly \code{by_vars}: pins Hispanic
-#' origin to \code{"all"}, relabels a dimension to its reserved token when
-#' the death frame is aggregated there (so the group-sum yields the matching
-#' marginal), sums over every dimension not in \code{by_vars}, and drops all
-#' metadata. The result is unique on \code{by_vars} (asserted by the many-to-one
-#' join downstream). Scheme-agnostic: used by both "single" and "bridged".
+#' Collapses the stored finest cells to exactly \code{by_vars}: relabels a
+#' dimension (\code{race}/\code{sex}/\code{hispanic_origin}) to its reserved
+#' token when the death frame is aggregated there (so the group-sum yields the
+#' matching marginal -- e.g. an all-\code{"all"} origin frame collapses the
+#' finest origin cells to the all-origin denominator), sums over every dimension
+#' not in \code{by_vars}, and drops all metadata. First asserts finest-key
+#' uniqueness and the per-year origin invariant on the RAW input. The result is
+#' unique on \code{by_vars} (asserted by the many-to-one join downstream).
+#' Scheme-agnostic: used by both "single" and "bridged".
 #'
 #' @param deaths ungrouped death frame (read for its reserved-token usage).
 #' @param pop_slice finest-cell population table.
@@ -369,24 +472,37 @@
             paste(fk, collapse = "/")), call. = FALSE)
     }
 
-    ## Pin Hispanic origin to "all" by summing the origin dimension, then
-    ## re-labeling it so it can still serve as a join key if requested. (Bridged
-    ## pre-1990 rows already carry only "all", so this is a no-op there.)
-    if ("hispanic_origin" %in% names(pop_slice)) {
-        keep <- setdiff(names(pop_slice),
-                        c("hispanic_origin", "pop", "scheme", "source",
-                          "vintage"))
-        pop_slice <- pop_slice |>
-            dplyr::group_by(dplyr::across(dplyr::all_of(keep))) |>
-            dplyr::summarize(pop = sum(pop), .groups = "drop") |>
-            dplyr::mutate(hispanic_origin = "all")
+    ## Per-year origin invariant (raw input, BEFORE any relabel): for each year
+    ## the stored origin domain must be {all} OR a subset of {hispanic,
+    ## non_hispanic} -- never both. A slice storing an "all" marginal beside
+    ## stratified cells for the same year would double-count on an all-origin
+    ## request (the relabel/collapse below would mask it), and the finest-key
+    ## uniqueness assert above cannot see it (three distinct "unique" rows). Base
+    ## R (no NSE) with na.rm so a stray NA never makes the predicate itself NA.
+    if (all(c("hispanic_origin", "year") %in% names(pop_slice))) {
+        origin_by_year <- tapply(
+            as.character(pop_slice[["hispanic_origin"]]),
+            pop_slice[["year"]],
+            function(s) {
+                any(s == "all", na.rm = TRUE) &&
+                    any(s %in% c("hispanic", "non_hispanic"))
+            })
+        if (any(origin_by_year, na.rm = TRUE)) {
+            bad_years <- names(origin_by_year)[which(origin_by_year)]
+            stop(sprintf(paste0(
+                "add_pop_counts(): the population slice stores an \"all\" origin ",
+                "marginal beside stratified (hispanic/non_hispanic) cells for ",
+                "year(s) %s; the denominator would be double-counted. The ",
+                "population asset may be corrupt -- re-download or rebuild it."),
+                paste(sort(bad_years), collapse = ", ")), call. = FALSE)
+        }
     }
 
     ## Reserved-token relabel: if the death frame aggregates a dimension (all
     ## values equal the token), relabel the pop dimension so the group-sum below
     ## produces that marginal. Mixed disaggregated/aggregated frames are left
     ## alone -> the token rows fail to match -> the no-silent-NA guard fires.
-    for (d in c("race", "sex")) {
+    for (d in c("race", "sex", "hispanic_origin")) {
         tok <- .pop_reserved[[d]]
         if (d %in% by_vars && d %in% names(deaths) && d %in% names(pop_slice)) {
             dv <- unique(deaths[[d]])

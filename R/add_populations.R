@@ -39,17 +39,21 @@
 #'   and single-race (\code{"single"}) schemes are NOT comparable and must not be
 #'   chained into a single trend. \code{"legacy"} and \code{"bridged"} share the
 #'   labels white/black/other/total, so passing the wrong \code{race_scheme}
-#'   cannot be detected automatically -- set it deliberately. In this release the
-#'   death-side join is pinned to all-origin denominators (\code{hispanic =
-#'   "all"}); the Hispanic-stratified death join arrives in a later version.
+#'   cannot be detected automatically -- set it deliberately. For
+#'   Hispanic-stratified denominators, add a \code{hispanic_origin} column
+#'   (\code{"hispanic"}/\code{"non_hispanic"}, from \code{add_hispanic_origin()})
+#'   to \code{by_vars} under \code{"single"} (2000+) or \code{"bridged"} (1990+);
+#'   \code{"unknown"}/\code{NA} origin is non-denominable and hard-errors. Two
+#'   caveats apply to origin-stratified rates: (A) numerator origin (death
+#'   certificate) and denominator origin (Census/SEER) are separately measured
+#'   and differentially misclassified; (B) origin was phased onto state death
+#'   certificates through ~1997, so 1990-1996 rates are biased low.
 #'
 #' @param df MCOD dataframe
 #' @param by_vars variables to match on
 #' @param race_scheme denominator scheme: \code{"legacy"} (bridged-race
 #'   \code{pop_est}, the default), \code{"single"} (single-race), or
 #'   \code{"bridged"} (SEER-uniform bridged-race, 1969-2024)
-#' @param hispanic Hispanic-origin denominator to use; only \code{"all"} is
-#'   supported in this release
 #'
 #' @return dataframe
 #' @importFrom dplyr left_join select
@@ -58,8 +62,7 @@
 #' df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")
 #' add_pop_counts(df)
 add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
-                           race_scheme = c("legacy", "single", "bridged"),
-                           hispanic = "all") {
+                           race_scheme = c("legacy", "single", "bridged")) {
     race_scheme <- match.arg(race_scheme)
     .check_mcod_df(df, need = by_vars, fn = "add_pop_counts")
     if ("pop" %in% names(df)) {
@@ -68,6 +71,15 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     }
 
     if (identical(race_scheme, "legacy")) {
+        ## DD4: legacy pop_est has no Hispanic-origin denominator. Fail fast on
+        ## this structural error, before the bridged-overlap nudge below.
+        if ("hispanic_origin" %in% by_vars) {
+            stop(paste0(
+                "add_pop_counts(): race_scheme = \"legacy\" has no ",
+                "Hispanic-origin denominator (pop_est is not origin-stratified). ",
+                "Use race_scheme = \"single\" or \"bridged\" for ",
+                "Hispanic-stratified denominators."), call. = FALSE)
+        }
         ## D-SCHEMESELECT: "legacy" and "bridged" share the race labels
         ## white/black/other/total, so a bridged-intent by-race join left on the
         ## legacy default silently gets single-race-alone denominators. No guard
@@ -90,12 +102,6 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     ## Strict schemes ("single", "bridged"): shared call-site guards, then
     ## scheme-aware geography routing. Every per-row correctness guard runs in
     ## .guarded_pop_join(); these are the call-site framing checks.
-    if (!identical(hispanic, "all")) {
-        stop("add_pop_counts(): `hispanic` must be \"all\" in this release; ",
-             "the death-side Hispanic join arrives in narcan 0.5.2. Use ",
-             "get_pop_state()/get_pop_county() for Hispanic-stratified counts.",
-             call. = FALSE)
-    }
     ## Every population dimension present in `df` must also be in `by_vars`. A
     ## stratifier left out of `by_vars` (geography OR sex/race/age/origin) would
     ## be silently summed over -- e.g. asian_only deaths joined without `race`
@@ -103,9 +109,7 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     ## national count. To aggregate a dimension, drop it from `df` (or use its
     ## reserved token: race "total", sex "both"), never omit it while it is still
     ## a column. Geography is also routed by this membership.
-    pop_dims <- c("year", "age", "sex", "race", "hispanic_origin",
-                  "state_fips", "county_fips")
-    stray <- setdiff(intersect(pop_dims, names(df)), by_vars)
+    stray <- setdiff(intersect(.pop_dimensions, names(df)), by_vars)
     if (length(stray) > 0L) {
         stop(sprintf(
             paste0("add_pop_counts(): `df` carries population-dimension ",

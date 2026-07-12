@@ -124,15 +124,49 @@ test_that("single-race labels/codes under bridged hit the contradiction guard", 
                  "race_scheme")
 })
 
-# ---- Hispanic pin holds in BOTH eras (D-HISP; no era branch) ------------------
+# ---- Hispanic-origin join, 1990+ (0.5.2 pin lifted) --------------------------
 
-test_that("bridged death-side join rejects a non-'all' hispanic_origin key", {
+test_that("bridged origin-stratified join (1990+) succeeds per origin", {
     d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = c("hispanic", "non_hispanic"), deaths = 1)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    out <- narcan:::.guarded_pop_join(d, bridged_pop(), by5, "bridged")
+    expect_false(anyNA(out$pop))
+    ## each origin gets its OWN finest-cell denominator, not the all-origin sum
+    src <- bridged_pop()
+    exp_h <- src$pop[src$year == 2000L & src$age == 40L & src$sex == "male" &
+                     src$race == "white" & src$hispanic_origin == "hispanic"]
+    exp_nh <- src$pop[src$year == 2000L & src$age == 40L & src$sex == "male" &
+                      src$race == "white" & src$hispanic_origin == "non_hispanic"]
+    expect_equal(out$pop[out$hispanic_origin == "hispanic"], exp_h)
+    expect_equal(out$pop[out$hispanic_origin == "non_hispanic"], exp_nh)
+})
+
+test_that("bridged pre-1990 origin stratification hard-errors (SEER: origin from 1990)", {
+    d <- data.frame(year = 1985L, age = 40L, sex = "male", race = "white",
                     hispanic_origin = "hispanic", deaths = 1)
     expect_error(
         narcan:::.check_bridged_death_keys(
             d, c("year", "age", "sex", "race", "hispanic_origin")),
-        "0.5.2")
+        "before 1990")
+})
+
+test_that("per-year invariant: an 'all'-beside-stratified corrupt slice errors", {
+    ## A 2000 cell carrying BOTH stratified rows AND a stray "all" marginal --
+    ## a double-count the finest-key uniqueness assert cannot see (three distinct
+    ## "unique" rows). Driven via the all-origin request (where the relabel would
+    ## otherwise mask it). The invariant runs on the RAW slice, before any relabel.
+    corrupt <- rbind(bridged_pop(), data.frame(
+        year = 2000L, age = 40L, sex = "male", race = "white",
+        hispanic_origin = "all", pop = 999000, scheme = "bridged",
+        source = "seer_uspop", vintage = "SEER2024"))
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "all", deaths = 1)
+    expect_error(
+        narcan:::.guarded_pop_join(
+            d, corrupt, c("year", "age", "sex", "race", "hispanic_origin"),
+            "bridged"),
+        "double-count")
 })
 
 # ---- D-SCHEMESELECT: legacy nudge in the bridged-overlap span -----------------
