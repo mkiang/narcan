@@ -62,6 +62,31 @@ test_that("prefix_to_record is idempotent and never drops an in-range record", {
     expect_identical(prefix_to_record("8500", NA), "8500")
 })
 
+# --- opioid subtypes + aggregate opioid regex share one source (SSOT) ----------
+
+test_that("opioid subtype regexes and the aggregate opioid regex derive from one source", {
+    agg10 <- narcan:::.regex_opioid_icd10(t_codes = TRUE)
+    subs10 <- c(opium = 0, heroin = 1, other_natural = 2, methadone = 3,
+                other_synth = 4, other_op = 6)
+    for (s in names(subs10)) {
+        code <- paste0("T40", subs10[[s]])
+        expect_true(grepl(narcan:::.opioid_subtype_regex(s, "icd10"), code))
+        expect_true(grepl(agg10, code))          # aggregate covers every subtype
+    }
+    expect_false(grepl(agg10, "T405"))           # cocaine excluded from both
+
+    agg9 <- narcan:::.regex_opioid_icd9()
+    subs9 <- c(heroin = 0, methadone = 1, other_op = 2)
+    for (s in names(subs9)) {
+        code <- paste0("E850", subs9[[s]])
+        expect_true(grepl(narcan:::.opioid_subtype_regex(s, "icd9"), code))
+        expect_true(grepl(agg9, code))
+    }
+    for (s in c("opium", "other_natural", "other_synth")) {
+        expect_true(is.na(narcan:::.opioid_subtype_regex(s, "icd9")))
+    }
+})
+
 # --- remap_race / remap_age: warn on unmapped codes ----------------------------
 
 test_that("remap_race warns on a code outside the era's known set", {

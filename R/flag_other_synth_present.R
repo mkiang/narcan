@@ -36,7 +36,7 @@ flag_other_synth_present <- function(processed_df, year = NULL, missing_val = 0,
                              "flag_other_synth_present")
         new_df <- processed_df |>
             dplyr::mutate(other_synth_present =
-                       dplyr::case_when(grepl(f_records_all, pattern = "\\<T404\\>") &
+                       dplyr::case_when(grepl(f_records_all, pattern = .opioid_subtype_regex("other_synth", "icd10")) &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     }

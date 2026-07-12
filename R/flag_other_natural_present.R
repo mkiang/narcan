@@ -37,7 +37,7 @@ flag_other_natural_present <- function(processed_df, year = NULL,
                              "flag_other_natural_present")
         new_df <- processed_df |>
             dplyr::mutate(other_natural_present =
-                       dplyr::case_when(grepl(f_records_all, pattern = "\\<T402\\>") &
+                       dplyr::case_when(grepl(f_records_all, pattern = .opioid_subtype_regex("other_natural", "icd10")) &
                                      !!gate ~ 1,
                                  TRUE ~ 0))
     }

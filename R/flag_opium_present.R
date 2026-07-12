@@ -35,7 +35,7 @@ flag_opium_present <- function(processed_df, year = NULL, missing_val = 0,
         gate <- .opioid_gate(processed_df, opioid_deaths_only, "flag_opium_present")
         new_df <- processed_df |>
             dplyr::mutate(opium_present = dplyr::case_when(
-                    grepl(f_records_all, pattern = "\\<T400\\>") &
+                    grepl(f_records_all, pattern = .opioid_subtype_regex("opium", "icd10")) &
                         !!gate ~ 1, TRUE ~ 0))
     }
     return(new_df)

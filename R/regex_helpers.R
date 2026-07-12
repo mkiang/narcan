@@ -20,6 +20,35 @@
     }
 }
 
+## Single source of truth for the ISW7 "any opioid" subtypes, as the code SUBDIGIT
+## per subtype (T40.x for ICD-10, E850.x for ICD-9). The aggregate opioid regex
+## (.regex_opioid_icd10/_icd9) composes its character class from these digits, and
+## each flag_<subtype>_present() reads its own digit -- so the aggregate opioid
+## definition and the per-subtype flags can never diverge. Order is kept
+## ascending so the composed class is a stable string.
+## ICD-10 T40.x: .0 opium, .1 heroin, .2 natural/semisynthetic, .3 methadone,
+## .4 other synthetic, .6 other/unspecified (.5 = cocaine, excluded). ICD-9
+## E850.x: .0 heroin, .1 methadone, .2 other opioid (opium/natural/synthetic have
+## no ICD-9 subcode).
+.opioid_subtype_codes <- function(era) {
+    if (identical(era, "icd9")) {
+        c(heroin = "0", methadone = "1", other_op = "2")
+    } else {
+        c(opium = "0", heroin = "1", other_natural = "2", methadone = "3",
+          other_synth = "4", other_op = "6")
+    }
+}
+
+## Full anchored regex for ONE opioid subtype, or NA if it has no code in `era`.
+.opioid_subtype_regex <- function(subtype, era) {
+    codes <- .opioid_subtype_codes(era)
+    if (!subtype %in% names(codes)) {
+        return(NA_character_)
+    }
+    prefix <- if (identical(era, "icd9")) "E850" else "T40"
+    paste0("\\<", prefix, codes[[subtype]], "\\>")
+}
+
 .regex_drug_icd9 <- function(n_codes = FALSE, e_codes = TRUE) {
     ## Just returns the regex for all drug deaths as defined by the ISW7
     ##
@@ -79,7 +108,10 @@
     }
 
     if (e_codes) {
-        search_term <- c(search_term, "\\<E850[012]\\>")
+        ## Composed from the single subtype code source (E850.0/.1/.2).
+        search_term <- c(search_term, paste0(
+            "\\<E850[", paste(.opioid_subtype_codes("icd9"), collapse = ""),
+            "]\\>"))
     }
 
     return(paste0(search_term, collapse = "|"))
@@ -150,7 +182,10 @@
     }
 
     if (t_codes) {
-        t_1 <- "\\<T40[012346]\\>"
+        ## Composed from the single subtype code source (T40.0-.4, .6).
+        t_1 <- paste0("\\<T40[",
+                      paste(.opioid_subtype_codes("icd10"), collapse = ""),
+                      "]\\>")
 
         search_term <- c(search_term, t_1)
     }

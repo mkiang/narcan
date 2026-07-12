@@ -49,16 +49,16 @@ flag_heroin_present <- function(processed_df, year = NULL, keep_cols = FALSE,
         new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
-                                  grepl(ucod, pattern = "\\<E8500\\>") &
+                                  grepl(ucod, pattern = .opioid_subtype_regex("heroin", "icd9")) &
                                       !!gate ~ 1,
-                                  grepl(f_records_all, pattern = "\\<E8500\\>") &
+                                  grepl(f_records_all, pattern = .opioid_subtype_regex("heroin", "icd9")) &
                                       !!gate ~ 1,
                                   TRUE ~ 0))
     } else {
         new_df <- processed_df |>
             dplyr::mutate(heroin_present =
                               dplyr::case_when(
-                                  grepl(f_records_all, pattern = "\\<T401\\>") &
+                                  grepl(f_records_all, pattern = .opioid_subtype_regex("heroin", "icd10")) &
                                       !!gate ~ 1,
                                   TRUE ~ 0))
     }
