@@ -39,10 +39,12 @@
   `pop == 0` cell) or its weight was `NA`, the standardized rate renormalized
   over the surviving strata but the variance did not, so the reported variance
   (and confidence interval) was too small. The rate and variance now drop the
-  same strata and renormalize identically. **Complete-data results are
-  unchanged**; only estimates with an empty/dropped stratum are affected (their
-  variance was previously understated). An `NA` weight now drops that stratum
-  from the rate too (previously it made the whole rate `NA`).
+  same strata and renormalize identically. **Complete-data rates are unchanged
+  (byte-for-byte); complete-data variances are numerically unchanged** (they
+  differ by at most a few ULP from reordered floating-point operations). Only
+  estimates with an empty/dropped stratum change materially (their variance was
+  previously understated). An `NA` weight now drops that stratum from the rate
+  too (previously it made the whole rate `NA`).
 * **`add_county_fips()` no longer silently misassigns state FIPS.** A numeric
   `county_vector` (leading zeros already lost) is now refused with a clear error
   instead of parsing e.g. Alabama county 01001 as state 10. A frame whose
