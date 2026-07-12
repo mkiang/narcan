@@ -44,7 +44,11 @@ categorize_hispanic_origin <- function(hspanicr_column, year) {
              call. = FALSE)
     }
 
-    code <- as.integer(hspanicr_column)
+    ## Coerce by VALUE, not factor position: as.integer(factor("9")) returns the
+    ## level's ordinal position (e.g. 3), not 9. as.character() first -- the same
+    ## idiom this file uses for `year` on the next line -- so a factor-valued
+    ## hspanicr recodes to the right code instead of silently mislabeling.
+    code <- as.integer(as.character(hspanicr_column))
     n <- length(code)
     yr <- suppressWarnings(as.integer(as.numeric(as.character(year))))
     if (length(yr) == 1L) {
@@ -58,7 +62,7 @@ categorize_hispanic_origin <- function(hspanicr_column, year) {
     ## categorize_hspanicr()'s own reserved-2021 warning stays silent here (2021
     ## is an intended silent NA per the frozen oracle 81_hspanicr_origin_oracle).
     lab <- suppressWarnings(
-        as.character(categorize_hspanicr(hspanicr_column, year = yr)))
+        as.character(categorize_hspanicr(code, year = yr)))
 
     ## String-keyed label -> binary origin. Keyed on the label STRING, never the
     ## factor's integer position: categorize_hspanicr()'s levels REORDER in a

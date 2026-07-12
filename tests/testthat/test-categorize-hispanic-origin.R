@@ -75,3 +75,36 @@ test_that("an unclassified recode label fails loud (lookup drift guard)", {
     expect_error(categorize_hispanic_origin(1, year = 2019),
                  "unclassified hspanicr label")
 })
+
+test_that("a factor hspanicr_column is coerced by value, not level position", {
+    ## as.integer(factor("9")) is the level position (3), not 9. Guard the whole
+    ## delegation path: the label AND the out-of-range calc must see code 9.
+    got <- categorize_hispanic_origin(factor(c("1", "6", "9")), year = 2019)
+    expect_equal(got, c("hispanic", "non_hispanic", "unknown"))
+})
+
+test_that("a mismatched year length errors", {
+    expect_error(categorize_hispanic_origin(1:3, year = c(2019, 2023)),
+                 "length 1 or the same length")
+})
+
+test_that("empty and all-NA code inputs return silently", {
+    expect_no_warning(e <- categorize_hispanic_origin(integer(0), year = 2019))
+    expect_equal(length(e), 0L)
+    expect_no_warning(a <- categorize_hispanic_origin(c(NA, NA), year = 2019))
+    expect_true(all(is.na(a)))
+})
+
+test_that("a character year is accepted", {
+    got <- categorize_hispanic_origin(c(1, 6), year = "2019")
+    expect_equal(got, c("hispanic", "non_hispanic"))
+})
+
+test_that("out-of-range warn counts only valid-scheme rows on a mixed valid/NA year", {
+    ## Row 1 (code 10 @ 2019) is out of the 9-cat range and must warn; row 2
+    ## (NA year) is in no scheme and must NOT add to the count -- the whole point
+    ## of the NA-safe `in_scheme` guard.
+    expect_warning(got <- categorize_hispanic_origin(c(10, 10), year = c(2019, NA)),
+                   "1 hspanicr value")
+    expect_equal(got, c(NA_character_, NA_character_))
+})

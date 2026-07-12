@@ -10,10 +10,12 @@
 #' \code{add_hspanicr_column()}, this reads the canonical year and tolerates a
 #' missing/NA \code{hspanicr} (yielding \code{NA} origin for those rows).
 #'
-#' Year is read per row from \code{year} (1996+) or, failing that, the two-digit
-#' \code{datayear} (1979-1995, normalized to four digits), so a multi-year frame
-#' (e.g. \code{bind_rows()} of several data years) is labeled correctly row by
-#' row. It errors if neither column is present.
+#' Year is read per row: \code{year} (1996+) where present, otherwise the
+#' two-digit \code{datayear} (1979-1995, normalized to four digits). When a frame
+#' carries both columns -- e.g. a \code{bind_rows()} of pre-1996 and 1996+ chunks,
+#' where each era's column is \code{NA} outside its own rows -- the two are
+#' coalesced per row, so every row is labeled by its own data year. It errors if
+#' neither column is present.
 #'
 #' @param df an MCOD dataframe with \code{hspanicr} (or none, treated as NA) and a
 #'   \code{year} or \code{datayear} column.
@@ -40,16 +42,31 @@ add_hispanic_origin <- function(df) {
     ## Per-row year (vectorized): `year` (1996+) then two-digit `datayear`
     ## (1979-1995), normalized +1900 the way .extract_year() does -- but WITHOUT
     ## its single-year restriction, since a multi-year frame is the point.
-    if ("year" %in% names(df)) {
-        yr <- df[["year"]]
-    } else if ("datayear" %in% names(df)) {
-        yr <- df[["datayear"]]
-    } else {
+    has_year <- "year" %in% names(df)
+    has_datayear <- "datayear" %in% names(df)
+    if (!has_year && !has_datayear) {
         stop("add_hispanic_origin(): no `year` or `datayear` column found; ",
              "`hispanic_origin` is year-dependent (the hspanicr scheme changed ",
              "in 2021/2022), so a year is required.", call. = FALSE)
     }
-    yr <- suppressWarnings(as.numeric(as.character(yr)))
+
+    ## Coalesce PER ROW, not per column. A bind_rows() of a 1979-1995 chunk
+    ## (`datayear` only) and a 1996+ chunk (`year` only) yields ONE frame carrying
+    ## BOTH columns, each NA outside its own era -- so a column-level "which column
+    ## exists" branch would read `year` for every row and silently NA the
+    ## pre-1996 rows. Prefer `year` where present, else fall back to `datayear`,
+    ## row by row (matching .extract_year()'s source precedence).
+    yc <- if (has_year) {
+        suppressWarnings(as.numeric(as.character(df[["year"]])))
+    } else {
+        rep(NA_real_, nrow(df))
+    }
+    dc <- if (has_datayear) {
+        suppressWarnings(as.numeric(as.character(df[["datayear"]])))
+    } else {
+        rep(NA_real_, nrow(df))
+    }
+    yr <- dplyr::coalesce(yc, dc)
     two_digit <- !is.na(yr) & yr < 100
     yr[two_digit] <- yr[two_digit] + 1900
 

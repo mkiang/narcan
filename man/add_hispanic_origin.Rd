@@ -25,10 +25,12 @@ in 2021, and recoded from 9 to 14 categories in 2022 -- so, like
 missing/NA \code{hspanicr} (yielding \code{NA} origin for those rows).
 }
 \details{
-Year is read per row from \code{year} (1996+) or, failing that, the two-digit
-\code{datayear} (1979-1995, normalized to four digits), so a multi-year frame
-(e.g. \code{bind_rows()} of several data years) is labeled correctly row by
-row. It errors if neither column is present.
+Year is read per row: \code{year} (1996+) where present, otherwise the
+two-digit \code{datayear} (1979-1995, normalized to four digits). When a frame
+carries both columns -- e.g. a \code{bind_rows()} of pre-1996 and 1996+ chunks,
+where each era's column is \code{NA} outside its own rows -- the two are
+coalesced per row, so every row is labeled by its own data year. It errors if
+neither column is present.
 }
 \examples{
 df <- data.frame(year = 2019, hspanicr = c(1, 6, 9))
