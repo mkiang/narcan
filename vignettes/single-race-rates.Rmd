@@ -3,7 +3,7 @@ title: "Single-race mortality rates (2020-2024)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Single-race mortality rates (2020-2024)}
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
