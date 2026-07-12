@@ -482,7 +482,10 @@
     if (all(c("hispanic_origin", "year") %in% names(pop_slice))) {
         ok_by_year <- tapply(
             as.character(pop_slice[["hispanic_origin"]]),
-            pop_slice[["year"]],
+            ## factor(..., exclude = NULL) so a corrupt year == NA row is grouped
+            ## and checked too, not silently dropped. (tapply's `...` go to the
+            ## FUN, not to factor(), so exclude must be set on the INDEX here.)
+            factor(pop_slice[["year"]], exclude = NULL),
             function(s) {
                 ## Valid: the year is entirely "all", OR entirely within
                 ## {hispanic,non_hispanic}. Anything else -- an "all" marginal
@@ -493,13 +496,15 @@
             })
         if (!all(ok_by_year)) {
             bad_years <- names(ok_by_year)[!ok_by_year]
+            bad_years[is.na(bad_years)] <- "NA"
             stop(sprintf(paste0(
                 "add_pop_counts(): the population slice has an invalid ",
                 "Hispanic-origin domain for year(s) %s -- each year must be ",
-                "entirely \"all\" OR entirely hispanic/non_hispanic (an \"all\" ",
-                "marginal beside stratified cells would double-count the ",
-                "denominator). The population asset may be corrupt -- ",
-                "re-download or rebuild it."),
+                "entirely \"all\" OR entirely hispanic/non_hispanic (e.g. an ",
+                "\"all\" marginal beside stratified cells would double-count the ",
+                "denominator; a stray NA/unrecognized label is undenominable). ",
+                "The population asset may be corrupt -- re-download or rebuild ",
+                "it."),
                 paste(sort(bad_years), collapse = ", ")), call. = FALSE)
         }
     }

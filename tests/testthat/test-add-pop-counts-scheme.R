@@ -345,6 +345,15 @@ test_that("DD4: legacy scheme with hispanic_origin in by_vars errors cleanly", {
         "no Hispanic-origin denominator")
 })
 
+test_that("DD4: legacy with all-'all' hispanic_origin IN by_vars still errors", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "all"
+    expect_error(
+        add_pop_counts(inp, by_vars = c("year", "age", "sex", "race",
+                                        "hispanic_origin")),
+        "no Hispanic-origin denominator")
+})
+
 test_that("DD4: legacy silently-summed stratified origin PASSENGER errors (not in by_vars)", {
     ## The documented add_hispanic_origin() -> add_pop_counts() handoff with the
     ## legacy DEFAULT: hispanic_origin present but not in by_vars would otherwise

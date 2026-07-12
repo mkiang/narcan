@@ -87,11 +87,10 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
                 stop(paste0(
                     "add_pop_counts(): race_scheme = \"legacy\" has no ",
                     "Hispanic-origin denominator (pop_est is not ",
-                    "origin-stratified), but `df` carries non-\"all\" ",
-                    "hispanic_origin values that would be silently summed over ",
-                    "(the same all-origin denominator on every stratum). Drop ",
-                    "the hispanic_origin column for an all-origin legacy join, ",
-                    "or use race_scheme = \"single\"/\"bridged\" for ",
+                    "origin-stratified); `df` carries a `hispanic_origin` column ",
+                    "that this scheme cannot denominate. Drop the ",
+                    "hispanic_origin column for an all-origin legacy join, or ",
+                    "use race_scheme = \"single\"/\"bridged\" for ",
                     "Hispanic-stratified denominators."), call. = FALSE)
             }
         }
