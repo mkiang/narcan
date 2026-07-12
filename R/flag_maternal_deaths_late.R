@@ -25,7 +25,7 @@ flag_maternal_deaths_late <- function (processed_df, year = NULL,
         year <- .extract_year(processed_df)
     }
 
-    if (year < 2003) {
+    if (!is.na(year) && year < 2003) {
         warning(paste("Calculating maternal mortality using death",
                       "certificate data before 2003 is not recommended."))
     }

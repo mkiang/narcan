@@ -21,6 +21,12 @@ involvement adds the opioid T-codes (T40.0-T40.4 and T40.6). The package also
 covers the ICD-9 era (1979-1998), harmonizes race/Hispanic-origin and county
 recodes across NCHS coding changes, and computes age-standardized rates.
 
+## Start here
+
+New users should begin with the *Classifying overdose deaths* vignette, then work
+through the rest in order. Read them under Articles on the
+[pkgdown site](https://mkiang.github.io/narcan/articles/).
+
 ## Installation
 
 ``` r

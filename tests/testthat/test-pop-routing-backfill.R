@@ -70,6 +70,71 @@ test_that("a 1999 single frame hard-errors (outside the 2000-2024 coverage)", {
         "no single-race population")
 })
 
+# ---- add_pop_counts(): factor year end-to-end ---------------------------------
+
+test_that("a factor `year` joins end-to-end (single) == the integer-year pop", {
+    # A factor year passes the factor-safe routing/coverage guards but would
+    # otherwise hard-error at the final left_join (factor vs integer key).
+    # .guarded_pop_join() coerces it to numeric the same value-neutral way race
+    # is coerced to character, so the result matches the plain integer-year join.
+    d_fac <- data.frame(year = factor("2024"), age = 25, sex = "male",
+                        race = "white_only", deaths = 1)
+    d_int <- data.frame(year = 2024L, age = 25, sex = "male",
+                        race = "white_only", deaths = 1)
+    out_fac <- add_pop_counts(d_fac, race_scheme = "single",
+                              by_vars = c("year", "age", "sex", "race"))
+    out_int <- add_pop_counts(d_int, race_scheme = "single",
+                              by_vars = c("year", "age", "sex", "race"))
+    expect_false(anyNA(out_fac$pop))
+    expect_equal(out_fac$pop, out_int$pop)
+    # add_pop_counts() must never leak the pop-table provenance columns
+    # (pop_singlerace carries scheme/source/vintage; .synthesize_pop drops them).
+    expect_false(any(c("scheme", "source", "vintage") %in% names(out_fac)))
+})
+
+test_that("a factor `year` joins end-to-end (bridged) == the integer-year pop", {
+    d_fac <- data.frame(year = factor("2015"), age = 25, sex = "male",
+                        race = "white", deaths = 1)
+    d_int <- data.frame(year = 2015L, age = 25, sex = "male",
+                        race = "white", deaths = 1)
+    out_fac <- add_pop_counts(d_fac, race_scheme = "bridged",
+                              by_vars = c("year", "age", "sex", "race"))
+    out_int <- add_pop_counts(d_int, race_scheme = "bridged",
+                              by_vars = c("year", "age", "sex", "race"))
+    expect_false(anyNA(out_fac$pop))
+    expect_equal(out_fac$pop, out_int$pop)
+    expect_false(any(c("scheme", "source", "vintage") %in% names(out_fac)))
+})
+
+test_that("a character `year`/`age` joins end-to-end == the integer-keyed pop", {
+    # A plain character year/age (e.g. read from a CSV) would otherwise hard-error
+    # at the final left_join; .guarded_pop_join() coerces character the same
+    # value-neutral way it coerces a factor.
+    d_chr <- data.frame(year = "2024", age = "25", sex = "male",
+                        race = "white_only", deaths = 1)
+    d_int <- data.frame(year = 2024L, age = 25L, sex = "male",
+                        race = "white_only", deaths = 1)
+    out_chr <- add_pop_counts(d_chr, race_scheme = "single",
+                              by_vars = c("year", "age", "sex", "race"))
+    out_int <- add_pop_counts(d_int, race_scheme = "single",
+                              by_vars = c("year", "age", "sex", "race"))
+    expect_false(anyNA(out_chr$pop))
+    expect_equal(out_chr$pop, out_int$pop)
+})
+
+test_that("a passenger column named year/age but NOT in by_vars survives uncoerced", {
+    # Regression: the year/age coercion loop must touch only join keys. A stray
+    # character/factor column literally named `age`/`year` that is not a by_var
+    # must pass through unchanged (the byte-for-byte legacy guarantee).
+    pop_slice <- data.frame(year = 2015, pop = 100)
+    deaths <- data.frame(year = factor("2015"), age = "25-29", deaths = 3)
+    out <- narcan:::.guarded_pop_join(deaths, pop_slice, by_vars = "year",
+                                      scheme = "legacy")
+    expect_identical(out$age, "25-29")     # passenger age untouched
+    expect_type(out$age, "character")
+    expect_equal(out$pop, 100)             # key year coerced + joined
+})
+
 # ---- add_pop_counts(): state + county backfill join ---------------------------
 
 test_that("a pre-2020 single STATE join routes to the *_full parquet (via option)", {

@@ -2,11 +2,10 @@
 % Please edit documentation in R/download_pop_data.R
 \name{download_pop_data}
 \alias{download_pop_data}
-\title{Download single-race population data (processed asset or raw source)}
+\title{Download population data (processed asset or primary source)}
 \usage{
 download_pop_data(
   scheme = c("single", "bridged"),
-  years = NULL,
   raw = FALSE,
   refresh = FALSE,
   dest = NULL
@@ -16,10 +15,10 @@ download_pop_data(
 \item{scheme}{denominator scheme: \code{"single"} (default) or
 \code{"bridged"}}
 
-\item{years}{optional numeric vector; reserved for multi-file sources}
-
-\item{raw}{if \code{FALSE} (default), fetch the processed Release-asset
-parquet; if \code{TRUE}, fetch the original Census source file(s)}
+\item{raw}{if \code{FALSE} (default), fetch the narcan-processed
+Release-asset parquet(s) for the scheme; if \code{TRUE}, fetch the primary
+published source file(s) only (not a full from-scratch reproduction of the
+backfill -- see Details)}
 
 \item{refresh}{re-download even if a cached copy exists}
 
@@ -29,24 +28,31 @@ parquet; if \code{TRUE}, fetch the original Census source file(s)}
 the local path(s) of the fetched file(s), invisibly
 }
 \description{
-Fetches population data that is too large to bundle. \code{raw = FALSE} (the
-default) fetches the narcan-processed county parquet from the tag-pinned
-GitHub Release asset and verifies its sha256 against the shipped manifest.
-\code{raw = TRUE} instead fetches the ORIGINAL public Census source file(s)
-verbatim -- the same pull the data-raw builders use -- so the processed data
-can be reproduced and the fuller detail narcan drops (single-year age, the
-all-origin and alone-or-in-combination columns) is available.
+Fetches population denominators that are too large to bundle, for either
+scheme. \code{raw = FALSE} (the default) fetches the narcan-processed
+Release-asset parquet(s) (state and/or county) for the scheme and verifies
+each sha256 against the shipped manifest. \code{raw = TRUE} instead fetches
+the PRIMARY published source file(s) for the scheme -- Census PEP for
+\code{"single"}, SEER for \code{"bridged"} -- verbatim.
 }
 \details{
+\code{raw = TRUE} returns the recent-vintage source only and does NOT fully
+reproduce the multi-vintage backfill: the single-race processed data
+(2000-2024) pools 2000-2019 Census intercensal inputs and the bridged data
+(1969-2024) draws on more than one SEER extract, none of which the manifest
+lists. For a complete from-scratch rebuild use the \code{data-raw/} builders.
+\code{raw = TRUE} emits a one-time message saying as much, so an incomplete
+pull never silently looks complete.
+
 Files cache under \code{tools::R_user_dir("narcan", "cache")}. Only bulk
 flat-files are used (never the Census Data API); requests carry a generic
 \code{narcan/<version>} User-Agent and no personal identifiers.
 }
 \examples{
 \dontrun{
-# processed county parquet (analysis-ready)
+# processed parquet(s) for the scheme (analysis-ready)
 download_pop_data(scheme = "single")
-# original Census source files (reproduce from scratch)
+# primary published source file(s) (recent vintage only; see Details)
 download_pop_data(scheme = "single", raw = TRUE)
 }
 }

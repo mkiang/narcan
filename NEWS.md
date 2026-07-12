@@ -33,6 +33,32 @@
   public geography 1999-2004), and `unspecified-drug-deaths` (the specificity
   problem over time).
 
+## Bug fixes (surfaced by the pre-delivery review)
+
+A standing pre-delivery review (seven Opus + Sonnet-5 pairs, including passes over
+older, less-vetted code) found two pre-existing correctness bugs, now fixed. The
+pre-fix behavior is reproducible from the `v0.5.0` tag.
+
+* **`unite_records()` auto-cleans raw ICD-9 data, so the `flag_*` pipeline is
+  correct on ICD-9-era records (data years 1979-1998) without a manual
+  `clean_icd9_data()` step.** For the ICD-9 era it now runs the idempotent
+  `clean_icd9_data()` internally before
+  collapsing the record columns. Previously, calling the documented pipeline
+  (`unite_records()` -> `flag_drug_deaths()`/`flag_opioid_deaths()`/
+  `flag_opioid_types()`) on a *raw* ICD-9 frame silently returned all-zero
+  drug/opioid flags (mis-formatted E-codes and nature-of-injury codes missed the
+  ICD-9 regex) or errored on the
+  `rniflag_`-named nature-of-injury columns (1991-1995 files). **Blast radius:**
+  pre-1999 analyses that did not already call `clean_icd9_data()` first -- their
+  flag counts change from wrong to correct. Already-cleaned pipelines are
+  unchanged (the cleaner is idempotent).
+* **`add_coded_occupation()` returns type-stable, zero-padded codes.**
+  `occ_coded`/`ind_coded` are now zero-padded *character* in both eras. Previously
+  the 1982-1999 Census (3-digit) scheme returned *numeric* codes with leading
+  zeros dropped (e.g. `7` for occupation `"007"`), which broke 3-digit
+  crosswalks and made a `bind_rows()` of a pre-2000 result with a 2020+ NIOSH
+  (character) result error on the type clash.
+
 ## Guards
 
 * **The strict-scheme join now asserts the population slice is unique on its
@@ -49,8 +75,12 @@
   (`"single"`) denominators are **not comparable** and must not be chained into
   one trend. The bridged Hispanic-origin dimension ships now, but the death-side
   Hispanic join is still deferred to a later release.
-* Nothing was renamed or removed; all new datasets and arguments are additive and
-  the frozen `pop_est`/`pop_singlerace`/`pop_singlerace_state` are unchanged.
+* `download_pop_data()` dropped its `years` argument, which was reserved and never
+  functional (no code path consumed it); the source/asset pull is otherwise
+  unchanged. This is the only non-additive signature change in 0.5.1.
+* Apart from that non-functional `years` argument, nothing was renamed or removed;
+  all new datasets and arguments are additive and the frozen
+  `pop_est`/`pop_singlerace`/`pop_singlerace_state` are unchanged.
 
 # narcan 0.5.0
 

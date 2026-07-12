@@ -76,6 +76,21 @@
     if ("race" %in% names(deaths) && is.factor(deaths[["race"]])) {
         deaths[["race"]] <- as.character(deaths[["race"]])
     }
+    ## A factor OR character year/age JOIN KEY passes the (factor-safe) routing
+    ## and per-row coverage guards but then dplyr::left_join hard-errors on a type
+    ## mismatch against the integer-keyed pop table. Coerce ONLY the keys named in
+    ## by_vars (never a like-named passenger column, which must pass through
+    ## untouched) to numeric the same value-neutral way, via as.character() so a
+    ## factor yields its LABEL not its level code (project idiom). suppressWarnings
+    ## matches the idiom used elsewhere; a malformed value still surfaces loudly
+    ## downstream via the no-silent-NA guard.
+    for (col in intersect(c("year", "age"), by_vars)) {
+        if (col %in% names(deaths) &&
+            (is.factor(deaths[[col]]) || is.character(deaths[[col]]))) {
+            deaths[[col]] <- suppressWarnings(
+                as.numeric(as.character(deaths[[col]])))
+        }
+    }
 
     ## Contradiction guard -- fires on any non-single scheme (legacy AND bridged).
     ## Single-race race values under a non-single scheme would otherwise all-NA

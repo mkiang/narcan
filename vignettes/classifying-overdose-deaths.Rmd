@@ -67,9 +67,13 @@ Three flaggers run in sequence. Each one adds columns and never drops a row, so
 you can watch the classification build up step by step. Pass `year` to select the
 coding era.
 
+In real use, `f_records_all` is not hand-built -- you read the raw fixed-width
+MCOD file with `import_mcod_fwf()` and collapse its multiple-cause fields with
+`unite_records()`, which is where a newcomer with real data should start.
+
 **Step 1.** `flag_drug_deaths()` adds `drug_death`. The two non-drug rows (I250,
-C509) score 0; every drug-poisoning row scores 1, including the benzodiazepine
-row that is not an opioid.
+C509) score 0; every drug-poisoning row scores 1, including the psychostimulant
+row (e.g. methamphetamine) that is not an opioid.
 
 ```{r step1}
 step1 <- flag_drug_deaths(resident_deaths, year = 2019L)
@@ -85,13 +89,13 @@ step2[, c("ucod", "f_records_all", "drug_death", "opioid_death")]
 ```
 
 **Step 3.** `flag_opioid_types()` adds the six subtype indicators plus
-`num_opioids` (and `multi_opioids`). The polydrug row (`T404 T401`) now reads two
+`num_opioids` (and `multi_opioids`). The polydrug row (`T401 T404`) now reads two
 distinct opioids.
 
 ```{r step3}
 classified <- flag_opioid_types(step2, year = 2019L)
 classified[, c("f_records_all", "opioid_death", "heroin_present",
-               "other_synth_present", "num_opioids")]
+               "other_synth_present", "num_opioids", "multi_opioids")]
 ```
 
 ## The two ISW7 rules
@@ -100,8 +104,8 @@ The definitions nest. A **drug death** requires a drug-poisoning underlying caus
 (X40-44, X60-64, X85, or Y10-14) *and* a drug T-code (T36.0-T50.9). An **opioid
 death** is the strict subset of drug deaths that also carry an opioid T-code
 (T40.0-T40.4 or T40.6). So a poisoning with a non-opioid drug is a drug death but
-not an opioid death. Row `X40` / `T436` (a benzodiazepine) is exactly that edge
-case -- `drug_death` is 1, `opioid_death` is 0.
+not an opioid death. Row `X40` / `T436` (a psychostimulant, e.g. methamphetamine)
+is exactly that edge case -- `drug_death` is 1, `opioid_death` is 0.
 
 ```{r edge}
 classified[classified$ucod == "X40",
@@ -115,7 +119,7 @@ Among opioid deaths, `flag_opioid_types()` breaks out six specific T40 subtypes 
 (T40.2), `methadone_present` (T40.3), `other_synth_present` (T40.4, the fentanyl
 proxy), and `other_op_present` (T40.6). `unspecified_op_present` is the residual
 for an opioid death where none of the six matched, and `num_opioids` counts how
-many distinct subtypes appear on the record. The polydrug row (`T404 T401`) shows
+many distinct subtypes appear on the record. The polydrug row (`T401 T404`) shows
 `num_opioids = 2`.
 
 ```{r subtypes}
@@ -132,3 +136,8 @@ classified[classified$opioid_death == 1, c("f_records_all", subtype_cols)]
 Every flagger dispatches on `year`. Data years before 1999 use ICD-9 logic; 1999
 onward uses the ICD-10 rules shown here. Match `year` to the data year of the
 records so the correct code list is applied -- there is no default era.
+
+## See also
+
+**Population denominators** -- attach a matching population to these flagged
+counts, the next step before computing any rate.

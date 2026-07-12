@@ -7,9 +7,11 @@
 #'
 #' @param df an MCOD data frame (a single data year)
 #' @param year data year; if `NULL`, extracted from `df`
-#' @param clean_icd9 if `TRUE`, run [clean_icd9_data()] first on ICD-9-era data
-#'   (1979-1998). Default `FALSE`, since cleaning is destructive on already-clean
-#'   or ICD-10 data -- set it only for raw ICD-9 files.
+#' @param clean_icd9 if `TRUE`, also run [clean_icd9_data()] on ICD-9-era data
+#'   (1979-1998) before uniting records. Usually unnecessary: [unite_records()]
+#'   auto-cleans raw ICD-9 data, and [clean_icd9_data()] is idempotent (a no-op on
+#'   already-clean data). It never runs on ICD-10 data regardless of this flag.
+#'   Default `FALSE`.
 #' @param types if `TRUE` (default), also run [flag_opioid_types()]
 #' @param intent if `TRUE` (default), also run [flag_od_intent()]
 #' @param opioid_deaths_only forwarded to [flag_opioid_types()] (see its help)

@@ -51,15 +51,26 @@
 #' @keywords internal
 .detect_year_safe <- function(df, year = NULL) {
     if (!is.null(year)) {
-        return(year)
+        yr <- year
+    } else if (!is.null(df$year)) {
+        yr <- unique(df$year)[1]
+    } else if (!is.null(df$datayear)) {
+        yr <- unique(df$datayear)[1]
+    } else {
+        return(NULL)
     }
-    if (!is.null(df$year)) {
-        return(unique(df$year)[1])
+
+    ## Normalize like .extract_year(): coerce so a character/factor value (e.g.
+    ## "85" from a CSV) compares numerically, not lexicographically, then map a
+    ## two-digit datayear (79-95) to its four-digit year. Without this, a value
+    ## like "85" slips past the `year < 1999` guard and the ICD-9 warning is
+    ## silently skipped. A numeric 4-digit year (as set on import) is unchanged.
+    yr <- suppressWarnings(as.numeric(as.character(yr)))
+    if (!is.na(yr) && yr < 100) {
+        yr <- yr + 1900
     }
-    if (!is.null(df$datayear)) {
-        return(unique(df$datayear)[1])
-    }
-    NULL
+
+    yr
 }
 
 #' Warn that an ICD-10-only flag was handed pre-1999 (ICD-9) data

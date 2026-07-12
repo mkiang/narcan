@@ -82,7 +82,7 @@ drops to 0.
 
 ```{r flag_opioid}
 s2 <- flag_opioid_deaths(s1, year = 2012)
-s2[c(1, 13, 16), ]             # a heroin, an other/unspecified, a cocaine row
+unique(subset(s2, f_records_all %in% c("T401", "T406", "T405")))  # heroin, other/unspecified, cocaine
 ```
 
 `flag_opioid_types()` adds the six specific-type columns, the ICD-9-era residual
@@ -94,7 +94,7 @@ s3 <- flag_opioid_types(s2, year = 2012)
 type_cols <- c("ucod", "f_records_all", "opioid_death", "heroin_present",
                "other_synth_present", "other_op_present",
                "unspecified_op_present", "num_opioids")
-unique(s3[s3$opioid_death == 1, type_cols])
+as.data.frame(unique(s3[s3$opioid_death == 1, type_cols]))
 ```
 
 ## Unspecified (T40.6) share by year
@@ -141,3 +141,8 @@ unspecified opioids into T40.6, which is exactly why the modern measure reads
 known types before computing drug-specific rates; narcan gives you the raw flags
 so you can measure the unspecified share first and decide how to adjust for it
 yourself.
+
+## See also
+
+**Classifying overdose deaths** -- the full ISW7 flag pipeline behind the three
+steps walked through here.

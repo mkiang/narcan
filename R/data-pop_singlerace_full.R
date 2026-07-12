@@ -38,10 +38,10 @@
 #'     \code{multiracial}}
 #'   \item{hispanic_origin}{\code{"non_hispanic"} or \code{"hispanic"}}
 #'   \item{pop}{population count}
-#'   \item{scheme}{race scheme (\code{"single"})}
-#'   \item{source}{data source (\code{"census_pep"})}
 #'   \item{vintage}{PEP vintage for that row: \code{"int2000"}, \code{"int2010"},
 #'     or \code{"V2024"}}
+#'   \item{scheme}{race scheme (\code{"single"})}
+#'   \item{source}{data source (\code{"census_pep"})}
 #' }
 #' @source \url{https://www2.census.gov/programs-surveys/popest/datasets/}
 #' @keywords datasets

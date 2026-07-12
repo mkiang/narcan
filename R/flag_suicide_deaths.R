@@ -15,9 +15,14 @@
 #' flag_suicide_deaths(df, year = 2019)
 flag_suicide_deaths <- function(df, year = NULL) {
     .warn_icd9_only(.detect_year_safe(df, year), "flag_suicide_deaths")
+    ## Word-boundary anchors (\< \>) and the optional trailing digit (\d{0,1})
+    ## mirror flag_suicide_types()'s subtype regexes, so a code only matches as a
+    ## whole token. This is the union of those subtypes and returns the identical
+    ## set on real 3- and 4-character ICD-10 codes (defense-in-depth only).
     new_df <- df |>
-        dplyr::mutate(suicide_death = grepl("U03|X[67]\\d{1}|X8[01234]|Y870",
-                                   ucod) + 0)
+        dplyr::mutate(suicide_death = grepl(
+            "\\<U03\\d{0,1}\\>|\\<X[67]\\d\\d{0,1}\\>|\\<X8[01234]\\d{0,1}\\>|\\<Y870\\d{0,1}\\>",
+            ucod) + 0)
 
     return(new_df)
 }

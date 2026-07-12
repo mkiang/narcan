@@ -24,15 +24,23 @@
 categorize_sex <- function(sex_column, year = NULL) {
     n <- length(sex_column)
 
+    if (n == 0L) {
+        return(character(0))
+    }
+
     if (is.null(year)) {
         modern <- rep(!is.numeric(sex_column), n)
         warning("categorize_sex(): `year` not supplied; inferring the coding ",
                 "era from the column type (",
-                if (modern[1]) "2003+ 'M'/'F'" else "pre-2003 1/2",
+                if (isTRUE(modern[1])) "2003+ 'M'/'F'" else "pre-2003 1/2",
                 "). Pass `year` to be explicit.", call. = FALSE)
     } else {
         if (length(year) == 1L) {
             year <- rep(year, n)
+        } else if (length(year) != n) {
+            stop("categorize_sex(): `year` must be a scalar, a vector aligned ",
+                 "to `sex_column` (length ", n, "), or NULL; got length ",
+                 length(year), ".", call. = FALSE)
         }
         modern <- year >= 2003
     }

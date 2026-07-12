@@ -14,8 +14,11 @@ vector
 }
 \description{
 All UCOD ICD-9 codes between 800 and 999 are external cause of injury (E)
-codes. We append the E to them to make regexing across UCOD and record
-columns consistent.
+codes. Because this operates on the padded 4-character code (e.g. "8001"
+for 800.1, as produced by \code{pad_3char_codes()}, which \code{
+clean_icd9_data()} already runs before this), the numeric guard checks
+8000-9999, the padded-code equivalent of the 800-999 range. We append the E
+to them to make regexing across UCOD and record columns consistent.
 }
 \examples{
 prefix_e_to_ucod(c(7951, 8001, 9992, 6000, 4000))

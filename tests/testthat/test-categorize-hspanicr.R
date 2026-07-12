@@ -76,3 +76,37 @@ test_that("categorize_hspanicr returns NA for out-of-domain codes", {
 test_that("categorize_hspanicr errors on a mismatched year length", {
     expect_error(categorize_hspanicr(1:3, year = c(2000, 2023)), "length")
 })
+
+test_that("categorize_hspanicr covers every 2022+ 14-category code (synthetic, codebook-keyed)", {
+    ## The real-data fixture only exercises codes 1, 8, 9, 10, 11, 13, leaving
+    ## dominican / central_american / south_american / other_hispanic and
+    ## nonhispanic_nhopi / hispanic_unknown (plus puerto_rican / cuban) untested.
+    ## This synthetic case pins the codebook label to EVERY code, so a transposed
+    ## pair in the source label vector would fail here.
+    codebook <- c(
+        "1"  = "mexican",
+        "2"  = "puerto_rican",
+        "3"  = "cuban",
+        "4"  = "dominican",
+        "5"  = "central_american",
+        "6"  = "south_american",
+        "7"  = "other_hispanic",
+        "8"  = "nonhispanic_white",
+        "9"  = "nonhispanic_black",
+        "10" = "nonhispanic_aian",
+        "11" = "nonhispanic_asian",
+        "12" = "nonhispanic_nhopi",
+        "13" = "nonhispanic_multi",
+        "14" = "hispanic_unknown"
+    )
+    codes <- as.integer(names(codebook))
+    lab <- categorize_hspanicr(codes, year = 2023)
+
+    expect_false(anyNA(lab))
+    expect_equal(as.character(lab), unname(codebook))
+    ## per-code assertion so a failure names the offending code, not just the vector
+    for (code in names(codebook)) {
+        expect_equal(as.character(lab[codes == as.integer(code)]),
+                     unname(codebook[code]))
+    }
+})

@@ -15,9 +15,13 @@ test_that("convert_ager27() maps all 27 codes to 5-year ages", {
     )
 })
 
-test_that("convert_ager27u1() splits the under-1 / 1-4 codes", {
+test_that("convert_ager27u1() splits under-1 (codes 1-2) from 1-4 years (codes 3-6)", {
     out <- convert_ager27u1(tibble::tibble(ager27 = 1:27))
-    # codes 3-6 map to 1 (the 1-4 bin) instead of 0, distinguishing infants
+    # NCHS Age Recode 27 (verified against the MCOD public-use record layout):
+    # code 1 = "Under 1 month", 2 = "1-11 months" (both under 1 year -> age 0);
+    # codes 3-6 = "1 year"/"2 years"/"3 years"/"4 years" (the 1-4 bin -> age 1).
+    # Corroborated by Age Recode 12 (01 = under 1 year from ager27 1-2; 02 = 1-4
+    # years from ager27 3-6). Codes 7-26 match convert_ager27()'s 5-year mapping.
     expect_equal(
         out$age,
         c(0, 0, 1, 1, 1, 1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60,

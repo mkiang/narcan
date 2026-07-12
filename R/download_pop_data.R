@@ -1,9 +1,13 @@
-## Provenance-driven downloader + source accessor for the single-race population
-## data (narcan 0.5.0). Small denominators ship as bundled .rda; the large
-## county grain ships as a tag-pinned GitHub Release asset (parquet) fetched on
-## demand and sha256-verified against the shipped manifest. raw = TRUE instead
-## fetches the ORIGINAL public Census source files (the same pull the data-raw
-## builders use) so a user can reproduce the processed data from scratch.
+## Provenance-driven downloader for the population denominators (narcan 0.5.x),
+## serving BOTH schemes ("single" and "bridged"). Small denominators ship as
+## bundled .rda; the large state/county grains ship as tag-pinned GitHub Release
+## assets (parquet) fetched on demand and sha256-verified against the shipped
+## manifest. raw = TRUE instead fetches the PRIMARY published source file(s) for
+## the scheme (the recent-vintage pull only). It does NOT reproduce the
+## multi-vintage backfill from scratch: the single-race processed data pools
+## 2000-2019 Census intercensal inputs and bridged draws on more than one SEER
+## extract, none of which the manifest lists. Point users at the data-raw
+## builders for a full from-scratch rebuild.
 ##
 ## DUA/privacy: bulk flat-files only (NEVER the Census API), generic User-Agent
 ## (narcan/<version>), no personal identifiers in any outbound request.
@@ -145,15 +149,22 @@ pop_sources <- function() {
     invisible(m)
 }
 
-#' Download single-race population data (processed asset or raw source)
+#' Download population data (processed asset or primary source)
 #'
-#' Fetches population data that is too large to bundle. \code{raw = FALSE} (the
-#' default) fetches the narcan-processed county parquet from the tag-pinned
-#' GitHub Release asset and verifies its sha256 against the shipped manifest.
-#' \code{raw = TRUE} instead fetches the ORIGINAL public Census source file(s)
-#' verbatim -- the same pull the data-raw builders use -- so the processed data
-#' can be reproduced and the fuller detail narcan drops (single-year age, the
-#' all-origin and alone-or-in-combination columns) is available.
+#' Fetches population denominators that are too large to bundle, for either
+#' scheme. \code{raw = FALSE} (the default) fetches the narcan-processed
+#' Release-asset parquet(s) (state and/or county) for the scheme and verifies
+#' each sha256 against the shipped manifest. \code{raw = TRUE} instead fetches
+#' the PRIMARY published source file(s) for the scheme -- Census PEP for
+#' \code{"single"}, SEER for \code{"bridged"} -- verbatim.
+#'
+#' \code{raw = TRUE} returns the recent-vintage source only and does NOT fully
+#' reproduce the multi-vintage backfill: the single-race processed data
+#' (2000-2024) pools 2000-2019 Census intercensal inputs and the bridged data
+#' (1969-2024) draws on more than one SEER extract, none of which the manifest
+#' lists. For a complete from-scratch rebuild use the \code{data-raw/} builders.
+#' \code{raw = TRUE} emits a one-time message saying as much, so an incomplete
+#' pull never silently looks complete.
 #'
 #' Files cache under \code{tools::R_user_dir("narcan", "cache")}. Only bulk
 #' flat-files are used (never the Census Data API); requests carry a generic
@@ -161,9 +172,10 @@ pop_sources <- function() {
 #'
 #' @param scheme denominator scheme: \code{"single"} (default) or
 #'   \code{"bridged"}
-#' @param years optional numeric vector; reserved for multi-file sources
-#' @param raw if \code{FALSE} (default), fetch the processed Release-asset
-#'   parquet; if \code{TRUE}, fetch the original Census source file(s)
+#' @param raw if \code{FALSE} (default), fetch the narcan-processed
+#'   Release-asset parquet(s) for the scheme; if \code{TRUE}, fetch the primary
+#'   published source file(s) only (not a full from-scratch reproduction of the
+#'   backfill -- see Details)
 #' @param refresh re-download even if a cached copy exists
 #' @param dest optional destination directory (default: the narcan cache)
 #'
@@ -171,20 +183,51 @@ pop_sources <- function() {
 #' @export
 #' @examples
 #' \dontrun{
-#' # processed county parquet (analysis-ready)
+#' # processed parquet(s) for the scheme (analysis-ready)
 #' download_pop_data(scheme = "single")
-#' # original Census source files (reproduce from scratch)
+#' # primary published source file(s) (recent vintage only; see Details)
 #' download_pop_data(scheme = "single", raw = TRUE)
 #' }
-download_pop_data <- function(scheme = c("single", "bridged"), years = NULL,
+download_pop_data <- function(scheme = c("single", "bridged"),
                               raw = FALSE, refresh = FALSE, dest = NULL) {
     scheme <- match.arg(scheme)
     m <- .pop_manifest()
     m <- m[m$scheme == scheme, , drop = FALSE]
 
     if (isTRUE(raw)) {
+        ## Be loud about what raw = TRUE actually returns: the primary,
+        ## recent-vintage source(s) the manifest lists -- NOT the full
+        ## multi-vintage backfill. Once per session per scheme, so an incomplete
+        ## pull never silently looks like a from-scratch reproduction.
+        detail <- if (identical(scheme, "single")) {
+            paste0("the 2000-2024 single-race backfill also pools 2000-2019 ",
+                   "Census intercensal inputs the manifest does not list")
+        } else {
+            paste0("the 1969-2024 bridged backfill also draws on more than one ",
+                   "SEER extract the manifest does not list")
+        }
+        .inform_once(paste0("download_pop_data_raw_incomplete_", scheme),
+            sprintf(paste0(
+                "download_pop_data(raw = TRUE) returns the primary published ",
+                "source file(s) for scheme \"%s\" (recent vintage only). This ",
+                "is NOT a complete from-scratch reproduction: %s. Use the ",
+                "data-raw/ builders for a full rebuild."), scheme, detail))
         rows <- m[nzchar(m$source_url), , drop = FALSE]
-        rows <- rows[!duplicated(rows$source_url), , drop = FALSE]
+        ## Benign exact-duplicate rows (same URL AND sha256) collapse here.
+        rows <- rows[!duplicated(rows[, c("source_url", "source_sha256")]), ,
+                     drop = FALSE]
+        ## Mirror .pop_asset_path's ambiguity guard: >1 row surviving for the
+        ## SAME source_url means the sha256 disagrees across rows -- refuse
+        ## rather than silently keeping whichever row duplicated() saw first.
+        dup_url <- unique(rows$source_url[duplicated(rows$source_url)])
+        if (length(dup_url) > 0L) {
+            stop(sprintf(paste0(
+                "pop manifest is ambiguous: source_url %s has more than one ",
+                "distinct source_sha256 for scheme = %s; expected exactly one. ",
+                "Fix the manifest so a single source_sha256 supersedes the rest."),
+                paste(dup_url, collapse = ", "), scheme),
+                call. = FALSE)
+        }
         dir <- if (is.null(dest)) .pop_cache_dir("raw") else dest
         if (!dir.exists(dir)) dir.create(dir, recursive = TRUE, showWarnings = FALSE)
         paths <- vapply(seq_len(nrow(rows)), function(i) {

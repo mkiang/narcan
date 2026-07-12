@@ -30,6 +30,17 @@ unite_records <- function(icd_df, year = NULL) {
 
     ## For ICD-9 dataframes
     if (.dispatch_era(year) == "icd9") {
+        ## ICD-9 files MUST be cleaned before the records can be united:
+        ## clean_icd9_data() renames the nature-of-injury flags (rniflag_ ->
+        ## rnifla_, which the pairwise prefixing below indexes by name), trims the
+        ## 5-char record codes, pads 3-char codes, and E-prefixes external causes.
+        ## It is idempotent, so this is a no-op on already-cleaned input -- but it
+        ## rescues a RAW ICD-9 frame that would otherwise silently mis-flag every
+        ## drug/opioid death (mis-formatted E-codes and nature-of-injury codes
+        ## miss the ICD-9 regex) or error on the absent rnifla_ columns (the
+        ## rniflag_-named 1991-1995 files).
+        icd_df <- clean_icd9_data(icd_df)
+
         ## ICD-9 record codes in [800, 999] need an E/N prefix set by the
         ## paired nature-of-injury flag. Build the 20 f_record_ columns
         ## pairwise (base R Map; across() cannot walk two column sets in

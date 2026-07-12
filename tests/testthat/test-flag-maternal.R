@@ -30,3 +30,30 @@ test_that("ICD-9 maternal deaths: returns 0 and warns (not silent)", {
     expect_warning(m9 <- flag_maternal_deaths(proc, year = 1993L))
     expect_equal(sum(m9$maternal_death, na.rm = TRUE), 0)
 })
+
+test_that("flag_maternal_deaths() does not crash on an all-NA `year` column", {
+    ## .extract_year() resolves an all-NA `year` column to NA; the pre-2003
+    ## warning check must not choke on that NA (regression for the
+    ## `if (year < 2003)` crash).
+    df <- tibble::tibble(
+        year = NA_real_,
+        ucod = c("O95", "I250"),
+        f_records_all = c("O95", "I250")
+    )
+
+    out <- expect_no_error(flag_maternal_deaths(df))
+    expect_no_warning(flag_maternal_deaths(df))
+    expect_equal(out$maternal_death, c(1, 0))
+})
+
+test_that("flag_maternal_deaths_late() does not crash on an all-NA `year` column", {
+    df <- tibble::tibble(
+        year = NA_real_,
+        ucod = c("O95", "I250"),
+        f_records_all = c("O95", "I250")
+    )
+
+    out <- expect_no_error(flag_maternal_deaths_late(df))
+    expect_no_warning(flag_maternal_deaths_late(df))
+    expect_equal(out$maternal_death_late, c(1, 0))
+})

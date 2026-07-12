@@ -1,20 +1,23 @@
-## Build the SEER-uniform bridged population denominators (narcan 0.5.1) from the
-## two SEER U.S. Population Data files. PARSE step (pull-from-parse): reads the
-## cached raw .txt.gz (the pull fetches them via download_pop_data(raw = TRUE) /
-## the URLs below) and writes the bundled national `pop_bridged` .rda plus the
+## Build the SEER-uniform bridged population denominators (narcan 0.5.1) from
+## TWO SEER U.S. Population Data files. PARSE step (pull-from-parse): reads the
+## cached raw .txt.gz and writes the bundled national `pop_bridged` .rda plus the
 ## state + county Release-asset parquets. DuckDB does the fixed-width parse
 ## (whole-line VARCHAR + substr) and the aggregation; R only orchestrates. Quiet;
 ## run from the package root.
 ##
-## Sources (SEER U.S. Population Data, Vintage 2024; PUBLIC aggregates). The exact
-## download URLs are registered in inst/extdata/pop_manifest.csv (`source_url`) at
-## delivery (the bridged rows land with the Release assets) and are fetched by
-## download_pop_data(raw = TRUE) -- NEVER fetched here (pull-from-parse; no URL
-## literal in a builder):
+## Sources (SEER U.S. Population Data, Vintage 2024; PUBLIC aggregates). ONLY the
+## first file below is registered in inst/extdata/pop_manifest.csv -- the second
+## has NO manifest row and NO download_pop_data() route, so it must be fetched
+## manually (see data-raw/fetch_bridged_raw.R) before this builder can run.
+## Neither URL is a literal in this file (pull-from-parse); this builder only
+## reads whatever is already cached:
 ##   1969-2024 file us.1969_2024.20ages.adjusted (race 3-group White/Black/Other,
-##     NO Hispanic)
+##     NO Hispanic) -- registered as `source_url` on the bridged manifest rows;
+##     fetched by download_pop_data(scheme = "bridged", raw = TRUE).
 ##   1990-2024 file us.1990_2024.20ages.adjusted (race 4-group White/Black/AIAN/
-##     API + Hispanic origin 0/1)
+##     API + Hispanic origin 0/1) -- NOT in the manifest; fetch it manually with
+##     data-raw/fetch_bridged_raw.R (or by hand from SEER) before running this
+##     builder.
 ##
 ## Stitch (no double-count): years < 1990 come ONLY from the 1969 file, years
 ## >= 1990 ONLY from the 1990 file (each calendar year from exactly one series).
@@ -40,7 +43,11 @@ cache <- Sys.getenv("NARCAN_SEER_CACHE",
                     file.path(tools::R_user_dir("narcan", "cache"), "raw"))
 raw_1969 <- file.path(cache, "us.1969_2024.20ages.adjusted.txt.gz")
 raw_1990 <- file.path(cache, "us.1990_2024.20ages.adjusted.txt.gz")
-stopifnot(file.exists(raw_1969), file.exists(raw_1990))
+stopifnot(
+    "us.1969_2024 raw file missing -- fetch it with data-raw/fetch_bridged_raw.R (or download_pop_data(scheme = \"bridged\", raw = TRUE))" =
+        file.exists(raw_1969),
+    "us.1990_2024 raw file missing (this file has NO manifest entry) -- fetch it manually with data-raw/fetch_bridged_raw.R" =
+        file.exists(raw_1990))
 
 out_dir <- Sys.getenv("NARCAN_P5_BUILD",
                       file.path(tools::R_user_dir("narcan", "cache"), "build"))

@@ -249,6 +249,19 @@ invisible(dbExecute(con, sprintf("
   TO %s (FORMAT PARQUET, COMPRESSION 'zstd', ROW_GROUP_SIZE 122880)",
   sqlq(state_parquet))))
 
+## Refresh the bundled Wyoming (56) STATE fixture used by the offline routing +
+## freeze tests, from the SAME run that writes the Release-asset state parquet, so
+## the fixture is reproducible and auditable (mirrors the county builder's WY
+## fixture write; identical column set/order, filtered to state 56).
+invisible(dbExecute(con, sprintf("
+  COPY (SELECT state_fips, year, age, sex, race, hispanic_origin, pop,
+               'single' AS scheme, 'census_pep' AS source, vintage
+        FROM finest_state
+        WHERE state_fips = '56'
+        ORDER BY year, state_fips, race, hispanic_origin, sex, age)
+  TO %s (FORMAT PARQUET, COMPRESSION 'zstd', ROW_GROUP_SIZE 122880)",
+  sqlq('inst/extdata/pop_singlerace_state_fixture.parquet'))))
+
 ## --- Emit interior-year national by-race, for CP-2 to CROSS-CHECK against the
 ## INDEPENDENT us-est00int national file ONLY. These are the build's OWN output;
 ## do NOT commit them as G1 test anchors (that would be circular -- the committed

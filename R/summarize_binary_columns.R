@@ -2,8 +2,16 @@
 #'
 #' To use this, you must remove all non-grouping, non-binary variables.
 #'
-#' @param df a dataframe with binary flag columns to indicate type of death
-#' @param ... grouping variables (in addition to year and age)
+#' @details Rows are grouped by `year`, `age`, and `age_cat` (plus any bare
+#'   variables passed in `...`); all three columns are required. The function
+#'   stops early with a clear message if any is missing, rather than failing with
+#'   a cryptic dplyr error deep inside `group_by()`. Create `age_cat` with
+#'   [categorize_age_5()]. Every remaining non-grouping column is summed as a 0/1
+#'   flag.
+#'
+#' @param df a dataframe with binary flag columns to indicate type of death,
+#'   plus the required grouping columns `year`, `age`, and `age_cat`
+#' @param ... grouping variables (in addition to year, age, and age_cat)
 #'
 #' @return dataframe
 #' @importFrom dplyr group_by group_vars summarize across everything left_join n
@@ -19,6 +27,17 @@
 #' )
 #' summarize_binary_columns(df)
 summarize_binary_columns <- function(df, ...) {
+    ## Guard: grouping by year/age/age_cat hard-requires all three columns.
+    ## Naming the missing one here avoids a cryptic dplyr error inside group_by().
+    required <- c("year", "age", "age_cat")
+    missing_cols <- setdiff(required, names(df))
+    if (length(missing_cols) > 0L) {
+        stop("summarize_binary_columns() groups by `year`, `age`, and ",
+             "`age_cat`; missing required column(s): ",
+             paste(missing_cols, collapse = ", "),
+             ". (Create `age_cat` with categorize_age_5().)", call. = FALSE)
+    }
+
     ## Takes a tibble that has already been flagged with opioid columns and
     ## summarizes them over year and age (plus any extra bare grouping
     ## variables passed in ...).

@@ -17,6 +17,12 @@ dataframe
 \description{
 Converts the age27 variable in MCOD data to 5-year age groups
 }
+\details{
+Expects `ager27` in its documented domain (codes 1-27, where 27 is
+  "age not stated" and maps to `NA`). A non-`NA` value outside 1-27 triggers a
+  warning, since it would otherwise collapse silently into the 85+ bin or
+  produce a negative age.
+}
 \examples{
 df <- data.frame(ager27 = c(1, 10, 23, 27))
 convert_ager27(df)

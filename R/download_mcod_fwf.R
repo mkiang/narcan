@@ -29,7 +29,7 @@
 
     ## mkdir -p
     if (download_dir != './') {
-        dir.create(download_dir, showWarnings = FALSE)
+        dir.create(download_dir, showWarnings = FALSE, recursive = TRUE)
     }
 
     ## Get, unzip

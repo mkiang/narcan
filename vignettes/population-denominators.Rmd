@@ -31,6 +31,11 @@ used, and no chunk downloads anything.
 library(narcan)
 ```
 
+Across every scheme, `add_pop_counts()` joins on `by_vars` -- default
+`c("year", "age", "sex", "race")`, which returns a national denominator; adding
+`state_fips` or `county_fips` to `by_vars` routes the same call to sub-national
+denominators.
+
 ## `add_pop_counts()`, scheme by scheme
 
 ### Legacy (the default)
@@ -73,10 +78,12 @@ head(rated)
 ```
 
 `add_std_pop()` adds the US 2000 standard population (`pop_std`) and its unit
-weights (`unit_w`, summing to 1 across age groups):
+weights (`unit_w`, summing to 1 across age groups). `s204` is narcan's code for
+that standard population in 18 five-year age bins (the default `std_cat`); see
+`?add_std_pop` for single-year alternatives, which must match your age binning:
 
 ```{r single-std-pop}
-weighted <- add_std_pop(rated)
+weighted <- add_std_pop(rated, std_cat = "s204", by_vars = "age")
 head(weighted[, c("age", "sex", "pop", "pop_std", "unit_w")])
 ```
 
@@ -148,7 +155,8 @@ add_pop_counts(both_sex, race_scheme = "single")$pop        # male + female
 
 Include `state_fips` (or `county_fips`) in `by_vars` to route to sub-national
 denominators. The state single-race table is bundled, so a state join needs no
-extra package:
+extra package. See the *Harmonizing geography with FIPS* article for how to
+derive harmonized `state_fips`/`county_fips` columns from raw NCHS fields.
 
 ```{r state}
 ca <- data.frame(state_fips = "06", year = 2024L, age = 40L, sex = "female",
@@ -191,9 +199,16 @@ coverage (single-race) can differ, so join only where both exist.
 
 ## Coverage and the frozen slice
 
-The single-race 2020-2024 slice is frozen at 0.5.0; the 2000-2024 backfill is
-additive and does not change those five years. A request for a year the resolved
-data does not cover hard-errors -- never a silent 0-row or `NA`:
+Only the single-race 2020-2024 slice is **bundled** (frozen at 0.5.0,
+dependency-free). The 2000-2019 backfill is additive -- it does not change those
+five years -- but it ships only in the downloadable single-race `*_full` parquet
+(`pop_singlerace_full` and its state/county counterparts), fetched once from the
+tag-pinned GitHub Release asset and cached. So `get_pop_state()`/`get_pop_county()`
+serve 2020-2024 straight from the bundled table, but a pre-2020 `years` request
+routes to that downloadable parquet -- or to a local copy via the
+`narcan.pop_single_<grain>_parquet` option, as in the county chunk above. A
+request for a year the resolved data does not cover hard-errors -- never a silent
+0-row or `NA`:
 
 ```{r coverage, error = TRUE}
 get_pop_state(scheme = "single", years = 2025)
@@ -201,12 +216,14 @@ get_pop_state(scheme = "single", years = 2025)
 
 ## Provenance
 
-`pop_sources()` prints the manifest -- scheme, grain, vintage, coverage, and
-delivery for every dataset. Check a bundled dataset's vintage before mixing it
+`pop_sources()` prints the manifest -- dataset, scheme, grain, vintage, and
+coverage for every dataset. Check a bundled dataset's vintage before mixing it
 with a freshly downloaded file.
 
-```{r sources}
-pop_sources()
+```{r sources, results = "asis"}
+invisible(utils::capture.output(src <- pop_sources()))
+knitr::kable(src[, c("dataset", "scheme", "grain", "vintage",
+                     "year_min", "year_max")])
 ```
 
 ## A note on hand-joins
@@ -217,3 +234,8 @@ but do NOT guard a hand-join -- if you `left_join()` a slice yourself, or query
 the parquet with raw SQL, you own verifying that the slice is unique on your keys
 and that no key is silently dropped. The guarded path exists precisely to make
 those mistakes impossible.
+
+## See also
+
+**Age-standardized fentanyl death rates by sex** -- feeds these denominators
+through a full age-standardized rate pipeline end to end.

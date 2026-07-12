@@ -65,6 +65,25 @@ test_that("get_pop_state() origin levels reconcile to the finest cells", {
     expect_equal(sum(nh$pop) + sum(h$pop), sum(src$pop))
 })
 
+test_that("get_pop_state(single) frozen coverage guard derives from the state table", {
+    # Regression: the frozen-branch coverage guard must be derived from
+    # pop_singlerace_state (the table actually filtered here), not from
+    # .narrow_single_years() (which reads the NATIONAL pop_singlerace table).
+    # Both happen to span 2020-2024 today, so this locks the OBSERVABLE
+    # behavior -- loud out-of-coverage error; in-coverage rows returned --
+    # rather than the (currently invisible) source-of-truth divergence.
+    cov <- sort(unique(narcan::pop_singlerace_state$year))
+
+    # out-of-coverage year (past the state table's max) still hard-errors
+    expect_error(get_pop_state(states = "06", years = max(cov) + 1L),
+                 "single-race state denominators cover")
+
+    # in-coverage year returns rows
+    ok <- get_pop_state(states = "06", years = max(cov))
+    expect_true(nrow(ok) > 0L)
+    expect_true(all(ok$year == max(cov)))
+})
+
 # ---- get_pop_county() ---------------------------------------------------------
 
 test_that("get_pop_county() reads the fixture and reconciles to the state file", {
@@ -161,6 +180,26 @@ test_that("download_pop_data(raw = TRUE) fetches + verifies the source file", {
     expect_true(file.exists(p[[1]]))
 })
 
+test_that("download_pop_data(raw = TRUE) warns once that it is not a full reproduction", {
+    # raw = TRUE returns only the manifest-listed primary source(s), NOT the full
+    # multi-vintage backfill; it must say so (once per session) so an incomplete
+    # pull never silently looks complete. Re-arm the once-per-session flag so this
+    # test is order-independent.
+    mani <- local_file_manifest()
+    cache <- withr::local_tempdir()
+    withr::local_options(narcan.pop_manifest_path = mani)
+    id <- "download_pop_data_raw_incomplete_single"
+    if (exists(id, envir = narcan:::.narcan_state, inherits = FALSE)) {
+        rm(list = id, envir = narcan:::.narcan_state)
+    }
+    expect_message(
+        download_pop_data(scheme = "single", raw = TRUE, dest = cache),
+        "from-scratch reproduction")
+    # a second call in the same session is silent (once per session)
+    expect_no_message(
+        download_pop_data(scheme = "single", raw = TRUE, dest = cache))
+})
+
 test_that("download_pop_data() errors on a corrupt (sha256-mismatch) asset", {
     fx <- county_fixture()
     cache <- withr::local_tempdir()
@@ -177,4 +216,30 @@ test_that("download_pop_data() errors on a corrupt (sha256-mismatch) asset", {
     withr::local_options(narcan.pop_manifest_path = mani)
     expect_error(download_pop_data(scheme = "single", dest = cache),
                  "sha256 mismatch")
+})
+
+test_that("download_pop_data(raw = TRUE) stops on a same-URL, conflicting-sha256 manifest ambiguity", {
+    # Regression: raw = TRUE used to dedup source rows on source_url ALONE, so a
+    # manifest with the same source_url under two DIFFERENT source_sha256 values
+    # would silently keep row 1's hash. Mirrors .pop_asset_path's ambiguity
+    # guard (the corrupt-asset test above exercises the sha256-mismatch side;
+    # this exercises the manifest-ambiguity side). No real file is fetched --
+    # the guard must fire before any download is attempted.
+    cache <- withr::local_tempdir()
+    mani <- withr::local_tempfile(fileext = ".csv")
+    same_url <- "file:///does/not/need/to/exist.csv"
+    df <- data.frame(
+        dataset = c("pop_singlerace_full", "pop_singlerace_state_full"),
+        scheme = "single", grain = c("national", "state"),
+        source = "census_pep_v2024",
+        source_url = same_url,
+        source_sha256 = c(strrep("1", 64L), strrep("2", 64L)),
+        asset_url = "", asset_sha256 = "",
+        vintage = "V2024", downloaded_on = "2026-07-11", n_rows = "1",
+        year_min = "2020", year_max = "2024", note = "ambiguous",
+        stringsAsFactors = FALSE)
+    utils::write.csv(df, mani, row.names = FALSE)
+    withr::local_options(narcan.pop_manifest_path = mani)
+    expect_error(download_pop_data(scheme = "single", raw = TRUE, dest = cache),
+                 "ambiguous")
 })

@@ -41,6 +41,21 @@
 #' table(df$occ_scheme)          # "4digit_niosh"
 #' }
 add_coded_occupation <- function(df, year) {
+    if (length(year) != 1L || is.na(year)) {
+        stop("add_coded_occupation(): `year` must be a single non-NA value.",
+             call. = FALSE)
+    }
+
+    if (nrow(df) == 0L) {
+        df$occ_scheme <- character(0)
+        df$occ_coded <- character(0)
+        df$ind_coded <- character(0)
+        df$occ_recode <- character(0)
+        df$ind_recode <- character(0)
+        df$occ_available <- logical(0)
+        return(df)
+    }
+
     col <- function(nm) if (!is.null(df[[nm]])) df[[nm]] else NA
 
     scheme <- if (year >= 1982 && year <= 1999) {
@@ -51,21 +66,37 @@ add_coded_occupation <- function(df, year) {
         NA_character_
     }
 
+    ## Zero-pad to a fixed-width CHARACTER code so the harmonized columns are
+    ## type-stable across eras (numeric 7 and character "0110" cannot bind_rows())
+    ## and leading zeros survive both the 3-digit Census and 4-digit NIOSH codes.
+    ## as.character() first so a factor input yields its LABEL not its level code
+    ## (the project's as.integer(as.character(.)) idiom).
+    pad_code <- function(x, width) {
+        if (is.null(x)) return(NA_character_)
+        xi <- suppressWarnings(as.integer(as.character(x)))
+        out <- ifelse(is.na(xi), NA_character_,
+                      formatC(xi, width = width, flag = "0"))
+        out
+    }
+
     if (identical(scheme, "3digit_census")) {
-        occ <- col("occup")
-        ind <- col("industry")
-        occ_r <- NA
-        ind_r <- NA
+        occ <- pad_code(col("occup"), 3L)
+        ind <- pad_code(col("industry"), 3L)
+        occ_r <- NA_character_
+        ind_r <- NA_character_
     } else if (identical(scheme, "4digit_niosh")) {
-        occ <- col("occupation")
-        ind <- col("industry")
-        occ_r <- col("occupationr")
-        ind_r <- col("industryr")
+        occ <- pad_code(col("occupation"), 4L)
+        ind <- pad_code(col("industry"), 4L)
+        ## the recodes are 2-char NCHS/NIOSH codes (@810-811, @816-817), a
+        ## different width from the 4-digit coded columns; pad to width 2 (not
+        ## 4) so leading zeros survive numeric input too.
+        occ_r <- pad_code(col("occupationr"), 2L)
+        ind_r <- pad_code(col("industryr"), 2L)
     } else {
-        occ <- NA
-        ind <- NA
-        occ_r <- NA
-        ind_r <- NA
+        occ <- NA_character_
+        ind <- NA_character_
+        occ_r <- NA_character_
+        ind_r <- NA_character_
     }
 
     df$occ_scheme <- scheme

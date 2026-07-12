@@ -53,7 +53,7 @@ test_that("add_coded_occupation: 1982-1984 use the 3-digit scheme (C6)", {
         r <- add_coded_occupation(data.frame(occup = 412L, industry = 832L), yr)
         expect_equal(r$occ_scheme, "3digit_census")
         expect_true(r$occ_available)
-        expect_equal(r$occ_coded, 412L)
+        expect_equal(r$occ_coded, "412")   # zero-padded character (0.5.1 fix)
     }
 })
 

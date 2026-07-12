@@ -26,6 +26,10 @@ All death data below are **small inline synthetic counts, clearly labelled
 illustrative**; only the bundled population denominators are real. No chunk reads
 a restricted record, an external file, or the network.
 
+This vignette picks up where flagging leaves off. The *Classifying overdose
+deaths* vignette builds the `drug_death`/`opioid_death` flags used here and is the
+place to start if the flag steps below are unfamiliar.
+
 ```{r libs}
 library(narcan)
 ```
@@ -57,8 +61,9 @@ resid <- subset_residents(records)
 resid
 ```
 
-`flag_drug_deaths()` adds `drug_death` (ISW7 rule: a drug `ucod` **and** a T-code).
-The cardiac death (`I250`) is not a drug death.
+`flag_drug_deaths()` adds `drug_death` under the ISW7 (Injury Surveillance
+Workgroup) rule -- a drug `ucod` **and** a T-code. The cardiac death (`I250`) is
+not a drug death.
 
 ```{r drug}
 resid <- flag_drug_deaths(resid, year = 2020)
@@ -67,7 +72,7 @@ resid[, c("ucod", "f_records_all", "drug_death")]
 
 `flag_opioid_deaths()` adds `opioid_death`. `flag_opioid_types()` then splits the
 opioid into type flags; `other_synth_present` is the T40.4 fentanyl proxy. Note
-the T40.0-only row (opium/"other narcotic") is an opioid death but **not** a
+the T40.0-only row (opium, T40.0) is an opioid death but **not** a
 synthetic-opioid death.
 
 ```{r opioid}
@@ -126,7 +131,10 @@ head(counts[, c("year", "age", "sex", "deaths", "pop")])
 ```
 
 `add_std_pop()` adds the US 2000 standard population (`pop_std`) and its unit
-weights (`unit_w`, summing to 1 across the 18 five-year age groups).
+weights (`unit_w`, summing to 1 across the 18 five-year age groups). `s204` is
+narcan's code for that standard population in 18 five-year age bins (the default
+`std_cat`); see `?add_std_pop` for single-year alternatives, which must match
+your age binning.
 
 ```{r std}
 counts <- add_std_pop(counts, std_cat = "s204", by_vars = "age")
@@ -135,8 +143,8 @@ head(counts[, c("age", "pop_std", "unit_w")])
 
 `calc_asrate_var()` adds the **age-specific** rate (`fentanyl_rate`, per 100,000)
 and its Poisson variance (`fentanyl_var`) for each age-sex-year cell -- the rate
-*before* standardization. Here are the 2020 male age-specific rates, which climb
-across midlife:
+*before* standardization. Here are the 2020 male age-specific rates, which peak in
+early adulthood (~age 30) and decline thereafter:
 
 ```{r asrate}
 counts <- calc_asrate_var(counts, new_name = fentanyl, death_col = deaths,

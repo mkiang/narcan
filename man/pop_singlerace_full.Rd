@@ -15,10 +15,10 @@ A data frame with 10800 rows and 9 columns
     \code{multiracial}}
   \item{hispanic_origin}{\code{"non_hispanic"} or \code{"hispanic"}}
   \item{pop}{population count}
-  \item{scheme}{race scheme (\code{"single"})}
-  \item{source}{data source (\code{"census_pep"})}
   \item{vintage}{PEP vintage for that row: \code{"int2000"}, \code{"int2010"},
     or \code{"V2024"}}
+  \item{scheme}{race scheme (\code{"single"})}
+  \item{source}{data source (\code{"census_pep"})}
 }
 }
 \source{

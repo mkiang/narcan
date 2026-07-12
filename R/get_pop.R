@@ -68,7 +68,12 @@ get_pop_state <- function(scheme = c("single", "bridged"), states = NULL,
                 ## coverage guard (the frozen branch is only reached with years
                 ## >= 2020, so any miss is past the frozen 2020-2024 window). A
                 ## silent 0-row return would otherwise be a MISSING denominator.
-                cov <- .narrow_single_years()
+                ## Derive coverage from the STATE table being filtered just below
+                ## (not .narrow_single_years(), which reads the NATIONAL
+                ## pop_singlerace table) -- both happen to span 2020-2024 today,
+                ## but deriving from the table actually filtered here means the
+                ## guard cannot drift out of sync with it.
+                cov <- sort(unique(narcan::pop_singlerace_state$year))
                 miss <- sort(setdiff(yy, cov))
                 if (length(miss) > 0L) {
                     stop(sprintf(paste0(
