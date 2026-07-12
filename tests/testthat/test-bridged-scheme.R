@@ -236,6 +236,87 @@ test_that("CAVEAT-B nudge is NOT burned by a call that errors (DD6) before it", 
                         envir = narcan:::.narcan_state))
 })
 
+# ---- P4 origin matrix (bridged) ----------------------------------------------
+
+test_that("bridged origin-stratified national join runs end-to-end on REAL pop_bridged (G1)", {
+    ## Not just the synthetic .guarded_pop_join() path: route a real death frame
+    ## through add_pop_counts() against the bundled narcan::pop_bridged.
+    keys <- dplyr::distinct(
+        narcan::pop_bridged[narcan::pop_bridged$year == 2000L, ],
+        year, age, sex, race, hispanic_origin)
+    keys <- keys[keys$hispanic_origin %in% c("hispanic", "non_hispanic"), ]
+    keys$deaths <- 1
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    out <- add_pop_counts(keys, race_scheme = "bridged", by_vars = by5)
+    expect_false(anyNA(out$pop))
+    src <- narcan::pop_bridged
+    cell <- out[out$hispanic_origin == "hispanic", ][1, ]
+    exp <- src$pop[src$year == 2000L & src$age == cell$age & src$sex == cell$sex &
+                   src$race == cell$race & src$hispanic_origin == "hispanic"]
+    expect_equal(cell$pop, sum(exp))
+})
+
+test_that("bridged cross-era DD6: 1985 'all' + 2000 'hispanic' errors; pre-1990 guard does NOT preempt (G2)", {
+    ## DD6's paradigm case (79_ j): the silently-succeeding "Hispanic trend" whose
+    ## pre-1990 points are all-origin. The mixed-origin stop must fire, and the
+    ## pre-1990 era guard must not preempt it (the 1985 row is "all", not stratified).
+    d <- data.frame(year = c(1985L, 2000L), age = 40L, sex = "male", race = "white",
+                    hispanic_origin = c("all", "hispanic"), deaths = 1)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    msg <- tryCatch(add_pop_counts(d, race_scheme = "bridged", by_vars = by5),
+                    error = function(e) conditionMessage(e))
+    expect_match(msg, "double-count")
+    expect_false(grepl("before 1990", msg))
+})
+
+test_that("per-year invariant catches a corrupt year=NA group (G4)", {
+    corrupt <- rbind(bridged_pop(), data.frame(
+        year = NA_integer_, age = 40L, sex = "male", race = "white",
+        hispanic_origin = c("all", "hispanic"), pop = c(9, 1),
+        scheme = "bridged", source = "s", vintage = "v"))
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "hispanic", deaths = 1)
+    msg <- tryCatch(
+        narcan:::.guarded_pop_join(
+            d, corrupt, c("year", "age", "sex", "race", "hispanic_origin"),
+            "bridged"),
+        error = function(e) conditionMessage(e))
+    expect_match(msg, "invalid|double-count")
+    expect_match(msg, "NA")
+})
+
+test_that("origin-stratified add_pop_counts matches get_pop_state at state grain (bridged, synthetic parquet)", {
+    ## Bridged state/county are Release-asset-only, so a blank skip would leave the
+    ## bridged parquet-origin route permanently untested. Inject a small synthetic
+    ## state parquet via the option hook (same mechanism as the single tests) so
+    ## the route is really exercised.
+    skip_if_not_installed("duckdb")
+    skip_if_not_installed("DBI")
+    syn <- expand.grid(
+        state_fips = c("06", "36"), year = 2000L, age = c(40L, 45L),
+        sex = c("male", "female"),
+        race = c("white", "black", "american_indian", "api"),
+        hispanic_origin = c("hispanic", "non_hispanic"), stringsAsFactors = FALSE)
+    syn$pop <- seq_len(nrow(syn)) * 100
+    syn$scheme <- "bridged"; syn$source <- "seer_uspop"; syn$vintage <- "SEER2024"
+    path <- withr::local_tempfile(fileext = ".parquet")
+    con <- DBI::dbConnect(duckdb::duckdb())
+    on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+    duckdb::duckdb_register(con, "syn", syn)
+    DBI::dbExecute(con, sprintf("COPY syn TO '%s' (FORMAT PARQUET)", path))
+    withr::local_options(narcan.pop_bridged_state_parquet = path)
+
+    gp <- get_pop_state(scheme = "bridged", states = "06", years = 2000L,
+                        hispanic_origin = "hispanic")
+    by6 <- c("state_fips", "year", "age", "sex", "race", "hispanic_origin")
+    deaths <- gp[, by6]
+    deaths$deaths <- 1
+    ap <- add_pop_counts(deaths, race_scheme = "bridged", by_vars = by6)
+    m <- merge(ap, gp, by = by6, suffixes = c("_ap", "_gp"))
+    expect_equal(nrow(m), nrow(gp))
+    expect_equal(m$pop_ap, m$pop_gp)
+})
+
 # ---- D-SCHEMESELECT: legacy nudge in the bridged-overlap span -----------------
 
 test_that("legacy by-race join in 2000-2020 nudges once toward bridged", {

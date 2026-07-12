@@ -382,6 +382,55 @@ test_that("legacy rejects a sub-national geography column (national pop_est)", {
     }
 })
 
+# ---- P4 origin matrix (single) -----------------------------------------------
+
+test_that("single origins are complementary: hispanic + non_hispanic == all, and differ (G6)", {
+    ## Positive control that the pin is truly lifted: each stratum must get its
+    ## OWN denominator (so hispanic != all-origin), and the two must sum to it.
+    cell <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)[1, ]
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    strat <- rbind(transform(cell, hispanic_origin = "hispanic"),
+                   transform(cell, hispanic_origin = "non_hispanic"))
+    strat$deaths <- 1
+    s <- add_pop_counts(strat, race_scheme = "single", by_vars = by5)
+    ph <- s$pop[s$hispanic_origin == "hispanic"]
+    pnh <- s$pop[s$hispanic_origin == "non_hispanic"]
+    coll <- cell; coll$deaths <- 1
+    pall <- add_pop_counts(coll, race_scheme = "single",
+                           by_vars = c("year", "age", "sex", "race"))$pop
+    expect_equal(ph + pnh, pall)
+    expect_true(ph != pall)
+})
+
+test_that("DD2: a mixed c('all','all',NA) frame hits the carve-out, not the generic message (G3)", {
+    ## Guards against an implementer copy-pasting the sex/age na.rm pattern (which
+    ## would let the NA slip past DD2 while the valid "all" masks it).
+    cell <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)[1, ]
+    frame <- cell[rep(1, 3), ]
+    frame$hispanic_origin <- c("all", "all", NA)
+    frame$deaths <- 1
+    expect_error(
+        add_pop_counts(frame, race_scheme = "single",
+                       by_vars = c("year", "age", "sex", "race", "hispanic_origin")),
+        "no denominator")
+})
+
+test_that("origin-stratified add_pop_counts matches get_pop_state at state grain (single)", {
+    gp <- get_pop_state(scheme = "single", states = "06", years = 2024L,
+                        hispanic_origin = "hispanic")
+    by6 <- c("state_fips", "year", "age", "sex", "race", "hispanic_origin")
+    deaths <- gp[, by6]
+    deaths$deaths <- 1
+    ap <- add_pop_counts(deaths, race_scheme = "single", by_vars = by6)
+    m <- merge(ap, gp, by = by6, suffixes = c("_ap", "_gp"))
+    expect_equal(nrow(m), nrow(gp))
+    expect_equal(m$pop_ap, m$pop_gp)
+})
+
 # ---- get_pop_state() accessor -------------------------------------------------
 
 test_that("get_pop_state() filters and collapses origin", {
