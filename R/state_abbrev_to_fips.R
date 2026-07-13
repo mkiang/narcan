@@ -1,5 +1,8 @@
 #' Replace state abbreviations with their corresponding FIPS code
 #'
+#' Only the 50 US states and the District of Columbia are recognized; territory
+#' abbreviations (e.g. `"PR"`, `"GU"`, `"VI"`) return `NA`, as narcan is US-only.
+#'
 #' @param column a vector of strings with state abbreviations
 #'
 #' @return a new vector with state FIPS (`NA` for unrecognized abbreviations)

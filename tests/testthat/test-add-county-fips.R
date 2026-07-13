@@ -41,8 +41,9 @@ test_that("all-missing state codes raise a clean error (C3)", {
     expect_error(add_county_fips(df, countyrs), "missing or blank")
 })
 
-test_that("ambiguous NCHS code 62 becomes NA with a warning; batch survives (C4)", {
-    # nchs 62 = American Samoa AND N. Mariana Islands: the row goes NA, not abort.
+test_that("territory NCHS code becomes NA with a warning; batch survives (C4)", {
+    # 62 (American Samoa / N. Mariana Islands) is a territory code; narcan is
+    # US-only, so it is not in st_fips_map -- the row goes NA, not abort.
     df <- tibble::tibble(countyrs = c("01001", "06005", "62001"))
     expect_warning(out <- add_county_fips(df, countyrs, year = 2000), "62")
     expect_equal(nrow(out), 3L)

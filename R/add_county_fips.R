@@ -24,11 +24,11 @@
 #' codes with a year >= 2003 (raw files use abbreviations by then); pass
 #' `scheme = "fips"` explicitly for data you have already converted.
 #'
-#' Postal abbreviations that are not U.S. states/territories (e.g. `"ZZ"` for a
-#' foreign/unknown residence) and the ambiguous NCHS code `"62"` (American Samoa
-#' vs. the Northern Mariana Islands) resolve to `NA` state FIPS (with a warning
-#' for genuinely unexpected codes), and their `county_fips` is `NA` rather than a
-#' spurious string.
+#' narcan is US-only: the crosswalk covers the 50 states and DC, not territories.
+#' Any code that is not one of those -- a territory/associated-state code, a
+#' foreign/unknown residence (`"ZZ"`), or an otherwise unrecognized code --
+#' resolves to `NA` state FIPS (with a warning for genuinely unexpected codes),
+#' and its `county_fips` is `NA` rather than a spurious string.
 #'
 #' Safest usage for a subset analysis: call `add_county_fips()` on the full
 #' national frame *first*, then filter to the states you want. Filtering to a
@@ -219,8 +219,11 @@ add_county_fips <- function(df, county_vector, year = NULL,
         lu <- unique(data.frame(state_substr = fips_fmt, st_fips = fips_fmt,
                                 stringsAsFactors = FALSE))
     } else {
-        ## nchs: drop NA-nchs rows and the ambiguous code 62 (maps to 2 FIPS),
-        ## so the join key is unique and 62 resolves to NA instead of aborting.
+        ## nchs: states + DC only (territories are dropped from st_fips_map), so
+        ## every nchs code is present and unique. The NA-drop and de-duplication
+        ## below are defensive -- they keep the join key unique (and unmatched
+        ## codes NA rather than aborting) if the map ever regains an ambiguous
+        ## code. A territory/foreign nchs code is simply unmatched -> NA.
         keep <- !is.na(m$nchs)
         lu <- data.frame(state_substr = sprintf("%02d", m$nchs[keep]),
                          st_fips = fips_fmt[keep], stringsAsFactors = FALSE)
