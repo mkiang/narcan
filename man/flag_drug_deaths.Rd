@@ -22,6 +22,17 @@ both ICD9 and ICD10 codes.For ICD9, it is true if any poison code is in any
 record field. For ICD10, it is true if there is a specific UCOD code
 **and** at least one specified T-code.
 }
+\note{
+The ICD-10 rule requires BOTH a drug-poisoning underlying cause
+  (X40-X44, X60-X64, X85, Y10-Y14) AND at least one drug T-code (T36-T50) on
+  the record. This is marginally stricter than the CDC WONDER / NCHS "drug
+  overdose" count and most other studies, which key on the underlying cause
+  alone. narcan therefore excludes the small number of drug-poisoning-UCOD
+  deaths that carry no drug T-code at all -- on the order of 0.1% (for
+  example, 31 of 27,424 such deaths, 0.11%, in the 2004 public-use file).
+  This is deliberate: every death narcan flags as a drug death carries an
+  identifiable drug T-code.
+}
 \examples{
 df <- data.frame(
     year = 2019,
