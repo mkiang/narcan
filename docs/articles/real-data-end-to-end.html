@@ -97,12 +97,15 @@ live</strong> on the real 2004 counts.</p>
 <div class="section level2">
 <h2 id="get-the-file">Get the file<a class="anchor" aria-label="anchor" href="#get-the-file"></a>
 </h2>
-<p>Download the public-use MCOD fixed-width file for 2004
-(<code>mort2004us</code>, distributed by NCHS and mirrored by NBER).
-<code><a href="../reference/import_mcod_fwf.html">import_mcod_fwf()</a></code> reads the raw fixed-width layout;
-narcan’s <code><a href="../reference/download_mcod_csv.html">download_mcod_csv()</a></code> /
-<code><a href="../reference/download_mcod_dta.html">download_mcod_dta()</a></code> fetch the CSV/Stata versions instead,
-which are a different on-ramp not used here.</p>
+<p>Download the public-use MCOD fixed-width file for 2004 (distributed
+by NCHS and mirrored by NBER as <code>mort2004us.zip</code>). Unzip it
+and pass the extracted <code>.dat</code> to
+<code><a href="../reference/import_mcod_fwf.html">import_mcod_fwf()</a></code>, which reads the raw fixed-width layout –
+the archive’s internal filename may differ from the placeholder below,
+so point the call at whatever the unzip produces. narcan’s
+<code><a href="../reference/download_mcod_csv.html">download_mcod_csv()</a></code> / <code><a href="../reference/download_mcod_dta.html">download_mcod_dta()</a></code>
+fetch the CSV/Stata versions instead, which are a different on-ramp not
+used here.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_mcod_fwf.html">import_mcod_fwf</a></span><span class="op">(</span><span class="st">"mort2004us.dat"</span>, year <span class="op">=</span> <span class="fl">2004</span>, tier <span class="op">=</span> <span class="st">"public"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">raw</span><span class="op">)</span></span>
@@ -154,9 +157,13 @@ rules.</p>
 </h2>
 <p>Standardizing by age needs age in the standard population’s 5-year
 bins, and the population join needs <code>sex</code> as
-<code>"male"</code>/<code>"female"</code>. Both codings changed at data
-year 2003, so the recoders take <code>year</code>;
-<code><a href="../articles/demographic-recodes.html">vignette("demographic-recodes")</a></code> covers them in full.</p>
+<code>"male"</code>/<code>"female"</code>. Sex coding changed at data
+year 2003 (numeric <code>1</code>/<code>2</code> before,
+<code>"M"</code>/<code>"F"</code> after), so
+<code><a href="../reference/categorize_sex.html">categorize_sex()</a></code> takes <code>year</code>.
+<code><a href="../reference/convert_ager27.html">convert_ager27()</a></code> needs no year – the 1-27 AGER27 scheme is
+stable across eras; <code><a href="../articles/demographic-recodes.html">vignette("demographic-recodes")</a></code> covers
+both in full.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">flagged</span><span class="op">$</span><span class="va">sex</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/categorize_sex.html">categorize_sex</a></span><span class="op">(</span><span class="va">flagged</span><span class="op">$</span><span class="va">sex</span>, year <span class="op">=</span> <span class="fl">2004</span><span class="op">)</span>   <span class="co"># "M"/"F" -&gt; male/female</span></span>
 <span><span class="va">flagged</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/convert_ager27.html">convert_ager27</a></span><span class="op">(</span><span class="va">flagged</span><span class="op">)</span>                        <span class="co"># ager27 -&gt; 5-year `age`</span></span></code></pre></div>
@@ -172,10 +179,11 @@ turns 2.4 million records into the 36-row table below.</p>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">age</span>, <span class="va">sex</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>opioid_deaths <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">opioid_death</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span></span></code></pre></div>
-<p>The <code>!is.na()</code> filter drops the four opioid deaths whose
-age or sex was not stated, so the stratified table sums to 13,752 – four
-short of the 13,756 national total above. Deaths with a missing
-stratifier cannot be placed in an age-sex cell.</p>
+<p>The <code>!is.na()</code> filter drops the four opioid deaths with an
+unstated age (none had an unstated sex in this file), so the stratified
+table sums to 13,752 – four short of the 13,756 national total above.
+Deaths with a missing stratifier cannot be placed in an age-sex
+cell.</p>
 <p>That aggregate is small enough to reproduce verbatim – these are the
 <strong>real 2004 opioid-death counts</strong> by 5-year age group and
 sex:</p>
@@ -199,8 +207,9 @@ sex:</p>
 <p>One subtlety matters for standardization. The standard population
 spans all 18 age groups, so every age-sex cell needs its denominator
 even when it saw zero opioid deaths – otherwise the age standard is
-silently truncated. Build the full grid and fill the empty cells with
-0:</p>
+silently truncated. (In 2004 every cell happens to have at least one
+opioid death, but this step is what protects the rate when one does
+not.) Build the full grid and fill any empty cells with 0:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2004L</span>, age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0L</span>, <span class="fl">85L</span>, <span class="fl">5L</span><span class="op">)</span>,</span>
 <span>                      sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"male"</span>, <span class="st">"female"</span><span class="op">)</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -225,14 +234,15 @@ internally consistent series; race is not a <code>by_var</code>, so
 <span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_std_pop.html">add_std_pop</a></span><span class="op">(</span><span class="va">counts</span>, std_cat <span class="op">=</span> <span class="st">"s204"</span>, by_vars <span class="op">=</span> <span class="st">"age"</span><span class="op">)</span></span>
 <span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_asrate_var.html">calc_asrate_var</a></span><span class="op">(</span><span class="va">counts</span>, new_name <span class="op">=</span> <span class="va">opioid</span>,</span>
 <span>                          death_col <span class="op">=</span> <span class="va">opioid_deaths</span>, pop_col <span class="op">=</span> <span class="va">pop</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">counts</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"opioid_deaths"</span>, <span class="st">"pop"</span>, <span class="st">"opioid_rate"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   age    sex opioid_deaths      pop opioid_rate</span></span>
-<span><span class="co">#&gt; 1   0 female            11  9675391   0.1136905</span></span>
-<span><span class="co">#&gt; 2   0   male            15 10110494   0.1483607</span></span>
-<span><span class="co">#&gt; 3  10 female            12 10443706   0.1149017</span></span>
-<span><span class="co">#&gt; 4  10   male            16 10967974   0.1458793</span></span>
-<span><span class="co">#&gt; 5  15 female            86 10242793   0.8396147</span></span>
-<span><span class="co">#&gt; 6  15   male           368 10859759   3.3886572</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">counts</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">counts</span><span class="op">$</span><span class="va">age</span>, <span class="va">counts</span><span class="op">$</span><span class="va">sex</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"opioid_deaths"</span>, <span class="st">"pop"</span>, <span class="st">"opioid_rate"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    age    sex opioid_deaths      pop opioid_rate</span></span>
+<span><span class="co">#&gt; 1    0 female            11  9675391  0.11369050</span></span>
+<span><span class="co">#&gt; 2    0   male            15 10110494  0.14836070</span></span>
+<span><span class="co">#&gt; 19   5 female             1  9503231  0.01052274</span></span>
+<span><span class="co">#&gt; 20   5   male             1  9951006  0.01004924</span></span>
+<span><span class="co">#&gt; 3   10 female            12 10443706  0.11490174</span></span>
+<span><span class="co">#&gt; 4   10   male            16 10967974  0.14587927</span></span></code></pre></div>
 <p><code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code> collapses the 18 age bins into one
 age-standardized rate per sex, reweighting to the US 2000 standard. A
 95% Wald interval follows from the returned variance.</p>
@@ -272,10 +282,10 @@ MCOD (US 2000 standard). Bars are 95% confidence intervals.
 <h2 id="caveats">Caveats<a class="anchor" aria-label="anchor" href="#caveats"></a>
 </h2>
 <p><strong>County geography on the public file.</strong> County FIPS are
-populated only for counties whose 2000-Census population was at least
-100,000; smaller (disproportionately rural) counties collapse to a
-residual code. The 2004 stand-in exercises large-county behavior only –
-the restricted All-County files carry every county.</p>
+populated only for counties with a population of at least 100,000;
+smaller (disproportionately rural) counties collapse to a residual code.
+The 2004 stand-in exercises large-county behavior only – the restricted
+All-County files carry every county.</p>
 <p><strong>Definition.</strong> These counts use narcan’s ISW7
 multiple-cause definitions
 (<code><a href="../articles/classifying-overdose-deaths.html">vignette("classifying-overdose-deaths")</a></code>), which differ
@@ -300,11 +310,17 @@ the import on-ramp.</li>
 <code><a href="../articles/classifying-overdose-deaths.html">vignette("classifying-overdose-deaths")</a></code> – the ISW7 flag
 rules used here.</li>
 <li>
+<code><a href="../articles/population-denominators.html">vignette("population-denominators")</a></code> – the denominator
+schemes and the join used in the rate step.</li>
+<li>
 <code><a href="../articles/age-standardized-rates.html">vignette("age-standardized-rates")</a></code> – the rate pipeline
 in more detail.</li>
 <li>
 <code><a href="../articles/demographic-recodes.html">vignette("demographic-recodes")</a></code> – the age/sex/race
 recoders across eras.</li>
+<li>
+<code><a href="../articles/geography-fips.html">vignette("geography-fips")</a></code> – more on the county-FIPS
+caveat noted above.</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

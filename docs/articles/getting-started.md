@@ -83,7 +83,7 @@ raw04 <- import_mcod_fwf("mort2004us.dat", year = 2004, tier = "public")
 ```
 
 Two caveats. On the public file, county FIPS are populated only for
-counties whose 2000-Census population was at least 100,000; smaller
+counties with a population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code, so this
 stand-in exercises large-county behavior only. And `tier = "restricted"`
 adds nothing for 2004 – the single field it would add (`racer40`) sits

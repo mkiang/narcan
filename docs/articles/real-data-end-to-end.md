@@ -29,10 +29,13 @@ population data) **runs live** on the real 2004 counts.
 
 ## Get the file
 
-Download the public-use MCOD fixed-width file for 2004 (`mort2004us`,
-distributed by NCHS and mirrored by NBER).
-[`import_mcod_fwf()`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md)
-reads the raw fixed-width layout; narcan’s
+Download the public-use MCOD fixed-width file for 2004 (distributed by
+NCHS and mirrored by NBER as `mort2004us.zip`). Unzip it and pass the
+extracted `.dat` to
+[`import_mcod_fwf()`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md),
+which reads the raw fixed-width layout – the archive’s internal filename
+may differ from the placeholder below, so point the call at whatever the
+unzip produces. narcan’s
 [`download_mcod_csv()`](https://mkiang.github.io/narcan/reference/download_mcod_csv.md)
 /
 [`download_mcod_dta()`](https://mkiang.github.io/narcan/reference/download_mcod_dta.md)
@@ -97,10 +100,15 @@ for the exact rules.
 ## Recode age and sex
 
 Standardizing by age needs age in the standard population’s 5-year bins,
-and the population join needs `sex` as `"male"`/`"female"`. Both codings
-changed at data year 2003, so the recoders take `year`;
+and the population join needs `sex` as `"male"`/`"female"`. Sex coding
+changed at data year 2003 (numeric `1`/`2` before, `"M"`/`"F"` after),
+so
+[`categorize_sex()`](https://mkiang.github.io/narcan/reference/categorize_sex.md)
+takes `year`.
+[`convert_ager27()`](https://mkiang.github.io/narcan/reference/convert_ager27.md)
+needs no year – the 1-27 AGER27 scheme is stable across eras;
 [`vignette("demographic-recodes")`](https://mkiang.github.io/narcan/articles/demographic-recodes.md)
-covers them in full.
+covers both in full.
 
 ``` r
 
@@ -122,10 +130,10 @@ agg <- flagged |>
     dplyr::summarize(opioid_deaths = sum(opioid_death), .groups = "drop")
 ```
 
-The `!is.na()` filter drops the four opioid deaths whose age or sex was
-not stated, so the stratified table sums to 13,752 – four short of the
-13,756 national total above. Deaths with a missing stratifier cannot be
-placed in an age-sex cell.
+The `!is.na()` filter drops the four opioid deaths with an unstated age
+(none had an unstated sex in this file), so the stratified table sums to
+13,752 – four short of the 13,756 national total above. Deaths with a
+missing stratifier cannot be placed in an age-sex cell.
 
 That aggregate is small enough to reproduce verbatim – these are the
 **real 2004 opioid-death counts** by 5-year age group and sex:
@@ -153,7 +161,9 @@ agg$year <- 2004L
 One subtlety matters for standardization. The standard population spans
 all 18 age groups, so every age-sex cell needs its denominator even when
 it saw zero opioid deaths – otherwise the age standard is silently
-truncated. Build the full grid and fill the empty cells with 0:
+truncated. (In 2004 every cell happens to have at least one opioid
+death, but this step is what protects the rate when one does not.) Build
+the full grid and fill any empty cells with 0:
 
 ``` r
 
@@ -181,14 +191,15 @@ counts <- add_pop_counts(counts, by_vars = c("year", "age", "sex"),
 counts <- add_std_pop(counts, std_cat = "s204", by_vars = "age")
 counts <- calc_asrate_var(counts, new_name = opioid,
                           death_col = opioid_deaths, pop_col = pop)
-head(counts[, c("age", "sex", "opioid_deaths", "pop", "opioid_rate")])
-#>   age    sex opioid_deaths      pop opioid_rate
-#> 1   0 female            11  9675391   0.1136905
-#> 2   0   male            15 10110494   0.1483607
-#> 3  10 female            12 10443706   0.1149017
-#> 4  10   male            16 10967974   0.1458793
-#> 5  15 female            86 10242793   0.8396147
-#> 6  15   male           368 10859759   3.3886572
+head(counts[order(counts$age, counts$sex),
+            c("age", "sex", "opioid_deaths", "pop", "opioid_rate")])
+#>    age    sex opioid_deaths      pop opioid_rate
+#> 1    0 female            11  9675391  0.11369050
+#> 2    0   male            15 10110494  0.14836070
+#> 19   5 female             1  9503231  0.01052274
+#> 20   5   male             1  9951006  0.01004924
+#> 3   10 female            12 10443706  0.11490174
+#> 4   10   male            16 10967974  0.14587927
 ```
 
 [`calc_stdrate_var()`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md)
@@ -239,7 +250,7 @@ MCOD (US 2000 standard). Bars are 95% confidence intervals.
 ## Caveats
 
 **County geography on the public file.** County FIPS are populated only
-for counties whose 2000-Census population was at least 100,000; smaller
+for counties with a population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code. The
 2004 stand-in exercises large-county behavior only – the restricted
 All-County files carry every county.
@@ -266,7 +277,11 @@ denominator race scheme.
   – the package overview and the import on-ramp.
 - [`vignette("classifying-overdose-deaths")`](https://mkiang.github.io/narcan/articles/classifying-overdose-deaths.md)
   – the ISW7 flag rules used here.
+- [`vignette("population-denominators")`](https://mkiang.github.io/narcan/articles/population-denominators.md)
+  – the denominator schemes and the join used in the rate step.
 - [`vignette("age-standardized-rates")`](https://mkiang.github.io/narcan/articles/age-standardized-rates.md)
   – the rate pipeline in more detail.
 - [`vignette("demographic-recodes")`](https://mkiang.github.io/narcan/articles/demographic-recodes.md)
   – the age/sex/race recoders across eras.
+- [`vignette("geography-fips")`](https://mkiang.github.io/narcan/articles/geography-fips.md)
+  – more on the county-FIPS caveat noted above.

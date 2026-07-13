@@ -168,7 +168,7 @@ you obtain the restricted All-County files:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">raw04</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_mcod_fwf.html">import_mcod_fwf</a></span><span class="op">(</span><span class="st">"mort2004us.dat"</span>, year <span class="op">=</span> <span class="fl">2004</span>, tier <span class="op">=</span> <span class="st">"public"</span><span class="op">)</span></span></code></pre></div>
 <p>Two caveats. On the public file, county FIPS are populated only for
-counties whose 2000-Census population was at least 100,000; smaller
+counties with a population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code, so this
 stand-in exercises large-county behavior only. And
 <code>tier = "restricted"</code> adds nothing for 2004 – the single
