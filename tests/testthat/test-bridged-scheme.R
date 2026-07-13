@@ -182,7 +182,7 @@ test_that("per-year invariant: an NA/stray origin label beside cells errors", {
         narcan:::.guarded_pop_join(
             d, corrupt, c("year", "age", "sex", "race", "hispanic_origin"),
             "bridged"),
-        "invalid|double-count")
+        "invalid Hispanic-origin domain")
 })
 
 test_that("R3: .guarded_pop_join self-defends against a stray pop-dimension column", {
@@ -281,7 +281,7 @@ test_that("per-year invariant catches a corrupt year=NA group (G4)", {
             d, corrupt, c("year", "age", "sex", "race", "hispanic_origin"),
             "bridged"),
         error = function(e) conditionMessage(e))
-    expect_match(msg, "invalid|double-count")
+    expect_match(msg, "invalid Hispanic-origin domain")
     expect_match(msg, "NA")
 })
 
@@ -309,6 +309,35 @@ test_that("origin-stratified add_pop_counts matches get_pop_state at state grain
     gp <- get_pop_state(scheme = "bridged", states = "06", years = 2000L,
                         hispanic_origin = "hispanic")
     by6 <- c("state_fips", "year", "age", "sex", "race", "hispanic_origin")
+    deaths <- gp[, by6]
+    deaths$deaths <- 1
+    ap <- add_pop_counts(deaths, race_scheme = "bridged", by_vars = by6)
+    m <- merge(ap, gp, by = by6, suffixes = c("_ap", "_gp"))
+    expect_equal(nrow(m), nrow(gp))
+    expect_equal(m$pop_ap, m$pop_gp)
+})
+
+test_that("origin-stratified add_pop_counts matches get_pop_county at county grain (bridged, synthetic parquet)", {
+    skip_if_not_installed("duckdb")
+    skip_if_not_installed("DBI")
+    syn <- expand.grid(
+        county_fips = c("06001", "36061"), year = 2000L, age = c(40L, 45L),
+        sex = c("male", "female"),
+        race = c("white", "black", "american_indian", "api"),
+        hispanic_origin = c("hispanic", "non_hispanic"), stringsAsFactors = FALSE)
+    syn$state_fips <- substr(syn$county_fips, 1, 2)
+    syn$pop <- seq_len(nrow(syn)) * 100
+    syn$scheme <- "bridged"; syn$source <- "seer_uspop"; syn$vintage <- "SEER2024"
+    path <- withr::local_tempfile(fileext = ".parquet")
+    con <- DBI::dbConnect(duckdb::duckdb())
+    on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+    duckdb::duckdb_register(con, "syn", syn)
+    DBI::dbExecute(con, sprintf("COPY syn TO '%s' (FORMAT PARQUET)", path))
+    withr::local_options(narcan.pop_bridged_county_parquet = path)
+
+    gp <- get_pop_county(scheme = "bridged", counties = "06001", years = 2000L,
+                         hispanic_origin = "hispanic")
+    by6 <- c("county_fips", "year", "age", "sex", "race", "hispanic_origin")
     deaths <- gp[, by6]
     deaths$deaths <- 1
     ap <- add_pop_counts(deaths, race_scheme = "bridged", by_vars = by6)

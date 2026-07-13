@@ -431,6 +431,34 @@ test_that("origin-stratified add_pop_counts matches get_pop_state at state grain
     expect_equal(m$pop_ap, m$pop_gp)
 })
 
+test_that("origin-stratified add_pop_counts matches get_pop_county at county grain (single, synthetic)", {
+    skip_if_not_installed("duckdb")
+    skip_if_not_installed("DBI")
+    syn <- expand.grid(
+        county_fips = c("06001", "36061"), year = 2024L, age = c(30L, 35L),
+        sex = c("male", "female"), race = c("white_only", "black_only"),
+        hispanic_origin = c("hispanic", "non_hispanic"), stringsAsFactors = FALSE)
+    syn$state_fips <- substr(syn$county_fips, 1, 2)
+    syn$pop <- seq_len(nrow(syn)) * 100
+    syn$scheme <- "single"; syn$source <- "census_pep"; syn$vintage <- "V2024"
+    path <- withr::local_tempfile(fileext = ".parquet")
+    con <- DBI::dbConnect(duckdb::duckdb())
+    on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+    duckdb::duckdb_register(con, "syn", syn)
+    DBI::dbExecute(con, sprintf("COPY syn TO '%s' (FORMAT PARQUET)", path))
+    withr::local_options(narcan.pop_single_county_parquet = path)
+
+    gp <- get_pop_county(scheme = "single", counties = "06001", years = 2024L,
+                         hispanic_origin = "hispanic")
+    by6 <- c("county_fips", "year", "age", "sex", "race", "hispanic_origin")
+    deaths <- gp[, by6]
+    deaths$deaths <- 1
+    ap <- add_pop_counts(deaths, race_scheme = "single", by_vars = by6)
+    m <- merge(ap, gp, by = by6, suffixes = c("_ap", "_gp"))
+    expect_equal(nrow(m), nrow(gp))
+    expect_equal(m$pop_ap, m$pop_gp)
+})
+
 # ---- get_pop_state() accessor -------------------------------------------------
 
 test_that("get_pop_state() filters and collapses origin", {
