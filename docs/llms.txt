@@ -26,9 +26,26 @@ NCHS coding changes, and computes age-standardized rates.
 
 ## Start here
 
-New users should begin with the *Classifying overdose deaths* vignette,
-then work through the rest in order. Read them under Articles on the
-[pkgdown site](https://mkiang.github.io/narcan/articles/).
+New to the package? Begin with the *Getting started* vignette for an
+overview and the raw-data-to-rate pipeline. Then follow the path for
+your task:
+
+- **Compute an overdose death rate:** *Classifying overdose deaths* -\>
+  *Population denominators* -\> *Age-standardized synthetic-opioid death
+  rates by sex*.
+- **See it run on a real file:** *End-to-end on real public-use data
+  (2004)*.
+- **Recode age, sex, and race across eras:** *Demographic recodes across
+  coding eras*.
+- **Stratify by Hispanic origin:** *Hispanic origin: the two recode
+  pairs*.
+- **Work with sub-national geography:** *Harmonizing geography with
+  FIPS*.
+- **Understand unspecified-drug coding over time:** *Trends in
+  unspecified drug overdose deaths*.
+
+All vignettes are under Articles on the [pkgdown
+site](https://mkiang.github.io/narcan/articles/).
 
 ## Installation
 
@@ -74,7 +91,7 @@ Full function reference: <https://mkiang.github.io/narcan/>.
 
 - [`narcan`](https://mkiang.github.io/narcan/reference/narcan-package.md)
   [`narcan-package`](https://mkiang.github.io/narcan/reference/narcan-package.md)
-  : narcan R package for working with multiple cause of death data
+  : narcan: tools for US multiple cause of death (MCOD) data
 
 ## Import & download
 
@@ -281,15 +298,21 @@ Bundled reference tables and crosswalks.
 
 ### Articles
 
+- [Getting started with
+  narcan](https://mkiang.github.io/narcan/articles/getting-started.md):
 - [Classifying overdose deaths
   (ISW7)](https://mkiang.github.io/narcan/articles/classifying-overdose-deaths.md):
-- [Trends in unspecified drug overdose
-  deaths](https://mkiang.github.io/narcan/articles/unspecified-drug-deaths.md):
 - [Population denominators: bridged, single-race, and
   legacy](https://mkiang.github.io/narcan/articles/population-denominators.md):
+- [Age-standardized synthetic-opioid death rates by
+  sex](https://mkiang.github.io/narcan/articles/age-standardized-rates.md):
+- [End-to-end on real public-use data
+  (2004)](https://mkiang.github.io/narcan/articles/real-data-end-to-end.md):
+- [Trends in unspecified drug overdose
+  deaths](https://mkiang.github.io/narcan/articles/unspecified-drug-deaths.md):
+- [Demographic recodes across coding
+  eras](https://mkiang.github.io/narcan/articles/demographic-recodes.md):
 - [Hispanic origin: the two recode
   pairs](https://mkiang.github.io/narcan/articles/hispanic-origin.md):
 - [Harmonizing geography with
   FIPS](https://mkiang.github.io/narcan/articles/geography-fips.md):
-- [Age-standardized fentanyl death rates by
-  sex](https://mkiang.github.io/narcan/articles/age-standardized-rates.md):

@@ -33,12 +33,15 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
-    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+<li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with narcan</a></li>
+    <li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized synthetic-opioid death rates by sex</a></li>
+    <li><a class="dropdown-item" href="../articles/real-data-end-to-end.html">End-to-end on real public-use data (2004)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/demographic-recodes.html">Demographic recodes across coding eras</a></li>
     <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
-    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -72,13 +75,14 @@
     
 <p>County identifiers are not stable across data years. New counties
 appear, a few merge or are renamed, and – more disruptively – NCHS does
-not encode state the same way in every era. Public MCOD files use NCHS
-numeric state codes through 2002 and 2-letter postal abbreviations from
-2003 on, and the numeric schemes overlap while meaning different states
-(NCHS <code>"06"</code> is Colorado; FIPS <code>"06"</code> is
-California). <code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> translates whichever scheme
-a file uses into one 5-digit <code>county_fips</code> that is comparable
-across years.</p>
+not encode state the same way in every era. Public
+multiple-cause-of-death (MCOD) files use NCHS numeric state codes
+through 2002 and 2-letter postal abbreviations from 2003 on, and the
+numeric schemes overlap while meaning different states (NCHS
+<code>"06"</code> is Colorado; FIPS <code>"06"</code> is California).
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> translates whichever scheme a file uses
+into one 5-digit <code>county_fips</code> that is comparable across
+years.</p>
 <p><strong>Public-data caveat.</strong> Public-use MCOD carries state
 and county geography only through <strong>2004</strong>. From 2005 on,
 any sub-national analysis requires the restricted NCHS All-County files.
@@ -215,9 +219,23 @@ exists, it is the join key for sub-national denominators.
 <code>state_fips</code>, so rename <code>st_fips</code> to
 <code>state_fips</code> for a state join, or use the 5-digit
 <code>county_fips</code> directly for a county join (see the companion
-<em>Population denominators</em> vignette). As above, this path is only
-valid for <strong>1999-2004</strong> public data – 2005+ sub-national
-denominators require the restricted NCHS All-County files.</p>
+<code><a href="../articles/population-denominators.html">vignette("population-denominators")</a></code>). As above, this path
+is only valid for <strong>1999-2004</strong> public data – 2005+
+sub-national denominators require the restricted NCHS All-County
+files.</p>
+</div>
+<div class="section level2">
+<h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
+</h2>
+<ul>
+<li>
+<code><a href="../articles/population-denominators.html">vignette("population-denominators")</a></code> – sub-national
+denominators use these FIPS-harmonized geographies as their join
+key.</li>
+<li>
+<code><a href="../articles/getting-started.html">vignette("getting-started")</a></code> – the package overview and
+where this vignette fits in the pipeline.</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

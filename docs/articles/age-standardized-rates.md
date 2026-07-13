@@ -1,17 +1,21 @@
-# Age-standardized fentanyl death rates by sex
+# Age-standardized synthetic-opioid death rates by sex
 
 This vignette turns multiple-cause-of-death (MCOD) records into an
-age-standardized synthetic-opioid death rate by sex, for US residents
-only, across 1999-2024. “Fentanyl” here means synthetic opioids other
-than methadone (ICD-10 **T40.4**), flagged by
+age-standardized **synthetic-opioid** death rate by sex, for US
+residents only, illustrated with 1999, 2010, and 2020. Synthetic opioids
+other than methadone are ICD-10 **T40.4**, flagged by
 [`flag_opioid_types()`](https://mkiang.github.io/narcan/reference/flag_opioid_types.md)
-as `other_synth_present`. T40.4 is the CDC-standard fentanyl proxy, but
-it is a *proxy* – it also captures tramadol, U-47700, and other
-synthetics, so a small share of these deaths are not fentanyl.
-Denominators are the **SEER bridged-race** estimates
-(`race_scheme = "bridged"`, 1969-2024), one era-consistent series that
-predates the fentanyl surge, so a 1999-vs-2024 comparison is not
-confounded by a change in how the Census counts people.
+as `other_synth_present`. T40.4 is the CDC-standard proxy for illicitly
+manufactured fentanyl, but it is a *proxy* – it also captures tramadol,
+U-47700, and other synthetics. Its composition shifts over time: illicit
+fentanyl only came to dominate T40.4 around 2013-2014 (Ciccarone’s
+“third wave”), so early-series T40.4 deaths are largely pharmaceutical
+fentanyl and tramadol, not the illicit-fentanyl phenomenon of recent
+years. Read a long T40.4 series as “synthetic opioids,” not “fentanyl,”
+throughout. Denominators are the **SEER bridged-race** estimates
+(`race_scheme = "bridged"`), one internally consistent race series, so
+the comparison is not confounded by a change in how the Census
+classifies people by race.
 
 All death data below are **small inline synthetic counts, clearly
 labelled illustrative**; only the bundled population denominators are
@@ -19,9 +23,12 @@ real. No chunk reads a restricted record, an external file, or the
 network.
 
 This vignette picks up where flagging leaves off. The *Classifying
-overdose deaths* vignette builds the `drug_death`/`opioid_death` flags
-used here and is the place to start if the flag steps below are
-unfamiliar.
+overdose deaths* vignette
+([`vignette("classifying-overdose-deaths")`](https://mkiang.github.io/narcan/articles/classifying-overdose-deaths.md))
+builds the `drug_death`/`opioid_death` flags used here and is the place
+to start if the flag steps below are unfamiliar. For the full
+record-to-analysis workflow, begin with
+[`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md).
 
 ``` r
 
@@ -31,9 +38,13 @@ library(narcan)
 ## From records to a fentanyl flag
 
 Start with a handful of illustrative record-level rows. Real MCOD data
-carry `restatus` (residency), `ucod` (underlying cause), and
-`f_records_all` (the space-joined multiple-cause T-code string) that the
-flag helpers key on.
+carry `restatus` (residency) and `ucod` (underlying cause) as raw
+columns, plus a *derived* `f_records_all` – the space-joined
+multiple-cause T-code string that the flag helpers key on
+(`f_records_all` is produced by
+[`unite_records()`](https://mkiang.github.io/narcan/reference/unite_records.md);
+see
+[`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)).
 
 ``` r
 
@@ -181,7 +192,11 @@ adds the US 2000 standard population (`pop_std`) and its unit weights
 narcan’s code for that standard population in 18 five-year age bins (the
 default `std_cat`); see
 [`?add_std_pop`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
-for single-year alternatives, which must match your age binning.
+for single-year alternatives, which must match your age binning. Other
+standard populations are available too (e.g., the Segi world standard
+and alternative age binnings) – see
+[`?add_std_pop`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
+and the `std_pops` dataset for the full list of `std_cat` codes.
 
 ``` r
 
@@ -270,11 +285,62 @@ std[, c("year", "sex", "fentanyl_rate", "lower", "upper")]
 #> 6 2020   male    22.9116102 22.6715346 23.1516859
 ```
 
+This normal-approximation (Wald) interval is fine for well-populated
+cells but under-covers when death counts are small – it can even return
+a negative lower bound. For sparse strata (sub-national rates, or fine
+demographic cells; NCHS treats a rate from fewer than 20 deaths as
+unreliable), use a gamma-based interval (Fay and Feuer, *Stat Med* 1997)
+rather than this Wald form.
+
 Because both sexes are standardized to the same US 2000 age structure,
 the male-female gap reflects differences in death *rates*, not in age
 composition – that is the point of age standardization.
 
+Plotting `std` makes both patterns visible at once – the steep rise over
+time and the persistent male-female gap. The chunk below needs ggplot2
+(a Suggests-only dependency), so it only runs when that package is
+installed.
+
+``` r
+
+library(ggplot2)
+
+ggplot(std, aes(x = year, y = fentanyl_rate, color = sex)) +
+    geom_errorbar(aes(ymin = lower, ymax = upper), width = 1.2) +
+    geom_line() +
+    geom_point(size = 2) +
+    scale_x_continuous(breaks = unique(std$year)) +
+    labs(x = "Year", y = "Age-standardized rate per 100,000",
+         color = "Sex") +
+    theme_minimal()
+```
+
+![Line plot of age-standardized synthetic-opioid death rate per 100,000
+against year for 1999, 2010, and 2020, with separate lines for males and
+females. Both lines rise steeply across the period, and the male line
+sits roughly twice as high as the female line in every year. Vertical
+bars show 95% confidence
+intervals.](age-standardized-rates_files/figure-html/plot-1.png)
+
+Age-standardized synthetic-opioid (fentanyl-proxy) death rate per
+100,000 by sex, illustrative data. Points are standardized rates and
+bars are 95% confidence intervals.
+
 These counts are synthetic and illustrative only. A real analysis flags
-the restricted or public MCOD records exactly as shown above (see the
-“Classifying overdose deaths” vignette), aggregates them, and runs this
-same rate pipeline.
+the restricted or public MCOD records exactly as shown above (see
+[`vignette("classifying-overdose-deaths")`](https://mkiang.github.io/narcan/articles/classifying-overdose-deaths.md)),
+aggregates them, and runs this same rate pipeline.
+
+## See also
+
+- [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)
+  – the full pipeline and where rates fit.
+- [`vignette("real-data-end-to-end")`](https://mkiang.github.io/narcan/articles/real-data-end-to-end.md)
+  – this same rate pipeline run on a real public-use file (2004), with
+  real numbers.
+- [`vignette("population-denominators")`](https://mkiang.github.io/narcan/articles/population-denominators.md)
+  – choosing and joining the denominator.
+- [`vignette("hispanic-origin")`](https://mkiang.github.io/narcan/articles/hispanic-origin.md)
+  – add a Hispanic-origin stratum to these rates.
+- [`vignette("geography-fips")`](https://mkiang.github.io/narcan/articles/geography-fips.md)
+  – compute the same rates at sub-national grains.

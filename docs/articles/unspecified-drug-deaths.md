@@ -161,6 +161,28 @@ The T40.6 share falls from 0.40 in 1999 to 0.15 in 2019 – built into
 these illustrative counts, but the identical computation on real MCOD
 records recovers whatever trend the data actually hold.
 
+``` r
+
+library(ggplot2)
+
+ggplot(unspec, aes(x = year, y = t406_share)) +
+    geom_line() +
+    geom_point() +
+    labs(
+        x = "Year",
+        y = "T40.6 share of opioid deaths",
+        title = "Unspecified-opioid-type (T40.6) share by year"
+    )
+```
+
+![Line-and-point chart of the T40.6 (other and unspecified opioid) share
+of opioid deaths by year. The share falls from about 0.40 in 1999 to
+about 0.15 in
+2019.](unspecified-drug-deaths_files/figure-html/plot-1.png)
+
+T40.6 (other/unspecified opioid) share of opioid deaths by year,
+computed from the illustrative records above.
+
 ## Caveats
 
 T40.6 is the standard ICD-10 proxy for an unspecified opioid, but the
@@ -177,7 +199,19 @@ across the known types before computing drug-specific rates; narcan
 gives you the raw flags so you can measure the unspecified share first
 and decide how to adjust for it yourself.
 
+The unspecified share also varies markedly **by jurisdiction**, not only
+over time – some states (Pennsylvania is a persistent example) code a
+far higher fraction as unspecified than others (Buchanich et al. 2018;
+Ruhm 2018), and ISW7 notes the opioid purity of T40.6 itself varies by
+jurisdiction (it can occasionally capture non-opioid narcotics). A
+reassuring national decline can hide states where specificity stays
+poor, so check the share sub-nationally before trusting drug-specific
+rates there.
+
 ## See also
 
-**Classifying overdose deaths** – the full ISW7 flag pipeline behind the
-three steps walked through here.
+- [`vignette("classifying-overdose-deaths")`](https://mkiang.github.io/narcan/articles/classifying-overdose-deaths.md)
+  – the full ISW7 flag pipeline behind the three steps walked through
+  here.
+- [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)
+  – the full raw-data-to-rate pipeline and where this vignette fits.

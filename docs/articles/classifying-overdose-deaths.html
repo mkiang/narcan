@@ -33,12 +33,15 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
-    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+<li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with narcan</a></li>
+    <li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized synthetic-opioid death rates by sex</a></li>
+    <li><a class="dropdown-item" href="../articles/real-data-end-to-end.html">End-to-end on real public-use data (2004)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/demographic-recodes.html">Demographic recodes across coding eras</a></li>
     <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
-    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -140,8 +143,9 @@ a row, so you can watch the classification build up step by step. Pass
 <code>year</code> to select the coding era.</p>
 <p>In real use, <code>f_records_all</code> is not hand-built – you read
 the raw fixed-width MCOD file with <code><a href="../reference/import_mcod_fwf.html">import_mcod_fwf()</a></code> and
-collapse its multiple-cause fields with <code><a href="../reference/unite_records.html">unite_records()</a></code>,
-which is where a newcomer with real data should start.</p>
+collapse its multiple-cause fields with <code><a href="../reference/unite_records.html">unite_records()</a></code>.
+See <code><a href="../articles/getting-started.html">vignette("getting-started")</a></code> for that on-ramp, which is
+where a newcomer with real data should start.</p>
 <p><strong>Step 1.</strong> <code><a href="../reference/flag_drug_deaths.html">flag_drug_deaths()</a></code> adds
 <code>drug_death</code>. The two non-drug rows (I250, C509) score 0;
 every drug-poisoning row scores 1, including the psychostimulant row
@@ -233,8 +237,18 @@ specific T40 subtypes – <code>opium_present</code> (T40.0),
 <code>other_synth_present</code> (T40.4, the fentanyl proxy), and
 <code>other_op_present</code> (T40.6).
 <code>unspecified_op_present</code> is the residual for an opioid death
-where none of the six matched, and <code>num_opioids</code> counts how
-many distinct subtypes appear on the record. The polydrug row
+where none of the six matched; for ICD-10 data (1999+) it is
+<strong>always 0 by construction</strong>, because every ICD-10 opioid
+T40 code falls into at least one of those six subtypes – it fires only
+for the pre-1999 ICD-9 residual (code 965.0). If you want the share of
+opioid deaths with an <em>unspecified</em> opioid type in modern data,
+the column you want is <code>other_op_present</code> (T40.6, “other and
+unspecified narcotics”), not the similarly named
+<code>unspecified_op_present</code>; see
+<code><a href="../articles/unspecified-drug-deaths.html">vignette("unspecified-drug-deaths")</a></code>.
+<code>num_opioids</code> counts how many distinct subtypes appear on the
+record, and <code>multi_opioids</code> is 1 when
+<code>num_opioids &gt; 1</code>. The polydrug row
 (<code>T401 T404</code>) shows <code>num_opioids = 2</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">subtype_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -266,19 +280,38 @@ many distinct subtypes appear on the record. The polydrug row
 <span><span class="co">#&gt; 6           1</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="icd-9-versus-icd-10-dispatch">ICD-9 versus ICD-10 dispatch<a class="anchor" aria-label="anchor" href="#icd-9-versus-icd-10-dispatch"></a>
+<h2 id="matching-year-to-the-coding-era">Matching <code>year</code> to the coding era<a class="anchor" aria-label="anchor" href="#matching-year-to-the-coding-era"></a>
 </h2>
 <p>Every flagger dispatches on <code>year</code>. Data years before 1999
 use ICD-9 logic; 1999 onward uses the ICD-10 rules shown here. Match
 <code>year</code> to the data year of the records so the correct code
 list is applied – there is no default era.</p>
+<p>Counts are <strong>not directly comparable across the 1999
+ICD-9-to-ICD-10 revision</strong>. NCHS documents that drug-poisoning
+death counts before and after the revision require a comparability-ratio
+adjustment before they can be joined into one trend – the numerator
+analog of the “not comparable” caveat on the denominator schemes (see
+<code><a href="../articles/population-denominators.html">vignette("population-denominators")</a></code>). Concatenating raw
+pre- and post-1999 counts produces an artifactual step at the
+boundary.</p>
 </div>
 <div class="section level2">
 <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
-<p><strong>Population denominators</strong> – attach a matching
+<ul>
+<li>
+<code><a href="../articles/population-denominators.html">vignette("population-denominators")</a></code> – attach a matching
 population to these flagged counts, the next step before computing any
-rate.</p>
+rate.</li>
+<li>
+<code><a href="../articles/getting-started.html">vignette("getting-started")</a></code> – the full raw-data-to-rate
+pipeline and where this vignette fits.</li>
+<li>Related flags not covered here:
+<code><a href="../reference/flag_opioid_contributed.html">flag_opioid_contributed()</a></code> (opioids as a contributory rather
+than underlying cause), <code><a href="../reference/flag_nonopioid_drug_deaths.html">flag_nonopioid_drug_deaths()</a></code>, and
+<code><a href="../reference/flag_od_intent.html">flag_od_intent()</a></code> (unintentional / suicide / homicide /
+undetermined intent).</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

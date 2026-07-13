@@ -10,9 +10,13 @@ so set `race_scheme` deliberately.
 
 | Scheme | `race_scheme` | Source | Coverage | Use for |
 |----|----|----|----|----|
-| Legacy bridged | `"legacy"` (default) | frozen `pop_est` (single-race-alone PEP) | 1979-2020 | reproducing published bridged-race rates byte-for-byte |
-| Single-race | `"single"` | Census PEP single-race (OMB 1997) | 2000-2024 | 2022+ single-race deaths (codes 101-106) |
-| SEER bridged | `"bridged"` | SEER U.S. Population Data (Vintage 2024) | 1969-2024 | coherent bridged-race trends, including pre-2020 |
+| Legacy (historical NCHS) | `"legacy"` (default) | frozen `pop_est` (single-race-alone PEP) | 1979-2020 | reproducing prior narcan-based analyses byte-for-byte |
+| Single-race | `"single"` | Census PEP single-race (OMB 1997) | 2000-2024 | 2021+ single-race deaths (codes 101-106) |
+| SEER bridged | `"bridged"` | SEER U.S. Population Data (Vintage 2024) | 1969-2024 (population) | coherent bridged-race trends, deaths through 2020 |
+
+(PEP = Census Population Estimates Program; OMB 1997 = the 1997 OMB
+race/ethnicity standards; SEER = NCI’s Surveillance, Epidemiology, and
+End Results program.)
 
 All data here are public (bundled Census/SEER estimates, or a small
 bundled county fixture) plus synthetic death counts; no restricted NCHS
@@ -33,9 +37,15 @@ returns a national denominator; adding `state_fips` or `county_fips` to
 
 ### Legacy (the default)
 
-`race_scheme = "legacy"` joins the frozen `pop_est` and reproduces the
-historical behavior byte-for-byte: unmatched keys warn and leave
-`pop = NA`. Use it only to reproduce published bridged-race rates.
+`race_scheme = "legacy"` joins the frozen `pop_est` and reproduces
+narcan’s historical behavior byte-for-byte: unmatched keys warn and
+leave `pop = NA`. `pop_est` is a pieced-together series whose race
+labels are `white`/`black`/`other`/`nhw` (not the four bridged
+categories) and whose 2000-2020 denominators are single-race-alone
+Census estimates. It exists to reproduce **prior narcan-based analyses**
+exactly – it is not the official NCHS bridged-race series. For a
+coherent bridged-race denominator use `"bridged"`; for 2000+ single-race
+deaths use `"single"`.
 
 ``` r
 
@@ -45,21 +55,21 @@ add_pop_counts(legacy)                    # default scheme; adds `pop`
 #> 1 1999  25 male white 7289220
 ```
 
-For 2000-2020 the legacy denominator is single-race-alone (it runs low
-against bridged-race deaths), so
+For 2000-2020 the legacy denominator is single-race-alone, which
+undercounts the multiple-race population and so inflates race-specific
+rates (especially for the AIAN and API groups);
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
 nudges you once per session in that span toward `"bridged"` or
 `"single"`.
 
-### Single-race, end to end
+### Single-race
 
 `race_scheme = "single"` joins single-race denominators (2000-2024) for
 deaths coded 101-106
 (`white_only`/`black_only`/`american_indian_only`/`asian_only`/
-`nhopi_only`/`multiracial`). It is strict: out-of-domain age/sex/race
-and any unmatched key hard-error, so a denominator is never silently
-`NA`. Below is a full `asian_only` age-standardized rate, one step at a
-time.
+`nhopi_only`/`multiracial`; `nhopi` = Native Hawaiian or Other Pacific
+Islander). It is strict: out-of-domain age/sex/race and any unmatched
+key hard-error, so a denominator is never silently `NA`.
 
 ``` r
 
@@ -94,65 +104,32 @@ head(rated)
 #> 6 2024  25 male asian_only     55 826163     single
 ```
 
-[`add_std_pop()`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
-adds the US 2000 standard population (`pop_std`) and its unit weights
-(`unit_w`, summing to 1 across age groups). `s204` is narcan’s code for
-that standard population in 18 five-year age bins (the default
-`std_cat`); see
-[`?add_std_pop`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
-for single-year alternatives, which must match your age binning:
-
-``` r
-
-weighted <- add_std_pop(rated, std_cat = "s204", by_vars = "age")
-head(weighted[, c("age", "sex", "pop", "pop_std", "unit_w")])
-#>   age  sex    pop  pop_std     unit_w
-#> 1   0 male 600728 18986520 0.06913399
-#> 2   5 male 678658 19919840 0.07253241
-#> 3  10 male 659666 20056779 0.07303103
-#> 4  15 male 666097 19819518 0.07216712
-#> 5  20 male 760220 18257225 0.06647847
-#> 6  25 male 826163 17722067 0.06452985
-```
-
+From the matched `pop`, the rate pipeline
+([`add_std_pop()`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
+-\>
 [`calc_asrate_var()`](https://mkiang.github.io/narcan/reference/calc_asrate_var.md)
-adds the **age-specific** rate per 100,000 (`drug_rate`) and its Poisson
-variance (`drug_var`) – one rate per age/sex cell:
-
-``` r
-
-asr <- calc_asrate_var(weighted, new_name = drug, death_col = deaths)
-head(asr[, c("age", "sex", "deaths", "pop", "drug_rate", "drug_var")])
-#>   age  sex deaths    pop drug_rate   drug_var
-#> 1   0 male      1 600728 0.1664647 0.02771049
-#> 2   5 male      2 678658 0.2946992 0.04342382
-#> 3  10 male      5 659666 0.7579593 0.11490047
-#> 4  15 male     12 666097 1.8015394 0.27046202
-#> 5  20 male     30 760220 3.9462261 0.51909001
-#> 6  25 male     55 826163 6.6572819 0.80580732
-```
-
-[`calc_stdrate_var()`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md)
-collapses the age bins into one **age-standardized** rate per group
-(grouping is not automatic – pass every dimension to keep):
-
-``` r
-
-calc_stdrate_var(asr, drug_rate, drug_var, sex, race)
-#> # A tibble: 2 × 4
-#> # Groups:   sex [2]
-#>   sex    race       drug_rate drug_var
-#>   <chr>  <chr>          <dbl>    <dbl>
-#> 1 female asian_only      2.48   0.0199
-#> 2 male   asian_only      2.91   0.0274
-```
+-\>
+[`calc_stdrate_var()`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md))
+turns these counts into an age-standardized rate. That pipeline –
+including the standard-population choice and confidence intervals – is
+walked through step by step in
+[`vignette("age-standardized-rates")`](https://mkiang.github.io/narcan/articles/age-standardized-rates.md).
 
 ### Bridged (SEER-uniform, era-ragged)
 
 `race_scheme = "bridged"` joins the SEER bridged denominators
-(1969-2024). It is strict and era-ragged: SEER resolves AIAN/API and
-Hispanic origin only from 1990 (pre-1990 is white/black/other), so
-`year` MUST be a join key.
+(1969-2024). It is strict and era-ragged (the set of valid race and
+origin categories changes by year, so coverage is uneven across eras):
+SEER resolves AIAN/API (American Indian or Alaska Native / Asian or
+Pacific Islander) and Hispanic origin only from 1990 (pre-1990 is
+white/black/other), so `year` MUST be a join key.
+
+The “1969-2024” coverage is *population* availability. On the death
+side, NCHS bridged-race coding ends with data year 2020 (2021 is
+reserved; single-race codes 101-106 begin in 2022), so there is no
+bridged-race-coded death series to pair with the 2021-2024 population –
+use `"single"` for 2021+ deaths. Treat `"bridged"` as a coherent race
+series **through 2020**.
 
 ``` r
 
@@ -217,9 +194,10 @@ add_pop_counts(both_sex, race_scheme = "single")$pop        # male + female
 
 Include `state_fips` (or `county_fips`) in `by_vars` to route to
 sub-national denominators. The state single-race table is bundled, so a
-state join needs no extra package. See the *Harmonizing geography with
-FIPS* article for how to derive harmonized `state_fips`/`county_fips`
-columns from raw NCHS fields.
+state join needs no extra package. See
+[`vignette("geography-fips")`](https://mkiang.github.io/narcan/articles/geography-fips.md)
+for how to derive harmonized `state_fips`/`county_fips` columns from raw
+NCHS fields.
 
 ``` r
 
@@ -246,6 +224,10 @@ Public MCOD carries state/county geographic detail only through data
 year 2004 (2005+ county detail needs restricted NCHS files). The county
 denominators are distributed as a downloadable parquet; here we point
 narcan at the small bundled Wyoming fixture instead of a live download.
+
+This example needs the optional `duckdb` package
+(`install.packages("duckdb")`); with it absent, the chunk below simply
+produces no output.
 
 ``` r
 
@@ -308,8 +290,9 @@ get_pop_state(scheme = "single", years = 2025)
 
 [`pop_sources()`](https://mkiang.github.io/narcan/reference/pop_sources.md)
 prints the manifest – dataset, scheme, grain, vintage, and coverage for
-every dataset. Check a bundled dataset’s vintage before mixing it with a
-freshly downloaded file.
+every single-race and bridged dataset (the frozen legacy `pop_est`
+predates this download-manifest system). Check a bundled dataset’s
+vintage before mixing it with a freshly downloaded file.
 
 ``` r
 
@@ -352,6 +335,7 @@ add_pop_counts(all_origin, race_scheme = "single",
 ``` r
 
 # Origin-stratified: the non-denominable unknowns are dropped; origin is a key.
+# ('denominable' means it has a matching population to divide by.)
 strat <- data.frame(
     year = 2024L, age = 30L, sex = "female", race = "white_only",
     hispanic_origin = c("hispanic", "non_hispanic"), deaths = c(12, 210)
@@ -387,5 +371,9 @@ mistakes impossible.
 
 ## See also
 
-**Age-standardized fentanyl death rates by sex** – feeds these
-denominators through a full age-standardized rate pipeline end to end.
+- [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)
+  – the package overview and where population denominators fit in the
+  workflow.
+- [`vignette("age-standardized-rates")`](https://mkiang.github.io/narcan/articles/age-standardized-rates.md)
+  – feeds these denominators through a full age-standardized rate
+  pipeline end to end.

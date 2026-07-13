@@ -2,10 +2,11 @@
 
 County identifiers are not stable across data years. New counties
 appear, a few merge or are renamed, and – more disruptively – NCHS does
-not encode state the same way in every era. Public MCOD files use NCHS
-numeric state codes through 2002 and 2-letter postal abbreviations from
-2003 on, and the numeric schemes overlap while meaning different states
-(NCHS `"06"` is Colorado; FIPS `"06"` is California).
+not encode state the same way in every era. Public
+multiple-cause-of-death (MCOD) files use NCHS numeric state codes
+through 2002 and 2-letter postal abbreviations from 2003 on, and the
+numeric schemes overlap while meaning different states (NCHS `"06"` is
+Colorado; FIPS `"06"` is California).
 [`add_county_fips()`](https://mkiang.github.io/narcan/reference/add_county_fips.md)
 translates whichever scheme a file uses into one 5-digit `county_fips`
 that is comparable across years.
@@ -161,6 +162,15 @@ names its state column `st_fips`;
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
 keys on `state_fips`, so rename `st_fips` to `state_fips` for a state
 join, or use the 5-digit `county_fips` directly for a county join (see
-the companion *Population denominators* vignette). As above, this path
-is only valid for **1999-2004** public data – 2005+ sub-national
-denominators require the restricted NCHS All-County files.
+the companion
+[`vignette("population-denominators")`](https://mkiang.github.io/narcan/articles/population-denominators.md)).
+As above, this path is only valid for **1999-2004** public data – 2005+
+sub-national denominators require the restricted NCHS All-County files.
+
+## See also
+
+- [`vignette("population-denominators")`](https://mkiang.github.io/narcan/articles/population-denominators.md)
+  – sub-national denominators use these FIPS-harmonized geographies as
+  their join key.
+- [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)
+  – the package overview and where this vignette fits in the pipeline.

@@ -40,11 +40,14 @@ accidentally combined. The `"legacy"` output is unchanged.
 
 ## Details
 
-`race_scheme = "legacy"` (default) joins the frozen bridged-race
+`race_scheme = "legacy"` (default) joins the frozen
 [`narcan::pop_est`](https://mkiang.github.io/narcan/reference/pop_est.md)
 (1979-2020) and reproduces the historical behavior byte-for-byte:
-unmatched keys warn and leave `pop = NA`. Use this to reproduce
-published bridged-race rates.
+unmatched keys warn and leave `pop = NA`. It reproduces published
+bridged-race rates, though `pop_est` is a pieced-together legacy series
+– its 2000-2020 denominators are single-race-alone Census estimates,
+which run low against bridged-race death counts. Prefer `"bridged"` for
+a coherent 1969-2024 series.
 
 `race_scheme = "single"` joins the single-race denominators
 (`pop_singlerace_full`, 2000-2024; the frozen `pop_singlerace` 2020-2024
@@ -80,9 +83,9 @@ before joining.
 
 ## Note
 
-Legacy bridged-race (`"legacy"`), SEER bridged (`"bridged"`), and
-single-race (`"single"`) schemes are NOT comparable and must not be
-chained into a single trend. `"legacy"` and `"bridged"` share the labels
+Legacy (`"legacy"`), SEER bridged (`"bridged"`), and single-race
+(`"single"`) schemes are NOT comparable and must not be chained into a
+single trend. `"legacy"` and `"bridged"` share the labels
 white/black/other/total, so passing the wrong `race_scheme` cannot be
 detected automatically – set it deliberately. For Hispanic-stratified
 denominators, add a `hispanic_origin` column

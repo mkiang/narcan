@@ -22,12 +22,15 @@ join so the same correctness guards always apply."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
-    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with narcan</a></li>
+    <li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized synthetic-opioid death rates by sex</a></li>
+    <li><a class="dropdown-item" href="../articles/real-data-end-to-end.html">End-to-end on real public-use data (2004)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/demographic-recodes.html">Demographic recodes across coding eras</a></li>
     <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
-    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -89,10 +92,13 @@ into <code>year</code> per row when <code>year</code> is absent or <code>NA</cod
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><code>race_scheme = "legacy"</code> (default) joins the frozen bridged-race
-<code><a href="pop_est.html">narcan::pop_est</a></code> (1979-2020) and reproduces the historical behavior
-byte-for-byte: unmatched keys warn and leave <code>pop = NA</code>. Use this to
-reproduce published bridged-race rates.</p>
+    <p><code>race_scheme = "legacy"</code> (default) joins the frozen <code><a href="pop_est.html">narcan::pop_est</a></code>
+(1979-2020) and reproduces the historical behavior byte-for-byte: unmatched
+keys warn and leave <code>pop = NA</code>. It reproduces published bridged-race
+rates, though <code>pop_est</code> is a pieced-together legacy series – its
+2000-2020 denominators are single-race-alone Census estimates, which run low
+against bridged-race death counts. Prefer <code>"bridged"</code> for a coherent
+1969-2024 series.</p>
 <p><code>race_scheme = "single"</code> joins the single-race denominators
 (<code>pop_singlerace_full</code>, 2000-2024; the frozen <code>pop_singlerace</code>
 2020-2024 slice is used unchanged when no pre-2020 year is requested) for
@@ -120,7 +126,7 @@ filipino) have no separate bridged denominator; collapse them to <code>api</code
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>Legacy bridged-race (<code>"legacy"</code>), SEER bridged (<code>"bridged"</code>),
+    <p>Legacy (<code>"legacy"</code>), SEER bridged (<code>"bridged"</code>),
   and single-race (<code>"single"</code>) schemes are NOT comparable and must not be
   chained into a single trend. <code>"legacy"</code> and <code>"bridged"</code> share the
   labels white/black/other/total, so passing the wrong <code>race_scheme</code>

@@ -33,12 +33,15 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
-    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+<li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with narcan</a></li>
+    <li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized synthetic-opioid death rates by sex</a></li>
+    <li><a class="dropdown-item" href="../articles/real-data-end-to-end.html">End-to-end on real public-use data (2004)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/demographic-recodes.html">Demographic recodes across coding eras</a></li>
     <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
-    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -138,13 +141,17 @@ a population.</p>
 <span><span class="co">#&gt; 9 Levels: mexican &lt; puerto_rican &lt; cuban &lt; ... &lt; hispanic_unknown</span></span>
 <span><span class="fu"><a href="../reference/categorize_hispanic_origin.html">categorize_hispanic_origin</a></span><span class="op">(</span><span class="va">codes</span>, year <span class="op">=</span> <span class="fl">2019</span><span class="op">)</span>   <span class="co"># binary (for rates)</span></span>
 <span><span class="co">#&gt; [1] "hispanic"     "hispanic"     "non_hispanic" "unknown"</span></span></code></pre></div>
+<p><code><a href="../reference/categorize_hspanicr.html">categorize_hspanicr()</a></code> prints as an ordered factor
+(<code>9 Levels: mexican &lt; puerto_rican &lt; cuban &lt; ...</code>);
+the <code>&lt;</code> is just R’s print order for a canonical tabulation
+sequence, not a ranking.</p>
 <p>Two subtleties are baked into the binary recode. Code 5 (“Other or
 unknown Hispanic”) <strong>is</strong> Hispanic, so it maps to
 <code>"hispanic"</code>; only code 9 (“Hispanic origin unknown/not
 stated”) maps to <code>"unknown"</code>. And <code>year</code> is
 required, because the recode changed from 9 categories (1989-2020) to 14
-(2022+) and is reserved in 2021 – the two schemes are not comparable,
-though the binary axis they collapse to is.</p>
+(2022+) and is reserved (not populated) in 2021 – the two schemes are
+not comparable, though the binary axis they collapse to is.</p>
 </div>
 <div class="section level2">
 <h2 id="adding-the-column-and-joining-a-denominator">Adding the column and joining a denominator<a class="anchor" aria-label="anchor" href="#adding-the-column-and-joining-a-denominator"></a>
@@ -224,7 +231,11 @@ it in <code>by_vars</code> errors on the stray column.</p>
 <div class="section level2">
 <h2 id="the-mixed-era-trap">The mixed-era trap<a class="anchor" aria-label="anchor" href="#the-mixed-era-trap"></a>
 </h2>
-<p>SEER resolves Hispanic origin only from 1990. Before 1990 the bridged
+<p>Note the race label changes with the scheme –
+<code>bridged</code>/<code>legacy</code> use <code>white</code>,
+<code>single</code> uses <code>white_only</code>; they are not
+interchangeable (this is exactly the kind of quiet mismatch to avoid).
+SEER resolves Hispanic origin only from 1990. Before 1990 the bridged
 denominators carry origin <code>"all"</code> only, so there is no such
 thing as a pre-1990 Hispanic-specific rate – the population does not
 exist. <code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> enforces this: a pre-1990 row with
@@ -293,8 +304,23 @@ Certificates in the United States: An Update. <em>Vital Health Stat
 <p><strong>Incomplete early reporting.</strong> The Hispanic-origin item
 was phased onto state death certificates through about 1997, so national
 origin-stratified numerators for 1990-1996 undercount Hispanic deaths
-and the resulting rates run low. <code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> emits a
-once-per-session message when a bridged join touches that span.</p>
+and the resulting rates run low. The undercount was concentrated in
+late-adopting states, so it is not a uniform national adjustment.
+<code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> emits a once-per-session message when a
+bridged join touches that span.</p>
+</div>
+<div class="section level2">
+<h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
+</h2>
+<ul>
+<li>
+<code><a href="../articles/population-denominators.html">vignette("population-denominators")</a></code> – the parent
+denominators topic: schemes, race labels, and the join guards this
+vignette builds on.</li>
+<li>
+<code><a href="../articles/getting-started.html">vignette("getting-started")</a></code> – the package
+overview.</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

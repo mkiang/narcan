@@ -4,7 +4,7 @@
 
 - [`narcan`](https://mkiang.github.io/narcan/reference/narcan-package.md)
   [`narcan-package`](https://mkiang.github.io/narcan/reference/narcan-package.md)
-  : narcan R package for working with multiple cause of death data
+  : narcan: tools for US multiple cause of death (MCOD) data
 
 ## Import & download
 

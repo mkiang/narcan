@@ -33,12 +33,15 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
-    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+<li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with narcan</a></li>
+    <li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized synthetic-opioid death rates by sex</a></li>
+    <li><a class="dropdown-item" href="../articles/real-data-end-to-end.html">End-to-end on real public-use data (2004)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/demographic-recodes.html">Demographic recodes across coding eras</a></li>
     <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
-    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -94,29 +97,32 @@ deliberately.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Legacy bridged</td>
+<td>Legacy (historical NCHS)</td>
 <td>
 <code>"legacy"</code> (default)</td>
 <td>frozen <code>pop_est</code> (single-race-alone PEP)</td>
 <td>1979-2020</td>
-<td>reproducing published bridged-race rates byte-for-byte</td>
+<td>reproducing prior narcan-based analyses byte-for-byte</td>
 </tr>
 <tr class="even">
 <td>Single-race</td>
 <td><code>"single"</code></td>
 <td>Census PEP single-race (OMB 1997)</td>
 <td>2000-2024</td>
-<td>2022+ single-race deaths (codes 101-106)</td>
+<td>2021+ single-race deaths (codes 101-106)</td>
 </tr>
 <tr class="odd">
 <td>SEER bridged</td>
 <td><code>"bridged"</code></td>
 <td>SEER U.S. Population Data (Vintage 2024)</td>
-<td>1969-2024</td>
-<td>coherent bridged-race trends, including pre-2020</td>
+<td>1969-2024 (population)</td>
+<td>coherent bridged-race trends, deaths through 2020</td>
 </tr>
 </tbody>
 </table>
+<p>(PEP = Census Population Estimates Program; OMB 1997 = the 1997 OMB
+race/ethnicity standards; SEER = NCI’s Surveillance, Epidemiology, and
+End Results program.)</p>
 <p>All data here are public (bundled Census/SEER estimates, or a small
 bundled county fixture) plus synthetic death counts; no restricted NCHS
 records are used, and no chunk downloads anything.</p>
@@ -136,29 +142,37 @@ denominators.</p>
 <h3 id="legacy-the-default">Legacy (the default)<a class="anchor" aria-label="anchor" href="#legacy-the-default"></a>
 </h3>
 <p><code>race_scheme = "legacy"</code> joins the frozen
-<code>pop_est</code> and reproduces the historical behavior
-byte-for-byte: unmatched keys warn and leave <code>pop = NA</code>. Use
-it only to reproduce published bridged-race rates.</p>
+<code>pop_est</code> and reproduces narcan’s historical behavior
+byte-for-byte: unmatched keys warn and leave <code>pop = NA</code>.
+<code>pop_est</code> is a pieced-together series whose race labels are
+<code>white</code>/<code>black</code>/<code>other</code>/<code>nhw</code>
+(not the four bridged categories) and whose 2000-2020 denominators are
+single-race-alone Census estimates. It exists to reproduce <strong>prior
+narcan-based analyses</strong> exactly – it is not the official NCHS
+bridged-race series. For a coherent bridged-race denominator use
+<code>"bridged"</code>; for 2000+ single-race deaths use
+<code>"single"</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">legacy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">1999L</span>, age <span class="op">=</span> <span class="fl">25L</span>, sex <span class="op">=</span> <span class="st">"male"</span>, race <span class="op">=</span> <span class="st">"white"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">legacy</span><span class="op">)</span>                    <span class="co"># default scheme; adds `pop`</span></span>
 <span><span class="co">#&gt;   year age  sex  race     pop</span></span>
 <span><span class="co">#&gt; 1 1999  25 male white 7289220</span></span></code></pre></div>
-<p>For 2000-2020 the legacy denominator is single-race-alone (it runs
-low against bridged-race deaths), so <code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code>
-nudges you once per session in that span toward <code>"bridged"</code>
-or <code>"single"</code>.</p>
+<p>For 2000-2020 the legacy denominator is single-race-alone, which
+undercounts the multiple-race population and so inflates race-specific
+rates (especially for the AIAN and API groups);
+<code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> nudges you once per session in that span
+toward <code>"bridged"</code> or <code>"single"</code>.</p>
 </div>
 <div class="section level3">
-<h3 id="single-race-end-to-end">Single-race, end to end<a class="anchor" aria-label="anchor" href="#single-race-end-to-end"></a>
+<h3 id="single-race">Single-race<a class="anchor" aria-label="anchor" href="#single-race"></a>
 </h3>
 <p><code>race_scheme = "single"</code> joins single-race denominators
 (2000-2024) for deaths coded 101-106
 (<code>white_only</code>/<code>black_only</code>/<code>american_indian_only</code>/<code>asian_only</code>/
-<code>nhopi_only</code>/<code>multiracial</code>). It is strict:
-out-of-domain age/sex/race and any unmatched key hard-error, so a
-denominator is never silently <code>NA</code>. Below is a full
-<code>asian_only</code> age-standardized rate, one step at a time.</p>
+<code>nhopi_only</code>/<code>multiracial</code>; <code>nhopi</code> =
+Native Hawaiian or Other Pacific Islander). It is strict: out-of-domain
+age/sex/race and any unmatched key hard-error, so a denominator is never
+silently <code>NA</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">deaths</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span></span>
 <span>    year <span class="op">=</span> <span class="fl">2024L</span>, age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">85</span>, <span class="fl">5</span><span class="op">)</span>, sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"male"</span>, <span class="st">"female"</span><span class="op">)</span>,</span>
@@ -185,55 +199,29 @@ column:</p>
 <span><span class="co">#&gt; 4 2024  15 male asian_only     12 666097     single</span></span>
 <span><span class="co">#&gt; 5 2024  20 male asian_only     30 760220     single</span></span>
 <span><span class="co">#&gt; 6 2024  25 male asian_only     55 826163     single</span></span></code></pre></div>
-<p><code><a href="../reference/add_std_pop.html">add_std_pop()</a></code> adds the US 2000 standard population
-(<code>pop_std</code>) and its unit weights (<code>unit_w</code>,
-summing to 1 across age groups). <code>s204</code> is narcan’s code for
-that standard population in 18 five-year age bins (the default
-<code>std_cat</code>); see <code><a href="../reference/add_std_pop.html">?add_std_pop</a></code> for single-year
-alternatives, which must match your age binning:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">weighted</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_std_pop.html">add_std_pop</a></span><span class="op">(</span><span class="va">rated</span>, std_cat <span class="op">=</span> <span class="st">"s204"</span>, by_vars <span class="op">=</span> <span class="st">"age"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">weighted</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"pop"</span>, <span class="st">"pop_std"</span>, <span class="st">"unit_w"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   age  sex    pop  pop_std     unit_w</span></span>
-<span><span class="co">#&gt; 1   0 male 600728 18986520 0.06913399</span></span>
-<span><span class="co">#&gt; 2   5 male 678658 19919840 0.07253241</span></span>
-<span><span class="co">#&gt; 3  10 male 659666 20056779 0.07303103</span></span>
-<span><span class="co">#&gt; 4  15 male 666097 19819518 0.07216712</span></span>
-<span><span class="co">#&gt; 5  20 male 760220 18257225 0.06647847</span></span>
-<span><span class="co">#&gt; 6  25 male 826163 17722067 0.06452985</span></span></code></pre></div>
-<p><code><a href="../reference/calc_asrate_var.html">calc_asrate_var()</a></code> adds the <strong>age-specific</strong>
-rate per 100,000 (<code>drug_rate</code>) and its Poisson variance
-(<code>drug_var</code>) – one rate per age/sex cell:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">asr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calc_asrate_var.html">calc_asrate_var</a></span><span class="op">(</span><span class="va">weighted</span>, new_name <span class="op">=</span> <span class="va">drug</span>, death_col <span class="op">=</span> <span class="va">deaths</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">asr</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"deaths"</span>, <span class="st">"pop"</span>, <span class="st">"drug_rate"</span>, <span class="st">"drug_var"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   age  sex deaths    pop drug_rate   drug_var</span></span>
-<span><span class="co">#&gt; 1   0 male      1 600728 0.1664647 0.02771049</span></span>
-<span><span class="co">#&gt; 2   5 male      2 678658 0.2946992 0.04342382</span></span>
-<span><span class="co">#&gt; 3  10 male      5 659666 0.7579593 0.11490047</span></span>
-<span><span class="co">#&gt; 4  15 male     12 666097 1.8015394 0.27046202</span></span>
-<span><span class="co">#&gt; 5  20 male     30 760220 3.9462261 0.51909001</span></span>
-<span><span class="co">#&gt; 6  25 male     55 826163 6.6572819 0.80580732</span></span></code></pre></div>
-<p><code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code> collapses the age bins into one
-<strong>age-standardized</strong> rate per group (grouping is not
-automatic – pass every dimension to keep):</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/calc_stdrate_var.html">calc_stdrate_var</a></span><span class="op">(</span><span class="va">asr</span>, <span class="va">drug_rate</span>, <span class="va">drug_var</span>, <span class="va">sex</span>, <span class="va">race</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 4</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Groups:   sex [2]</span></span></span>
-<span><span class="co">#&gt;   sex    race       drug_rate drug_var</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> female asian_only      2.48   0.019<span style="text-decoration: underline;">9</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> male   asian_only      2.91   0.027<span style="text-decoration: underline;">4</span></span></span></code></pre></div>
+<p>From the matched <code>pop</code>, the rate pipeline
+(<code><a href="../reference/add_std_pop.html">add_std_pop()</a></code> -&gt; <code><a href="../reference/calc_asrate_var.html">calc_asrate_var()</a></code> -&gt;
+<code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code>) turns these counts into an
+age-standardized rate. That pipeline – including the standard-population
+choice and confidence intervals – is walked through step by step in
+<code><a href="../articles/age-standardized-rates.html">vignette("age-standardized-rates")</a></code>.</p>
 </div>
 <div class="section level3">
 <h3 id="bridged-seer-uniform-era-ragged">Bridged (SEER-uniform, era-ragged)<a class="anchor" aria-label="anchor" href="#bridged-seer-uniform-era-ragged"></a>
 </h3>
 <p><code>race_scheme = "bridged"</code> joins the SEER bridged
-denominators (1969-2024). It is strict and era-ragged: SEER resolves
-AIAN/API and Hispanic origin only from 1990 (pre-1990 is
+denominators (1969-2024). It is strict and era-ragged (the set of valid
+race and origin categories changes by year, so coverage is uneven across
+eras): SEER resolves AIAN/API (American Indian or Alaska Native / Asian
+or Pacific Islander) and Hispanic origin only from 1990 (pre-1990 is
 white/black/other), so <code>year</code> MUST be a join key.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<p>The “1969-2024” coverage is <em>population</em> availability. On the
+death side, NCHS bridged-race coding ends with data year 2020 (2021 is
+reserved; single-race codes 101-106 begin in 2022), so there is no
+bridged-race-coded death series to pair with the 2021-2024 population –
+use <code>"single"</code> for 2021+ deaths. Treat <code>"bridged"</code>
+as a coherent race series <strong>through 2020</strong>.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">api</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2019L</span>, age <span class="op">=</span> <span class="fl">40L</span>, sex <span class="op">=</span> <span class="st">"female"</span>, race <span class="op">=</span> <span class="st">"api"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">api</span>, race_scheme <span class="op">=</span> <span class="st">"bridged"</span>,</span>
 <span>               by_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"year"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"race"</span><span class="op">)</span><span class="op">)</span></span>
@@ -241,14 +229,14 @@ white/black/other), so <code>year</code> MUST be a join key.</p>
 <span><span class="co">#&gt; 1 2019  40 female  api 874749    bridged</span></span></code></pre></div>
 <p>Omitting <code>year</code> from <code>by_vars</code> is an error –
 the valid race set is era-dependent:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">api</span>, race_scheme <span class="op">=</span> <span class="st">"bridged"</span>,</span>
 <span>               by_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"race"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> add_pop_counts(): `df` carries population-dimension column(s) `year` not in `by_vars`; under a strict race_scheme ("single"/"bridged") the denominator would be silently summed over them. Add them to `by_vars`, or drop them from `df` to aggregate that dimension.</span></span></code></pre></div>
 <p>And an <code>api</code> row before 1990 errors, because SEER has no
 AIAN/API split yet:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">old_api</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">1985L</span>, age <span class="op">=</span> <span class="fl">40L</span>, sex <span class="op">=</span> <span class="st">"female"</span>, race <span class="op">=</span> <span class="st">"api"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">old_api</span>, race_scheme <span class="op">=</span> <span class="st">"bridged"</span>,</span>
 <span>               by_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"year"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"race"</span><span class="op">)</span><span class="op">)</span></span>
@@ -264,7 +252,7 @@ mis-set <code>race_scheme</code> cannot always be detected. But
 single-race labels under a non-single scheme always can be – passing
 them to the default is a hard error, a guard against forgetting
 <code>race_scheme = "single"</code>:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2024L</span>, age <span class="op">=</span> <span class="fl">25L</span>, sex <span class="op">=</span> <span class="st">"male"</span>, race <span class="op">=</span> <span class="st">"asian_only"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">bad</span><span class="op">)</span>                       <span class="co"># default is "legacy" -&gt; error</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
@@ -274,7 +262,7 @@ them to the default is a hard error, a guard against forgetting
 <code>hispanic_origin = "all"</code>. The matching marginal is
 synthesized on demand (finest cells summed; no marginal is stored, so it
 cannot double-count):</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">both_sex</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2024L</span>, age <span class="op">=</span> <span class="fl">65L</span>, sex <span class="op">=</span> <span class="st">"both"</span>, race <span class="op">=</span> <span class="st">"asian_only"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">both_sex</span>, race_scheme <span class="op">=</span> <span class="st">"single"</span><span class="op">)</span><span class="op">$</span><span class="va">pop</span>        <span class="co"># male + female</span></span>
 <span><span class="co">#&gt; [1] 1042672</span></span></code></pre></div>
@@ -285,10 +273,10 @@ cannot double-count):</p>
 <p>Include <code>state_fips</code> (or <code>county_fips</code>) in
 <code>by_vars</code> to route to sub-national denominators. The state
 single-race table is bundled, so a state join needs no extra package.
-See the <em>Harmonizing geography with FIPS</em> article for how to
-derive harmonized <code>state_fips</code>/<code>county_fips</code>
-columns from raw NCHS fields.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+See <code><a href="../articles/geography-fips.html">vignette("geography-fips")</a></code> for how to derive harmonized
+<code>state_fips</code>/<code>county_fips</code> columns from raw NCHS
+fields.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ca</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>state_fips <span class="op">=</span> <span class="st">"06"</span>, year <span class="op">=</span> <span class="fl">2024L</span>, age <span class="op">=</span> <span class="fl">40L</span>, sex <span class="op">=</span> <span class="st">"female"</span>,</span>
 <span>                 race <span class="op">=</span> <span class="st">"asian_only"</span>, deaths <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">ca</span>, race_scheme <span class="op">=</span> <span class="st">"single"</span>,</span>
@@ -297,7 +285,7 @@ columns from raw NCHS fields.</p>
 <span><span class="co">#&gt; 1         06 2024  40 female asian_only     20 269078     single</span></span></code></pre></div>
 <p>A geography column that is in the frame but absent from
 <code>by_vars</code> is an error, never a silent national join:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">ca</span>, race_scheme <span class="op">=</span> <span class="st">"single"</span>,</span>
 <span>               by_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"year"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"race"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
@@ -307,7 +295,10 @@ year 2004 (2005+ county detail needs restricted NCHS files). The county
 denominators are distributed as a downloadable parquet; here we point
 narcan at the small bundled Wyoming fixture instead of a live
 download.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p>This example needs the optional <code>duckdb</code> package
+(<code>install.packages("duckdb")</code>); with it absent, the chunk
+below simply produces no output.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"pop_singlerace_county_fixture.parquet"</span>,</span>
 <span>                  package <span class="op">=</span> <span class="st">"narcan"</span><span class="op">)</span></span>
 <span></span>
@@ -356,7 +347,7 @@ downloadable parquet – or to a local copy via the
 <code>narcan.pop_single_&lt;grain&gt;_parquet</code> option, as in the
 county chunk above. A request for a year the resolved data does not
 cover hard-errors – never a silent 0-row or <code>NA</code>:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_pop_state.html">get_pop_state</a></span><span class="op">(</span>scheme <span class="op">=</span> <span class="st">"single"</span>, years <span class="op">=</span> <span class="fl">2025</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00; font-weight: bold;">Error</span><span style="font-weight: bold;">:</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> get_pop_state(): single-race state denominators cover 2020-2024; year(s) 2025 were requested (pre-2020 years route to the backfill; there is no coverage past 2024).</span></span></code></pre></div>
@@ -365,9 +356,11 @@ cover hard-errors – never a silent 0-row or <code>NA</code>:</p>
 <h2 id="provenance">Provenance<a class="anchor" aria-label="anchor" href="#provenance"></a>
 </h2>
 <p><code><a href="../reference/pop_sources.html">pop_sources()</a></code> prints the manifest – dataset, scheme,
-grain, vintage, and coverage for every dataset. Check a bundled
-dataset’s vintage before mixing it with a freshly downloaded file.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+grain, vintage, and coverage for every single-race and bridged dataset
+(the frozen legacy <code>pop_est</code> predates this download-manifest
+system). Check a bundled dataset’s vintage before mixing it with a
+freshly downloaded file.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/capture.output.html" class="external-link">capture.output</a></span><span class="op">(</span><span class="va">src</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pop_sources.html">pop_sources</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">src</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dataset"</span>, <span class="st">"scheme"</span>, <span class="st">"grain"</span>, <span class="st">"vintage"</span>,</span>
 <span>                     <span class="st">"year_min"</span>, <span class="st">"year_max"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
@@ -466,15 +459,16 @@ the all-origin denominator, drop the column entirely. The two answer
 different questions – and origin-unknown deaths belong only in the
 all-origin numerator, because there is no “unknown-origin” population to
 divide by.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># All-origin: one row, every death counts (the 3 origin-unknown deaths are here).</span></span>
 <span><span class="va">all_origin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2024L</span>, age <span class="op">=</span> <span class="fl">30L</span>, sex <span class="op">=</span> <span class="st">"female"</span>,</span>
 <span>                         race <span class="op">=</span> <span class="st">"white_only"</span>, deaths <span class="op">=</span> <span class="fl">12</span> <span class="op">+</span> <span class="fl">210</span> <span class="op">+</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/add_pop_counts.html">add_pop_counts</a></span><span class="op">(</span><span class="va">all_origin</span>, race_scheme <span class="op">=</span> <span class="st">"single"</span>,</span>
 <span>               by_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"year"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"race"</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">pop</span></span>
 <span><span class="co">#&gt; [1] 8373814</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Origin-stratified: the non-denominable unknowns are dropped; origin is a key.</span></span>
+<span><span class="co"># ('denominable' means it has a matching population to divide by.)</span></span>
 <span><span class="va">strat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>    year <span class="op">=</span> <span class="fl">2024L</span>, age <span class="op">=</span> <span class="fl">30L</span>, sex <span class="op">=</span> <span class="st">"female"</span>, race <span class="op">=</span> <span class="st">"white_only"</span>,</span>
 <span>    hispanic_origin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hispanic"</span>, <span class="st">"non_hispanic"</span><span class="op">)</span>, deaths <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">210</span><span class="op">)</span></span>
@@ -509,9 +503,15 @@ mistakes impossible.</p>
 <div class="section level2">
 <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
-<p><strong>Age-standardized fentanyl death rates by sex</strong> – feeds
-these denominators through a full age-standardized rate pipeline end to
-end.</p>
+<ul>
+<li>
+<code><a href="../articles/getting-started.html">vignette("getting-started")</a></code> – the package overview and
+where population denominators fit in the workflow.</li>
+<li>
+<code><a href="../articles/age-standardized-rates.html">vignette("age-standardized-rates")</a></code> – feeds these
+denominators through a full age-standardized rate pipeline end to
+end.</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -45,12 +45,18 @@ categorize_hispanic_origin(codes, year = 2019)   # binary (for rates)
 #> [1] "hispanic"     "hispanic"     "non_hispanic" "unknown"
 ```
 
+[`categorize_hspanicr()`](https://mkiang.github.io/narcan/reference/categorize_hspanicr.md)
+prints as an ordered factor
+(`9 Levels: mexican < puerto_rican < cuban < ...`); the `<` is just R’s
+print order for a canonical tabulation sequence, not a ranking.
+
 Two subtleties are baked into the binary recode. Code 5 (“Other or
 unknown Hispanic”) **is** Hispanic, so it maps to `"hispanic"`; only
 code 9 (“Hispanic origin unknown/not stated”) maps to `"unknown"`. And
 `year` is required, because the recode changed from 9 categories
-(1989-2020) to 14 (2022+) and is reserved in 2021 – the two schemes are
-not comparable, though the binary axis they collapse to is.
+(1989-2020) to 14 (2022+) and is reserved (not populated) in 2021 – the
+two schemes are not comparable, though the binary axis they collapse to
+is.
 
 ## Adding the column and joining a denominator
 
@@ -138,9 +144,12 @@ frame without listing it in `by_vars` errors on the stray column.
 
 ## The mixed-era trap
 
-SEER resolves Hispanic origin only from 1990. Before 1990 the bridged
-denominators carry origin `"all"` only, so there is no such thing as a
-pre-1990 Hispanic-specific rate – the population does not exist.
+Note the race label changes with the scheme – `bridged`/`legacy` use
+`white`, `single` uses `white_only`; they are not interchangeable (this
+is exactly the kind of quiet mismatch to avoid). SEER resolves Hispanic
+origin only from 1990. Before 1990 the bridged denominators carry origin
+`"all"` only, so there is no such thing as a pre-1990 Hispanic-specific
+rate – the population does not exist.
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
 enforces this: a pre-1990 row with a stratified origin is a hard error.
 
@@ -213,6 +222,15 @@ Center for Health Statistics; 2016).
 **Incomplete early reporting.** The Hispanic-origin item was phased onto
 state death certificates through about 1997, so national
 origin-stratified numerators for 1990-1996 undercount Hispanic deaths
-and the resulting rates run low.
+and the resulting rates run low. The undercount was concentrated in
+late-adopting states, so it is not a uniform national adjustment.
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
 emits a once-per-session message when a bridged join touches that span.
+
+## See also
+
+- [`vignette("population-denominators")`](https://mkiang.github.io/narcan/articles/population-denominators.md)
+  – the parent denominators topic: schemes, race labels, and the join
+  guards this vignette builds on.
+- [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)
+  – the package overview.

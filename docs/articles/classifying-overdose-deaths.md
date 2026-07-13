@@ -79,8 +79,10 @@ In real use, `f_records_all` is not hand-built – you read the raw
 fixed-width MCOD file with
 [`import_mcod_fwf()`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md)
 and collapse its multiple-cause fields with
-[`unite_records()`](https://mkiang.github.io/narcan/reference/unite_records.md),
-which is where a newcomer with real data should start.
+[`unite_records()`](https://mkiang.github.io/narcan/reference/unite_records.md).
+See
+[`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)
+for that on-ramp, which is where a newcomer with real data should start.
 
 **Step 1.**
 [`flag_drug_deaths()`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)
@@ -184,9 +186,17 @@ breaks out six specific T40 subtypes – `opium_present` (T40.0),
 `heroin_present` (T40.1), `other_natural_present` (T40.2),
 `methadone_present` (T40.3), `other_synth_present` (T40.4, the fentanyl
 proxy), and `other_op_present` (T40.6). `unspecified_op_present` is the
-residual for an opioid death where none of the six matched, and
-`num_opioids` counts how many distinct subtypes appear on the record.
-The polydrug row (`T401 T404`) shows `num_opioids = 2`.
+residual for an opioid death where none of the six matched; for ICD-10
+data (1999+) it is **always 0 by construction**, because every ICD-10
+opioid T40 code falls into at least one of those six subtypes – it fires
+only for the pre-1999 ICD-9 residual (code 965.0). If you want the share
+of opioid deaths with an *unspecified* opioid type in modern data, the
+column you want is `other_op_present` (T40.6, “other and unspecified
+narcotics”), not the similarly named `unspecified_op_present`; see
+[`vignette("unspecified-drug-deaths")`](https://mkiang.github.io/narcan/articles/unspecified-drug-deaths.md).
+`num_opioids` counts how many distinct subtypes appear on the record,
+and `multi_opioids` is 1 when `num_opioids > 1`. The polydrug row
+(`T401 T404`) shows `num_opioids = 2`.
 
 ``` r
 
@@ -219,14 +229,33 @@ classified[classified$opioid_death == 1, c("f_records_all", subtype_cols)]
 #> 6           1
 ```
 
-## ICD-9 versus ICD-10 dispatch
+## Matching `year` to the coding era
 
 Every flagger dispatches on `year`. Data years before 1999 use ICD-9
 logic; 1999 onward uses the ICD-10 rules shown here. Match `year` to the
 data year of the records so the correct code list is applied – there is
 no default era.
 
+Counts are **not directly comparable across the 1999 ICD-9-to-ICD-10
+revision**. NCHS documents that drug-poisoning death counts before and
+after the revision require a comparability-ratio adjustment before they
+can be joined into one trend – the numerator analog of the “not
+comparable” caveat on the denominator schemes (see
+[`vignette("population-denominators")`](https://mkiang.github.io/narcan/articles/population-denominators.md)).
+Concatenating raw pre- and post-1999 counts produces an artifactual step
+at the boundary.
+
 ## See also
 
-**Population denominators** – attach a matching population to these
-flagged counts, the next step before computing any rate.
+- [`vignette("population-denominators")`](https://mkiang.github.io/narcan/articles/population-denominators.md)
+  – attach a matching population to these flagged counts, the next step
+  before computing any rate.
+- [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)
+  – the full raw-data-to-rate pipeline and where this vignette fits.
+- Related flags not covered here:
+  [`flag_opioid_contributed()`](https://mkiang.github.io/narcan/reference/flag_opioid_contributed.md)
+  (opioids as a contributory rather than underlying cause),
+  [`flag_nonopioid_drug_deaths()`](https://mkiang.github.io/narcan/reference/flag_nonopioid_drug_deaths.md),
+  and
+  [`flag_od_intent()`](https://mkiang.github.io/narcan/reference/flag_od_intent.md)
+  (unintentional / suicide / homicide / undetermined intent).

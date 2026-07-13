@@ -33,12 +33,15 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
-    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+<li><a class="dropdown-item" href="../articles/getting-started.html">Getting started with narcan</a></li>
+    <li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized synthetic-opioid death rates by sex</a></li>
+    <li><a class="dropdown-item" href="../articles/real-data-end-to-end.html">End-to-end on real public-use data (2004)</a></li>
+    <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
+    <li><a class="dropdown-item" href="../articles/demographic-recodes.html">Demographic recodes across coding eras</a></li>
     <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
-    <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -209,6 +212,23 @@ the T40.6 share.</p>
 <p>The T40.6 share falls from 0.40 in 1999 to 0.15 in 2019 – built into
 these illustrative counts, but the identical computation on real MCOD
 records recovers whatever trend the data actually hold.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">unspec</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span>, y <span class="op">=</span> <span class="va">t406_share</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>        x <span class="op">=</span> <span class="st">"Year"</span>,</span>
+<span>        y <span class="op">=</span> <span class="st">"T40.6 share of opioid deaths"</span>,</span>
+<span>        title <span class="op">=</span> <span class="st">"Unspecified-opioid-type (T40.6) share by year"</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<img src="unspecified-drug-deaths_files/figure-html/plot-1.png" class="r-plt" alt="Line-and-point chart of the T40.6 (other and unspecified opioid) share of opioid deaths by year. The share falls from about 0.40 in 1999 to about 0.15 in 2019." width="700"><p class="caption">
+T40.6 (other/unspecified opioid) share of opioid deaths by year,
+computed from the illustrative records above.
+</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="caveats">Caveats<a class="anchor" aria-label="anchor" href="#caveats"></a>
@@ -227,12 +247,26 @@ T40.6, which is exactly why the modern measure reads
 deaths across the known types before computing drug-specific rates;
 narcan gives you the raw flags so you can measure the unspecified share
 first and decide how to adjust for it yourself.</p>
+<p>The unspecified share also varies markedly <strong>by
+jurisdiction</strong>, not only over time – some states (Pennsylvania is
+a persistent example) code a far higher fraction as unspecified than
+others (Buchanich et al. 2018; Ruhm 2018), and ISW7 notes the opioid
+purity of T40.6 itself varies by jurisdiction (it can occasionally
+capture non-opioid narcotics). A reassuring national decline can hide
+states where specificity stays poor, so check the share sub-nationally
+before trusting drug-specific rates there.</p>
 </div>
 <div class="section level2">
 <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
-<p><strong>Classifying overdose deaths</strong> – the full ISW7 flag
-pipeline behind the three steps walked through here.</p>
+<ul>
+<li>
+<code><a href="../articles/classifying-overdose-deaths.html">vignette("classifying-overdose-deaths")</a></code> – the full ISW7
+flag pipeline behind the three steps walked through here.</li>
+<li>
+<code><a href="../articles/getting-started.html">vignette("getting-started")</a></code> – the full raw-data-to-rate
+pipeline and where this vignette fits.</li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
