@@ -108,6 +108,11 @@ death** is the strict subset of drug deaths that also carry an opioid T-code
 not an opioid death. Row `X40` / `T436` (a psychostimulant, e.g. methamphetamine)
 is exactly that edge case -- `drug_death` is 1, `opioid_death` is 0.
 
+Requiring the T-code makes narcan's `drug_death` marginally stricter than the CDC
+WONDER "drug overdose" count, which keys on the underlying cause alone -- about
+0.1% fewer deaths, because narcan drops the few poisoning-UCOD deaths that carry
+no drug T-code at all (see `?flag_drug_deaths`).
+
 ```{r edge}
 classified[classified$ucod == "X40",
            c("ucod", "f_records_all", "drug_death", "opioid_death")]
