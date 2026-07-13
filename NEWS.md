@@ -1,3 +1,55 @@
+# narcan 0.5.3
+
+## New vignettes and documentation
+
+* Added a **"Getting started"** overview vignette and two new worked vignettes:
+  **"End-to-end on real public-use data (2004)"** (the whole pipeline to an
+  age-standardized opioid death rate, with real 2004 numbers) and
+  **"Demographic recodes across coding eras"**. Applied a clarity/accuracy pass
+  across the existing vignettes and reordered the pkgdown Articles.
+* `flag_drug_deaths()`: documented that the ICD-10 rule requires a poisoning
+  underlying cause **and** a drug T-code, making it ~0.1% stricter than the CDC
+  WONDER underlying-cause-only "drug overdose" count (it drops poisoning-UCOD
+  deaths that carry no drug T-code). Resolves the drug-death definition question.
+* Corrected the ISW7 attribution in the vignettes to the **Safe States Alliance**
+  (the report's publisher; CSTE/CDC were among the participating organizations).
+
+## Bug fixes
+
+* `calc_stdrate_var()`: fixed a variance error. The standardized rate was written
+  into the input rate column's name, so the variance expression then read that
+  scalar instead of the age-specific rate vector and dropped the wrong strata; it
+  now drops the same strata as the rate. A `pop == 0`/`deaths > 0` (`Inf`)
+  stratum is now dropped (with a warning) rather than coercing the whole group to
+  `Inf`. The standard `calc_asrate_var()` -> `calc_stdrate_var()` pipeline is
+  unchanged (verified byte-identical).
+* `flag_opioid_contributed()`: for ICD-9-era data the flag is undefined -- the
+  ICD-9 any-mention rule makes every opioid-in-a-contributory-field death an
+  opioid death, so there is no "contributed but not the underlying opioid death"
+  subset. It now warns and returns `NA` for ICD-9 instead of a redundant,
+  always-1 value. The ICD-10 branch is unchanged.
+* `remap_age()`: 2003+ detail-age codes outside the documented domain (the
+  undocumented unit 3; a years quantity above 135) now map to `NA` with a warning
+  instead of a plausible-looking wrong age.
+* `categorize_hspanicr()`: now warns on out-of-domain / era-mismatched codes
+  (was silent), matching `categorize_hispanic_origin()`.
+* `st_fips_map` / `add_county_fips()` / `state_abbrev_to_fips()`: dropped
+  territories (narcan is US-only: 50 states + DC). This removes an American Samoa
+  / Northern Mariana Islands NCHS-code collision; territory codes now resolve to
+  `NA` with a warning.
+* `std_pops`: fixed a corrupted factor label on the WHO 2000-2025 standard
+  population (it now reads "Std Million" like the others); the `pop_std` values
+  are unchanged.
+
+## Documentation
+
+* `flag_od_intent()`: documented that for ICD-9 a drug death flagged via a
+  contributory nature-of-injury code, whose underlying cause is a determinate
+  non-drug mechanism, is labeled `undetermined` by design (narcan derives
+  overdose intent only from a drug-poisoning underlying cause).
+* `import_restricted_data()`: corrected a misleading note -- restricted files
+  carry sub-state geography for all years; the public files stop at 2004.
+
 # narcan 0.5.2
 
 ## New features -- Hispanic-origin death-side join

@@ -133,7 +133,7 @@ add_county_fips <- function(df, county_vector, year = NULL,
 }
 
 ## Internal: NCHS numeric codes that are NOT valid FIPS codes, used to
-## disambiguate the overlapping numeric schemes (e.g. 03/07/14/43/52/62).
+## disambiguate the overlapping numeric schemes (e.g. 03/07/14/43).
 .nchs_only_codes <- function() {
     m <- narcan::st_fips_map
     setdiff(sprintf("%02d", m$nchs[!is.na(m$nchs)]),

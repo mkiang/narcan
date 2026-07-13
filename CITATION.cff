@@ -11,7 +11,7 @@ authors:
     given-names: Mathew
   - family-names: Alexander
     given-names: Monica
-version: 0.5.2
+version: 0.5.3
 license: MIT
 repository-code: "https://github.com/mkiang/narcan"
 url: "https://mkiang.github.io/narcan/"

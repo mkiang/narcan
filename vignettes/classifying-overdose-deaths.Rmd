@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-narcan operationalizes the Injury Surveillance Workgroup (ISW7; CSTE/CDC) case
+narcan operationalizes the Injury Surveillance Workgroup (ISW7; Safe States Alliance) case
 definitions for drug- and opioid-involved overdose deaths, reading them straight
 off ICD-10 multiple-cause-of-death (MCOD) records. A death is classified from two
 fields -- the **underlying cause** (`ucod`, e.g. `"X42"`) and the space-joined

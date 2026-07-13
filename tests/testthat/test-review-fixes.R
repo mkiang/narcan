@@ -101,3 +101,16 @@ test_that("remap_age warns on an unknown unit code but not on not-stated", {
     expect_silent(remap_age(data.frame(year = 2010, age = c(1037, 9999, 1999)),
                             year = 2010))
 })
+
+test_that("remap_age 2003+ flags out-of-domain codes: unit 3 and years > 135", {
+    # unit 3 is undocumented for 2003+ (units are 1/2/4/5/6/9); years quantity
+    # tops out at 135. These must warn + NA, not silently coerce to a value.
+    expect_warning(out <- remap_age(data.frame(year = 2019,
+                                               age = c(3005, 1136, 1998)),
+                                    year = 2019), "outside the known set")
+    expect_true(all(is.na(out$age_years)))
+    # valid codes still map correctly (no regression): 1000 -> 0, 1037 -> 37,
+    # 1135 -> 135
+    expect_equal(remap_age(data.frame(year = 2019, age = c(1000, 1037, 1135)),
+                           year = 2019)$age_years, c(0, 37, 135))
+})
