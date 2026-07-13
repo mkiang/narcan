@@ -35,10 +35,12 @@ uses only narcan's bundled population data) **runs live** on the real 2004 count
 
 ## Get the file
 
-Download the public-use MCOD fixed-width file for 2004 (`mort2004us`, distributed by
-NCHS and mirrored by NBER). `import_mcod_fwf()` reads the raw fixed-width layout;
-narcan's `download_mcod_csv()` / `download_mcod_dta()` fetch the CSV/Stata versions
-instead, which are a different on-ramp not used here.
+Download the public-use MCOD fixed-width file for 2004 (distributed by NCHS and
+mirrored by NBER as `mort2004us.zip`). Unzip it and pass the extracted `.dat` to
+`import_mcod_fwf()`, which reads the raw fixed-width layout -- the archive's internal
+filename may differ from the placeholder below, so point the call at whatever the
+unzip produces. narcan's `download_mcod_csv()` / `download_mcod_dta()` fetch the
+CSV/Stata versions instead, which are a different on-ramp not used here.
 
 ```{r import, eval = FALSE}
 raw <- import_mcod_fwf("mort2004us.dat", year = 2004, tier = "public")
@@ -84,9 +86,10 @@ but not identical; see `vignette("classifying-overdose-deaths")` for the exact r
 ## Recode age and sex
 
 Standardizing by age needs age in the standard population's 5-year bins, and the
-population join needs `sex` as `"male"`/`"female"`. Both codings changed at data year
-2003, so the recoders take `year`; `vignette("demographic-recodes")` covers them in
-full.
+population join needs `sex` as `"male"`/`"female"`. Sex coding changed at data year
+2003 (numeric `1`/`2` before, `"M"`/`"F"` after), so `categorize_sex()` takes `year`.
+`convert_ager27()` needs no year -- the 1-27 AGER27 scheme is stable across
+eras; `vignette("demographic-recodes")` covers both in full.
 
 ```{r recode, eval = FALSE}
 flagged$sex <- categorize_sex(flagged$sex, year = 2004)   # "M"/"F" -> male/female
@@ -105,9 +108,10 @@ agg <- flagged |>
     dplyr::summarize(opioid_deaths = sum(opioid_death), .groups = "drop")
 ```
 
-The `!is.na()` filter drops the four opioid deaths whose age or sex was not stated,
-so the stratified table sums to 13,752 -- four short of the 13,756 national total
-above. Deaths with a missing stratifier cannot be placed in an age-sex cell.
+The `!is.na()` filter drops the four opioid deaths with an unstated age (none had an
+unstated sex in this file), so the stratified table sums to 13,752 -- four short of the
+13,756 national total above. Deaths with a missing stratifier cannot be placed in an
+age-sex cell.
 
 That aggregate is small enough to reproduce verbatim -- these are the **real 2004
 opioid-death counts** by 5-year age group and sex:
@@ -133,8 +137,9 @@ agg$year <- 2004L
 
 One subtlety matters for standardization. The standard population spans all 18 age
 groups, so every age-sex cell needs its denominator even when it saw zero opioid
-deaths -- otherwise the age standard is silently truncated. Build the full grid and
-fill the empty cells with 0:
+deaths -- otherwise the age standard is silently truncated. (In 2004 every cell
+happens to have at least one opioid death, but this step is what protects the rate
+when one does not.) Build the full grid and fill any empty cells with 0:
 
 ```{r grid}
 counts <- expand.grid(year = 2004L, age = seq(0L, 85L, 5L),
@@ -157,7 +162,8 @@ counts <- add_pop_counts(counts, by_vars = c("year", "age", "sex"),
 counts <- add_std_pop(counts, std_cat = "s204", by_vars = "age")
 counts <- calc_asrate_var(counts, new_name = opioid,
                           death_col = opioid_deaths, pop_col = pop)
-head(counts[, c("age", "sex", "opioid_deaths", "pop", "opioid_rate")])
+head(counts[order(counts$age, counts$sex),
+            c("age", "sex", "opioid_deaths", "pop", "opioid_rate")])
 ```
 
 `calc_stdrate_var()` collapses the 18 age bins into one age-standardized rate per
@@ -193,7 +199,7 @@ ggplot(std, aes(x = sex, y = opioid_rate, fill = sex)) +
 ## Caveats
 
 **County geography on the public file.** County FIPS are populated only for counties
-whose 2000-Census population was at least 100,000; smaller (disproportionately rural)
+with a population of at least 100,000; smaller (disproportionately rural)
 counties collapse to a residual code. The 2004 stand-in exercises large-county
 behavior only -- the restricted All-County files carry every county.
 
@@ -213,5 +219,8 @@ adjustment, nor across a change in the denominator race scheme.
 
 - `vignette("getting-started")` -- the package overview and the import on-ramp.
 - `vignette("classifying-overdose-deaths")` -- the ISW7 flag rules used here.
+- `vignette("population-denominators")` -- the denominator schemes and the join used
+  in the rate step.
 - `vignette("age-standardized-rates")` -- the rate pipeline in more detail.
 - `vignette("demographic-recodes")` -- the age/sex/race recoders across eras.
+- `vignette("geography-fips")` -- more on the county-FIPS caveat noted above.

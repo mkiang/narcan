@@ -31,10 +31,10 @@ narcan carries two age recoders because MCOD files carry two different age field
 **Detail age (`age`) to completed years.** `remap_age()` reads the unit-coded
 detail-age field and returns completed years in a new `age_years` column. The encoding
 changed at 2003 (a 3-digit code before, 4-digit after), so pass `year`. Sub-year ages
-(months, weeks, days) collapse to 0; not-stated codes become `NA`.
+(months, weeks, days, hours, minutes) collapse to 0; not-stated codes become `NA`.
 
 ```{r remap-age}
-remap_age(data.frame(year = 1999, age = c(37, 206, 999)))$age_years    # pre-2003
+remap_age(data.frame(year = 2000, age = c(37, 206, 999)))$age_years    # pre-2003
 remap_age(data.frame(year = 2019, age = c(1037, 2006, 1999, 9999)))$age_years  # 2003+
 ```
 
@@ -76,15 +76,15 @@ Pass `year`; it is authoritative.
 ```{r sex}
 categorize_sex(c(1, 2, 9), year = 2000)       # pre-2003 numeric
 categorize_sex(c("M", "F", "U"), year = 2019) # 2003+ character
-categorize_female(c(1, 2), year = 2000)       # 1 = female, 0 = male
+categorize_female(c(1, 2), year = 2000)       # -> 0 1 (male = 0, female = 1)
 ```
 
 The trap: omit `year` and the era is guessed from the column type. A pre-2003 sex
 column re-read from a CSV as the **characters** `"1"`/`"2"` is guessed to be the
-modern `"M"`/`"F"` scheme and maps to all-`NA` -- loudly, with a warning.
+modern `"M"`/`"F"` scheme and maps to all-`NA` -- loudly, with warnings.
 
 ```{r sex-trap}
-categorize_sex(c("1", "2"), year = NULL)     # guesses modern -> NA (with a warning)
+categorize_sex(c("1", "2"), year = NULL)     # guesses modern -> NA (with warnings)
 categorize_sex(c("1", "2"), year = 2000)     # year fixes it -> male, female
 ```
 
@@ -107,7 +107,9 @@ The Asian and Pacific Islander subgroups (Chinese, Japanese, Hawaiian, Filipino)
 resolved separately in this era but have no matching bridged population denominator,
 so collapse them to a single API group before computing rates.
 
-**Earlier eras differ.** The same raw code means different things before 1992, which
+**Earlier eras differ.** The same raw code means different things before 1992 -- and
+there are two distinct pre-1992 schemes (1979-1988 and 1989-1991), not one. Code 8, for
+instance, is Filipino here (1979-1988, mapped to 7) but "other" (99) in 1989-1991. This
 is exactly why `remap_race()` refuses to run without a year.
 
 ```{r race-early}
@@ -124,7 +126,7 @@ remap_race(data.frame(year = 2021, race = c(1, 2)), year = 2021)$race
 **2022+ (single race).** From 2022 the bridged column is gone; `remap_race()` reads
 the single-race Race Recode (`racer5`) and maps it into a **non-colliding** code space
 (101-106) so the two schemes cannot be silently mixed. `categorize_race()` labels
-these with an `_only` suffix.
+these with an `_only` suffix (except code 106, `multiracial`).
 
 ```{r race-single}
 r22 <- remap_race(data.frame(year = 2022, racer5 = c(1, 2, 4, 6)), year = 2022)
