@@ -107,11 +107,31 @@ test_that("a strict-scheme 0-row death frame returns 0 rows, not a pop_scheme er
     # A split-apply pipeline can hand add_pop_counts() an empty per-stratum group.
     # Tagging pop_scheme via `x[["pop_scheme"]] <- scheme` used to crash with
     # "replacement has 1 row, data has 0" (a scalar cannot recycle onto 0 rows).
-    empty <- single_input(2024L)[0, ]
+    # The input MUST be a base data.frame, not a tibble: left_join() preserves the
+    # left arg's class, and tibble's `[[<-` tolerates the recycle (masking the
+    # bug) whereas base data.frame's does not -- so a tibble fixture is tautological.
+    empty <- as.data.frame(single_input(2024L))[0, , drop = FALSE]
+    expect_false(tibble::is_tibble(empty))
     out <- add_pop_counts(empty, race_scheme = "single")
     expect_equal(nrow(out), 0L)
     expect_true(all(c("pop", "pop_scheme") %in% names(out)))
     expect_type(out$pop_scheme, "character")
+})
+
+test_that("the relabel loop tolerates a 0-row base-data.frame pop slice (no scalar-recycle crash)", {
+    # Twin of the pop_scheme 0-row fix: `pop_slice[[d]] <- tok` in the reserved-
+    # token relabel loop must also rep() over nrow, so a 0-row base data.frame
+    # slice (from a corrupt/empty parquet) does not hit the recycle error. Driven
+    # directly since a shipped slice is always a tibble. sex='both' triggers the
+    # sex relabel; the assertion is that no error is raised.
+    slice0 <- data.frame(year = integer(0), age = integer(0), sex = character(0),
+                         race = character(0), hispanic_origin = character(0),
+                         pop = numeric(0))
+    d <- data.frame(year = 2024L, age = 40L, sex = "both", race = "white_only",
+                    hispanic_origin = "hispanic", deaths = 1)
+    out <- narcan:::.synthesize_pop(
+        d, slice0, c("year", "age", "sex", "race", "hispanic_origin"), "single")
+    expect_equal(nrow(out), 0L)
 })
 
 test_that("single state join uses the state table and matches", {

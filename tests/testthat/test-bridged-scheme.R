@@ -445,6 +445,21 @@ test_that("B6: an NA race label in the slice errors (NA is not silently tolerate
         "unrecognized `race`")
 })
 
+test_that("B7: a bridged pop slice missing its year column hard-errors (era cannot be validated)", {
+    # Bridged is inherently year-conditioned; without `year` the race labels
+    # cannot be era-validated, and falling back to the cross-era union would
+    # reopen the exact gap B4 closes. Shipped bridged assets always carry year.
+    slice <- data.frame(age = 40L, sex = "male",
+                        race = c("white", "black"), hispanic_origin = "all",
+                        pop = c(100, 200))
+    d <- data.frame(age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "all", deaths = 1)
+    expect_error(
+        narcan:::.synthesize_pop(
+            d, slice, c("age", "sex", "race", "hispanic_origin"), "bridged"),
+        "cannot be era-validated")
+})
+
 # ---- P6 Bucket C: accessor era guard, datayear, scheme marker -----------------
 
 test_that("C4: get_pop_* refuse a bridged pre-1990 stratified request", {

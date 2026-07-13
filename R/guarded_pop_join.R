@@ -575,13 +575,14 @@
     }
     .assert_pop_token("sex", "both")
     .assert_pop_domain("sex", c("male", "female", "both"))
-    .assert_pop_domain("hispanic_origin", c("hispanic", "non_hispanic", "all"))
 
     ## Race domain, scheme- and era-conditioned (mirrors the death-side guards in
-    ## .check_single_death_keys / .check_bridged_death_keys). Validating against
-    ## the cross-scheme/cross-era UNION would silently pass a mislabeled slice --
-    ## a "single" asset carrying a bridged "black", or a pre-1990 bridged slice
-    ## carrying the 1990+-only "api". "total" is the one legal reserved marginal.
+    ## .check_single_death_keys / .check_bridged_death_keys), checked BEFORE the
+    ## origin domain to preserve the pre-restructure error priority. Validating
+    ## against the cross-scheme/cross-era UNION would silently pass a mislabeled
+    ## slice -- a "single" asset carrying a bridged "black", or a pre-1990 bridged
+    ## slice carrying the 1990+-only "api". "total" is the one legal reserved
+    ## marginal.
     .assert_pop_token("race", "total")
     if ("race" %in% names(pop_slice)) {
         rv <- unique(as.character(pop_slice[["race"]]))
@@ -608,10 +609,18 @@
                     "re-download or rebuild it."), .fmt_bad(bad)), call. = FALSE)
             }
         } else {
-            .assert_pop_domain("race", c(.bridged_race_labels_pre1990,
-                                         .bridged_race_labels_1990, "total"), rv)
+            ## Bridged is inherently year-conditioned; a bridged slice with no
+            ## `year` column cannot be era-validated. Fail loud rather than
+            ## silently widening to the cross-era union (shipped bridged assets
+            ## always carry `year`, so this never fires on real data).
+            stop(paste0(
+                "add_pop_counts(): a bridged population slice is missing its ",
+                "`year` column, so its race labels cannot be era-validated. The ",
+                "population asset may be corrupt -- re-download or rebuild it."),
+                call. = FALSE)
         }
     }
+    .assert_pop_domain("hispanic_origin", c("hispanic", "non_hispanic", "all"))
 
     ## Per-cell origin completeness: within a stratified year, every finest cell
     ## must carry BOTH origins. A missing stratum row would be summed as zero (a
@@ -655,7 +664,10 @@
             dv <- unique(deaths[[d]])
             dv <- dv[!is.na(dv)]
             if (length(dv) > 0L && all(dv == tok)) {
-                pop_slice[[d]] <- tok
+                ## rep() over nrow so a 0-row slice (a base data.frame from a
+                ## corrupt/empty parquet) is relabeled without the `[[<-`
+                ## scalar-recycle error, matching the pop_scheme tag above.
+                pop_slice[[d]] <- rep(tok, nrow(pop_slice))
             }
         }
     }
