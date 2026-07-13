@@ -10,6 +10,7 @@ articles:
   - classifying-overdose-deaths
   - unspecified-drug-deaths
   - population-denominators
+  - hispanic-origin
   - geography-fips
   - age-standardized-rates
 
@@ -50,6 +51,8 @@ reference:
   - categorize_female
   - categorize_hspanicr
   - add_hspanicr_column
+  - categorize_hispanic_origin
+  - add_hispanic_origin
   - remap_age
   - starts_with("categorize_age")
   - starts_with("convert_ager")

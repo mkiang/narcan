@@ -1,3 +1,68 @@
+# narcan 0.5.2
+
+## New features -- Hispanic-origin death-side join
+
+* **Two new exported helpers add a binary Hispanic-origin column to a death
+  frame.** `categorize_hispanic_origin(hspanicr_column, year)` maps the NCHS
+  `hspanicr` recode to `"hispanic"` / `"non_hispanic"` / `"unknown"` (or `NA`
+  before 1989, in 2021, or out of range), and `add_hispanic_origin(df)` adds it
+  as a `hispanic_origin` column, read per row from `year` (or two-digit
+  `datayear`) so a multi-year `bind_rows()` frame is labeled correctly. `year`
+  is required (no silent-scheme default): the 9-category (1989-2020) and
+  14-category (2022+) `hspanicr` schemes are not comparable, but the binary
+  origin axis is.
+* **`add_pop_counts()` now joins Hispanic-stratified denominators.** Add a
+  `hispanic_origin` column to `by_vars` (values `"hispanic"`/`"non_hispanic"`)
+  under `race_scheme = "single"` (2000+) or `"bridged"` (1990+) to get
+  origin-specific population counts; the all-origin denominator is unchanged when
+  `hispanic_origin` is absent or `"all"`. `get_pop_state()`/`get_pop_county()`
+  already expose the same axis via their `hispanic_origin=` filter argument.
+
+## Breaking changes
+
+* **The `add_pop_counts(hispanic=)` argument is removed.** It only ever accepted
+  its no-op `"all"` default; Hispanic-stratified joins now use the
+  `hispanic_origin` column in `by_vars` instead. A call passing `hispanic=` now
+  errors (`unused argument`).
+* **`race_scheme = "legacy"` now hard-errors on a Hispanic-origin or sub-national
+  geography column.** The bundled `pop_est` is national and all-origin, so a
+  death frame carrying a non-`"all"` `hispanic_origin`, or a
+  `state_fips`/`county_fips`/`st_fips` column, previously attached the wrong
+  (all-origin, or national) denominator silently. It now fails loud, pointing to
+  `race_scheme = "single"`/`"bridged"` (which resolve origin and geography).
+
+## New guards
+
+* **Mixed-era coherence stop.** A single frame that mixes `"all"` with
+  stratified (`"hispanic"`/`"non_hispanic"`) origins is rejected: `"all"` already
+  sums the strata, so mixing them double-counts. Combine eras with separate calls
+  and `rbind()` (see `vignette("hispanic-origin")`).
+* **Unknown/`NA` origin is non-denominable.** In a stratified join, an origin of
+  `"unknown"` or `NA` hard-errors (there is no matching denominator); exclude
+  those deaths from stratified rates or use `"all"`.
+* **Per-year population-slice invariant.** A corrupt denominator asset that
+  stored an `"all"` marginal beside stratified cells for the same year (a
+  double-count the finest-key check cannot see) now hard-errors.
+
+## Bug fixes
+
+* **`categorize_hspanicr()` now reads a factor-valued `hspanicr` by value, not by
+  factor-level position.** A factor whose present levels did not line up
+  position-to-value (e.g. the 2022+ codes 10-14, or a filtered 9-category frame)
+  was silently mislabeled. Non-factor (integer/character) input is unchanged. The
+  pre-fix behavior is reproducible from the `v0.5.1` tag.
+
+## Caveats for Hispanic-stratified rates
+
+* **Numerator/denominator origin misclassification.** Death-certificate Hispanic
+  origin (numerator) and Census/SEER origin (denominator) are separately measured
+  and differentially misclassified; see `?add_pop_counts` and
+  `vignette("hispanic-origin")`.
+* **Incomplete early reporting.** Hispanic origin was phased onto state death
+  certificates through ~1997, so 1990-1996 origin-stratified bridged rates
+  undercount Hispanic deaths (biased low). `add_pop_counts()` emits a
+  once-per-session message when a bridged join touches that span.
+
 # narcan 0.5.1
 
 ## New features -- single-race backfill to 2000 + SEER-uniform bridged denominators

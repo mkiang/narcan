@@ -165,7 +165,8 @@ get_pop_county <- function(scheme = c("single", "bridged"), states = NULL,
 ## a given grain ("state" or "county"), with DuckDB predicate pushdown. Used by
 ## the descriptive accessors (which then collapse origin) and by
 ## add_pop_counts()'s geography routing (which passes the finest cells to
-## .guarded_pop_join() so Hispanic origin is pinned there). Resolution order for
+## .guarded_pop_join(), where origin is kept as a join key when the death frame
+## is stratified and collapsed to "all" only when it is all-origin). Resolution order for
 ## the parquet: explicit arg -> option (test hook
 ## narcan.pop_<scheme>_<grain>_parquet) -> the cached Release asset for (scheme,
 ## grain), downloaded on cache miss.

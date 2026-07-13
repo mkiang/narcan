@@ -1,0 +1,178 @@
+---
+title: "Hispanic origin: the two recode pairs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Hispanic origin: the two recode pairs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+narcan gives you two ways to recode the NCHS `hspanicr` (Hispanic Origin/Race
+Recode) field, and picking the wrong one is a common, quiet mistake. This
+vignette is about which pair to use, and why they are not interchangeable.
+
+All data here are synthetic death counts joined to bundled public Census/SEER
+population estimates; no restricted NCHS records are used, and no chunk downloads
+anything.
+
+```{r libs}
+library(narcan)
+```
+
+## Two pairs, two jobs
+
+| | Detailed pair | Binary pair |
+|---|---|---|
+| Vectorized recode | `categorize_hspanicr()` | `categorize_hispanic_origin()` |
+| Add-a-column helper | `add_hspanicr_column()` | `add_hispanic_origin()` |
+| Output | 9- or 14-category ethnicity factor | `"hispanic"` / `"non_hispanic"` / `"unknown"` |
+| Use for | descriptive counts and proportions by subgroup | **rates** (it has a matching denominator) |
+
+The **detailed** pair returns the full NCHS recode -- Mexican, Puerto Rican,
+Cuban, and so on, with non-Hispanic race detail. It is the right tool for a
+table or figure that breaks Hispanic deaths into subgroups. It has **no matching
+population denominator**: Census and SEER do not publish population by these
+subgroups, so you cannot turn these counts into rates.
+
+The **binary** pair collapses the same field to the only Hispanic-origin
+granularity the population data resolve -- Hispanic vs non-Hispanic. That is the
+recode to use when you are going to divide by a population.
+
+```{r both}
+codes <- c(1, 5, 6, 9)   # 9-category: Mexican, Other/unknown Hispanic,
+                         # non-Hispanic white, Hispanic origin unknown
+categorize_hspanicr(codes, year = 2019)          # detailed (subgroups)
+categorize_hispanic_origin(codes, year = 2019)   # binary (for rates)
+```
+
+Two subtleties are baked into the binary recode. Code 5 ("Other or unknown
+Hispanic") **is** Hispanic, so it maps to `"hispanic"`; only code 9 ("Hispanic
+origin unknown/not stated") maps to `"unknown"`. And `year` is required, because
+the recode changed from 9 categories (1989-2020) to 14 (2022+) and is reserved
+in 2021 -- the two schemes are not comparable, though the binary axis they
+collapse to is.
+
+## Adding the column and joining a denominator
+
+`add_hispanic_origin()` reads the data year per row (from `year`, or two-digit
+`datayear`), so a multi-year frame is labeled correctly:
+
+```{r add-origin}
+deaths <- data.frame(
+    year          = c(2019L, 2019L, 2019L),
+    age           = 25L,
+    sex           = "male",
+    race          = "white_only",
+    hspanicr      = c(1, 6, 9),   # Hispanic, non-Hispanic, origin-unknown
+    deaths        = c(40, 900, 5)
+)
+deaths <- add_hispanic_origin(deaths)
+deaths[, c("hspanicr", "hispanic_origin", "deaths")]
+```
+
+To get Hispanic-stratified **rates**, put `hispanic_origin` in `by_vars` and use a
+scheme that resolves origin -- `"single"` (2000+) or `"bridged"` (1990+). Drop
+the origin-unknown deaths first: they have no denominator.
+
+```{r stratified-rate}
+strat <- deaths[deaths$hispanic_origin != "unknown", ]
+add_pop_counts(
+    strat,
+    race_scheme = "single",
+    by_vars = c("year", "age", "sex", "race", "hispanic_origin")
+)[, c("hispanic_origin", "deaths", "pop")]
+```
+
+Each origin gets its own denominator. An `"unknown"` or `NA` origin left in the
+frame is a hard error, not a silent all-origin fallback -- the counts for those
+deaths belong in an all-origin numerator, never a stratified one.
+
+### Which knob? A shared name, two mechanisms
+
+The join and the accessors both say `hispanic_origin`, but they are different
+controls:
+
+- `add_pop_counts()` joins on a `hispanic_origin` **column** you list in
+  `by_vars` (above).
+- `get_pop_state()` / `get_pop_county()` take a `hispanic_origin=` **filter
+  argument** that selects which origin's population to return.
+
+```{r accessor}
+get_pop_state(scheme = "single", states = "06", years = 2024L,
+              hispanic_origin = "hispanic")[1, ]
+```
+
+Confusing the two is loud, not silent: passing the filter argument to
+`add_pop_counts()` errors (`unused argument`), and putting a `hispanic_origin`
+column in a frame without listing it in `by_vars` errors on the stray column.
+
+## The mixed-era trap
+
+SEER resolves Hispanic origin only from 1990. Before 1990 the bridged
+denominators carry origin `"all"` only, so there is no such thing as a pre-1990
+Hispanic-specific rate -- the population does not exist. `add_pop_counts()`
+enforces this: a pre-1990 row with a stratified origin is a hard error.
+
+That makes a continuous 1969-2024 "Hispanic trend" impossible, and narcan will
+not let you fake one. A single frame that mixes the pre-1990 `"all"` marginal
+with post-1990 stratified rows is rejected, because `"all"` already sums the
+strata -- combining them double-counts:
+
+```{r dd6-error}
+mixed <- data.frame(
+    year = c(1985L, 2000L), age = 40L, sex = "male", race = "white",
+    hispanic_origin = c("all", "hispanic"), deaths = c(500, 30)
+)
+try(add_pop_counts(mixed, race_scheme = "bridged",
+                   by_vars = c("year", "age", "sex", "race", "hispanic_origin")))
+```
+
+If you genuinely want to show the eras side by side, compute each **separately**
+(each call internally homogeneous, so neither trips the guard) and `rbind()` the
+results -- keeping the pre-1990 segment as all-origin:
+
+```{r two-call}
+pre <- data.frame(year = 1985L, age = 40L, sex = "male", race = "white",
+                  hispanic_origin = "all", deaths = 500)
+pre <- add_pop_counts(pre, race_scheme = "bridged",
+                      by_vars = c("year", "age", "sex", "race", "hispanic_origin"))
+
+post <- expand.grid(year = c(1990L, 2000L), age = 40L, sex = "male",
+                    race = "white",
+                    hispanic_origin = c("hispanic", "non_hispanic"),
+                    stringsAsFactors = FALSE)
+post$deaths <- c(20, 480, 40, 520)
+post <- add_pop_counts(post, race_scheme = "bridged",
+                       by_vars = c("year", "age", "sex", "race", "hispanic_origin"))
+
+trend <- rbind(pre, post)
+trend$rate <- trend$deaths / trend$pop * 1e5
+trend[order(trend$year), c("year", "hispanic_origin", "rate")]
+```
+
+The discontinuity is the point. The 1985 row is an all-origin rate; the 1990 and
+2000 rows are Hispanic-specific. They are different series and must be read that
+way -- the pre-1990 segment shows only the collapsed line, never a stratified
+one. **Restrict origin-stratified trend analysis to 1990+ (bridged) or 2000+
+(single);** the pre-1990 point exists here only to make the break visible.
+
+## Two caveats for Hispanic-stratified rates
+
+**Misclassification.** The numerator's Hispanic origin comes from the death
+certificate; the denominator's comes from Census/SEER. They are measured
+separately and are differentially misclassified -- modest for Hispanic and Asian
+or Pacific Islander populations, large for American Indian or Alaska Native --
+so origin-specific rates carry a numerator/denominator bias (Arias E, Heron M,
+Hakes J. The Validity of Race and Hispanic-origin Reporting on Death Certificates
+in the United States: An Update. *Vital Health Stat 2*(172). Hyattsville, MD:
+National Center for Health Statistics; 2016).
+
+**Incomplete early reporting.** The Hispanic-origin item was phased onto state
+death certificates through about 1997, so national origin-stratified numerators
+for 1990-1996 undercount Hispanic deaths and the resulting rates run low.
+`add_pop_counts()` emits a once-per-session message when a bridged join touches
+that span.

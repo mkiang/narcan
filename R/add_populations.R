@@ -43,7 +43,10 @@
 #'   Hispanic-stratified denominators, add a \code{hispanic_origin} column
 #'   (\code{"hispanic"}/\code{"non_hispanic"}, from \code{add_hispanic_origin()})
 #'   to \code{by_vars} under \code{"single"} (2000+) or \code{"bridged"} (1990+);
-#'   \code{"unknown"}/\code{NA} origin is non-denominable and hard-errors. Two
+#'   \code{"unknown"}/\code{NA} origin is non-denominable and hard-errors. (Note
+#'   the shared name: \code{add_pop_counts()} joins on a \code{hispanic_origin}
+#'   COLUMN listed in \code{by_vars}, whereas \code{get_pop_state()} /
+#'   \code{get_pop_county()} take a \code{hispanic_origin=} filter ARGUMENT.) Two
 #'   caveats apply to origin-stratified rates: (A) numerator origin (death
 #'   certificate) and denominator origin (Census/SEER) are separately measured
 #'   and differentially misclassified; (B) origin was phased onto state death

@@ -226,6 +226,41 @@ knitr::kable(src[, c("dataset", "scheme", "grain", "vintage",
                      "year_min", "year_max")])
 ```
 
+## Hispanic-stratified denominators
+
+Both strict schemes carry a Hispanic-origin axis. For an origin-specific
+denominator, add a `hispanic_origin` column (from `add_hispanic_origin()`) to
+`by_vars`; for the all-origin denominator, drop the column entirely. The two
+answer different questions -- and origin-unknown deaths belong only in the
+all-origin numerator, because there is no "unknown-origin" population to divide
+by.
+
+```{r hispanic-all}
+# All-origin: one row, every death counts (the 3 origin-unknown deaths are here).
+all_origin <- data.frame(year = 2024L, age = 30L, sex = "female",
+                         race = "white_only", deaths = 12 + 210 + 3)
+add_pop_counts(all_origin, race_scheme = "single",
+               by_vars = c("year", "age", "sex", "race"))$pop
+```
+
+```{r hispanic-strat}
+# Origin-stratified: the non-denominable unknowns are dropped; origin is a key.
+strat <- data.frame(
+    year = 2024L, age = 30L, sex = "female", race = "white_only",
+    hispanic_origin = c("hispanic", "non_hispanic"), deaths = c(12, 210)
+)
+add_pop_counts(strat, race_scheme = "single",
+               by_vars = c("year", "age", "sex", "race", "hispanic_origin")
+)[, c("hispanic_origin", "deaths", "pop")]
+```
+
+The two stratified denominators sum to the all-origin one; the difference is only
+which deaths sit in the numerator. Leaving a `hispanic_origin` column in the frame
+but out of `by_vars` is a hard error (it would be silently summed over), as is an
+`"unknown"`/`NA` origin in a stratified join. The detailed-vs-binary recode
+distinction, the pre-1990 mixed-era trap, and the misclassification caveats are
+covered in `vignette("hispanic-origin")`.
+
 ## A note on hand-joins
 
 Always join through `add_pop_counts()` (or the guarded rate helpers). The
