@@ -199,13 +199,15 @@ coverage (single-race) can differ, so join only where both exist.
 
 ## Coverage and the frozen slice
 
-Only the single-race 2020-2024 slice is **bundled** (frozen at 0.5.0,
-dependency-free). The 2000-2019 backfill is additive -- it does not change those
-five years -- but it ships only in the downloadable single-race `*_full` parquet
-(`pop_singlerace_full` and its state/county counterparts), fetched once from the
-tag-pinned GitHub Release asset and cached. So `get_pop_state()`/`get_pop_county()`
-serve 2020-2024 straight from the bundled table, but a pre-2020 `years` request
-routes to that downloadable parquet -- or to a local copy via the
+The **national** single-race table is bundled at every covered year: the frozen
+0.5.0 `pop_singlerace` (2020-2024) plus `pop_singlerace_full` (2000-2024,
+dependency-free `.rda`), so a national pre-2020 request needs no download. The
+2000-2019 backfill is additive -- it does not change those five years. The
+**state and county** backfills are the ones distributed as downloadable
+single-race `*_full` parquets (tag-pinned GitHub Release assets, cached on first
+use). So `get_pop_state()`/`get_pop_county()` serve 2020-2024 from the bundled
+frozen table, but a pre-2020 `years` request at state/county grain routes to that
+downloadable parquet -- or to a local copy via the
 `narcan.pop_single_<grain>_parquet` option, as in the county chunk above. A
 request for a year the resolved data does not cover hard-errors -- never a silent
 0-row or `NA`:
@@ -225,6 +227,41 @@ invisible(utils::capture.output(src <- pop_sources()))
 knitr::kable(src[, c("dataset", "scheme", "grain", "vintage",
                      "year_min", "year_max")])
 ```
+
+## Hispanic-stratified denominators
+
+Both strict schemes carry a Hispanic-origin axis. For an origin-specific
+denominator, add a `hispanic_origin` column (from `add_hispanic_origin()`) to
+`by_vars`; for the all-origin denominator, drop the column entirely. The two
+answer different questions -- and origin-unknown deaths belong only in the
+all-origin numerator, because there is no "unknown-origin" population to divide
+by.
+
+```{r hispanic-all}
+# All-origin: one row, every death counts (the 3 origin-unknown deaths are here).
+all_origin <- data.frame(year = 2024L, age = 30L, sex = "female",
+                         race = "white_only", deaths = 12 + 210 + 3)
+add_pop_counts(all_origin, race_scheme = "single",
+               by_vars = c("year", "age", "sex", "race"))$pop
+```
+
+```{r hispanic-strat}
+# Origin-stratified: the non-denominable unknowns are dropped; origin is a key.
+strat <- data.frame(
+    year = 2024L, age = 30L, sex = "female", race = "white_only",
+    hispanic_origin = c("hispanic", "non_hispanic"), deaths = c(12, 210)
+)
+add_pop_counts(strat, race_scheme = "single",
+               by_vars = c("year", "age", "sex", "race", "hispanic_origin")
+)[, c("hispanic_origin", "deaths", "pop")]
+```
+
+The two stratified denominators sum to the all-origin one; the difference is only
+which deaths sit in the numerator. Leaving a `hispanic_origin` column in the frame
+but out of `by_vars` is a hard error (it would be silently summed over), as is an
+`"unknown"`/`NA` origin in a stratified join. The detailed-vs-binary recode
+distinction, the pre-1990 mixed-era trap, and the misclassification caveats are
+covered in `vignette("hispanic-origin")`.
 
 ## A note on hand-joins
 

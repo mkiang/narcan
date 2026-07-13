@@ -1,0 +1,30 @@
+# Frozen snapshot of verify_fwf/output/review/81_hspanicr_origin_oracle.csv (MK-approved 2026-07-12).
+# The authoritative, primary-source-cited oracle lives in the private review wrapper, not in this package.
+# Maps NCHS hspanicr (Hispanic Origin/Race Recode) to the binary hispanic_origin axis that
+# categorize_hispanic_origin() reproduces. `scheme` = 9cat (data years 1989-2020) or 14cat (2022+).
+# 2021 is reserved (-> NA); pre-1989 the field is absent (-> NA). Verified verbatim against the NCHS
+# record layouts: 9-cat 1996/1999/2000/2019; 14-cat CDC 2023 documentation.
+scheme,code,origin,source_label
+9cat,1,hispanic,Mexican
+9cat,2,hispanic,Puerto Rican
+9cat,3,hispanic,Cuban
+9cat,4,hispanic,Central or South American
+9cat,5,hispanic,Other or unknown Hispanic
+9cat,6,non_hispanic,Non-Hispanic white
+9cat,7,non_hispanic,Non-Hispanic black
+9cat,8,non_hispanic,Non-Hispanic other races
+9cat,9,unknown,Hispanic origin unknown
+14cat,1,hispanic,Mexican
+14cat,2,hispanic,Puerto Rico
+14cat,3,hispanic,Cuban
+14cat,4,hispanic,Dominican
+14cat,5,hispanic,Central American
+14cat,6,hispanic,South American
+14cat,7,hispanic,Other or Unknown Hispanic
+14cat,8,non_hispanic,Non-Hispanic White (only)
+14cat,9,non_hispanic,Non-Hispanic Black (only)
+14cat,10,non_hispanic,Non-Hispanic American Indian and Alaska Native (only)
+14cat,11,non_hispanic,Non-Hispanic Asian (only)
+14cat,12,non_hispanic,Non-Hispanic Native Hawaiian or Other Pacific Islander (only)
+14cat,13,non_hispanic,Non-Hispanic more than one race
+14cat,14,unknown,Hispanic origin unknown or not stated

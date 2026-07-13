@@ -34,15 +34,25 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
 
     grouped <- df |> dplyr::group_by(..., .add = TRUE)
 
-    ## Guard: grouping is NOT added automatically. A multi-year frame passed
-    ## without `year` in the grouping silently collapses every year into one
-    ## standardized rate.
-    if ("year" %in% names(df) && !"year" %in% dplyr::group_vars(grouped) &&
-        length(unique(stats::na.omit(df$year))) > 1L) {
-        warning("`df` spans multiple years but `year` is not a grouping ",
-                "variable; calc_stdrate_var() will collapse across years into a ",
-                "single rate. Pass `year` via `...` (or pre-group `df`).",
-                call. = FALSE)
+    ## Guard: grouping is NOT added automatically. A frame that varies over a
+    ## demographic dimension not in the grouping silently collapses that dimension
+    ## into one blended standardized rate (e.g. forgetting `hispanic_origin`
+    ## averages hispanic + non_hispanic into a meaningless single rate). Flag any
+    ## such dimension. The fixed dimension list avoids false positives on
+    ## passenger columns (deaths, pop, ...) that legitimately vary within a group.
+    .dims <- c("year", "sex", "race", "hispanic_origin", "state_fips",
+               "county_fips")
+    gv <- dplyr::group_vars(grouped)
+    collapsed <- Filter(function(d) {
+        d %in% names(df) && !d %in% gv &&
+            length(unique(stats::na.omit(df[[d]]))) > 1L
+    }, .dims)
+    if (length(collapsed) > 0L) {
+        warning(sprintf(paste0(
+            "`df` varies over dimension(s) %s not in the grouping; ",
+            "calc_stdrate_var() will collapse each into a single blended rate. ",
+            "Pass them via `...` (or pre-group `df`)."),
+            paste(sprintf("`%s`", collapsed), collapse = ", ")), call. = FALSE)
     }
 
     ## Guard: an NA weight (e.g. an age that is not a 5-year-bin start) or an

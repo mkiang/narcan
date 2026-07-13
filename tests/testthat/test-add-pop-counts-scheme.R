@@ -40,6 +40,12 @@ test_that("legacy positional by_vars call still works", {
     expect_equal(nrow(out), nrow(inp))
 })
 
+test_that("C7: legacy output does NOT gain a pop_scheme column (byte-for-byte)", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    out <- add_pop_counts(inp)
+    expect_false("pop_scheme" %in% names(out))
+})
+
 test_that("legacy unmatched CHARACTER race warns and leaves pop NA", {
     inp <- rate_input(year = 2015L, sex = "male", race = "white")
     inp$race <- "unknown_group"                      # char, absent from pop_est
@@ -97,6 +103,37 @@ test_that("single national join matches every key with no NA", {
     expect_equal(chk$pop, chk$pop_exp)
 })
 
+test_that("a strict-scheme 0-row death frame returns 0 rows, not a pop_scheme error (regression)", {
+    # A split-apply pipeline can hand add_pop_counts() an empty per-stratum group.
+    # Tagging pop_scheme via `x[["pop_scheme"]] <- scheme` used to crash with
+    # "replacement has 1 row, data has 0" (a scalar cannot recycle onto 0 rows).
+    # The input MUST be a base data.frame, not a tibble: left_join() preserves the
+    # left arg's class, and tibble's `[[<-` tolerates the recycle (masking the
+    # bug) whereas base data.frame's does not -- so a tibble fixture is tautological.
+    empty <- as.data.frame(single_input(2024L))[0, , drop = FALSE]
+    expect_false(tibble::is_tibble(empty))
+    out <- add_pop_counts(empty, race_scheme = "single")
+    expect_equal(nrow(out), 0L)
+    expect_true(all(c("pop", "pop_scheme") %in% names(out)))
+    expect_type(out$pop_scheme, "character")
+})
+
+test_that("the relabel loop tolerates a 0-row base-data.frame pop slice (no scalar-recycle crash)", {
+    # Twin of the pop_scheme 0-row fix: `pop_slice[[d]] <- tok` in the reserved-
+    # token relabel loop must also rep() over nrow, so a 0-row base data.frame
+    # slice (from a corrupt/empty parquet) does not hit the recycle error. Driven
+    # directly since a shipped slice is always a tibble. sex='both' triggers the
+    # sex relabel; the assertion is that no error is raised.
+    slice0 <- data.frame(year = integer(0), age = integer(0), sex = character(0),
+                         race = character(0), hispanic_origin = character(0),
+                         pop = numeric(0))
+    d <- data.frame(year = 2024L, age = 40L, sex = "both", race = "white_only",
+                    hispanic_origin = "hispanic", deaths = 1)
+    out <- narcan:::.synthesize_pop(
+        d, slice0, c("year", "age", "sex", "race", "hispanic_origin"), "single")
+    expect_equal(nrow(out), 0L)
+})
+
 test_that("single state join uses the state table and matches", {
     st <- narcan::pop_singlerace_state
     keys <- dplyr::distinct(
@@ -111,6 +148,24 @@ test_that("single state join uses the state table and matches", {
 })
 
 # ---- single scheme: domain guards (no silent NA) ------------------------------
+
+test_that("cross-scheme: a single slice carrying a bridged race label errors", {
+    # scheme='single' must reject bridged vocabulary ('black' vs 'black_only');
+    # the old cross-scheme UNION check passed 'black' silently. Real single slice
+    # (both origins, all six labels) + one injected bridged 'black' row.
+    slice <- narcan::pop_singlerace[
+        narcan::pop_singlerace$year == 2024L &
+        narcan::pop_singlerace$age == 40L &
+        narcan::pop_singlerace$sex == "male", ]
+    slice <- rbind(slice, transform(slice[1, ], race = "black"))
+    d <- data.frame(year = 2024L, age = 40L, sex = "male",
+                    race = "white_only", hispanic_origin = "hispanic", deaths = 1)
+    expect_error(
+        narcan:::.synthesize_pop(
+            d, slice, c("year", "age", "sex", "race", "hispanic_origin"),
+            "single"),
+        "unrecognized `race`")
+})
 
 test_that("single scheme hard-errors on out-of-domain keys", {
     good <- single_input(2024L)
@@ -273,20 +328,190 @@ test_that("single scheme coerces a categorize_race() factor and joins", {
     expect_false(anyNA(out$pop))
 })
 
-# ---- single scheme: Hispanic pin ----------------------------------------------
+# ---- single scheme: Hispanic-origin join (0.5.2 pin lifted) -------------------
 
-test_that("non-'all' hispanic argument and by_vars origin both error", {
+test_that("single-race origin-stratified join succeeds per origin (0.5.2)", {
+    ## Build a finest-cell frame that INCLUDES hispanic_origin, then join with
+    ## origin as a key: each origin must get its OWN denominator, not the sum.
+    keys <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race, hispanic_origin)
+    keys$deaths <- seq_len(nrow(keys))
+    inp <- tibble::as_tibble(keys)
+    out <- add_pop_counts(
+        inp, race_scheme = "single",
+        by_vars = c("year", "age", "sex", "race", "hispanic_origin"))
+    expect_false(anyNA(out$pop))
+    expect_setequal(unique(out$hispanic_origin), c("hispanic", "non_hispanic"))
+    ## per-origin, not all-origin: one concrete hispanic cell == its finest pop.
+    src <- narcan::pop_singlerace
+    cell <- out[out$hispanic_origin == "hispanic", ][1, ]
+    exp <- src$pop[src$year == 2024L & src$age == cell$age &
+                   src$sex == cell$sex & src$race == cell$race &
+                   src$hispanic_origin == "hispanic"]
+    expect_equal(cell$pop, sum(exp))
+})
+
+test_that("the removed `hispanic=` argument now errors (DD3 breaking change)", {
     inp <- single_input(2024L)
-    expect_error(add_pop_counts(inp, race_scheme = "single", hispanic = "hispanic"),
-                 "0.5.2")
-
-    inp2 <- inp
-    inp2$hispanic_origin <- "hispanic"
     expect_error(
-        add_pop_counts(inp2, race_scheme = "single",
-                       by_vars = c("year", "age", "sex", "race",
-                                   "hispanic_origin")),
-        "0.5.2")
+        add_pop_counts(inp, race_scheme = "single", hispanic = "hispanic"),
+        "unused argument")
+})
+
+test_that("DD2: 'unknown' and NA hispanic_origin are non-denominable and error", {
+    keys <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    unk <- keys; unk$hispanic_origin <- "unknown"; unk$deaths <- 1
+    expect_error(add_pop_counts(unk, race_scheme = "single", by_vars = by5),
+                 "no denominator")
+    na <- keys; na$hispanic_origin <- NA_character_; na$deaths <- 1
+    expect_error(add_pop_counts(na, race_scheme = "single", by_vars = by5),
+                 "no denominator")
+    ## a detailed categorize_hspanicr() label reads the GENERIC message (no carve-out)
+    det <- keys; det$hispanic_origin <- "mexican"; det$deaths <- 1
+    err <- tryCatch(add_pop_counts(det, race_scheme = "single", by_vars = by5),
+                    error = function(e) conditionMessage(e))
+    expect_match(err, "unrecognized")
+    expect_false(grepl("no denominator", err))
+})
+
+test_that("DD6: mixing 'all' with a stratified origin in one frame errors", {
+    keys <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    mixed <- rbind(
+        transform(keys[1, ], hispanic_origin = "all"),
+        transform(keys[1, ], hispanic_origin = "hispanic"))
+    mixed$deaths <- 1
+    expect_error(add_pop_counts(mixed, race_scheme = "single", by_vars = by5),
+                 "double-count")
+})
+
+test_that("DD4: legacy scheme with hispanic_origin in by_vars errors cleanly", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "hispanic"
+    expect_error(
+        add_pop_counts(inp, by_vars = c("year", "age", "sex", "race",
+                                        "hispanic_origin")),
+        "no Hispanic-origin denominator")
+})
+
+test_that("DD4: legacy with all-'all' hispanic_origin IN by_vars still errors", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "all"
+    expect_error(
+        add_pop_counts(inp, by_vars = c("year", "age", "sex", "race",
+                                        "hispanic_origin")),
+        "no Hispanic-origin denominator")
+})
+
+test_that("DD4: legacy silently-summed stratified origin PASSENGER errors (not in by_vars)", {
+    ## The documented add_hispanic_origin() -> add_pop_counts() handoff with the
+    ## legacy DEFAULT: hispanic_origin present but not in by_vars would otherwise
+    ## give both strata the same all-origin pop_est denominator. Must error.
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "hispanic"
+    expect_error(suppressMessages(add_pop_counts(inp)),
+                 "no Hispanic-origin denominator")
+})
+
+test_that("legacy tolerates a pure-'all' hispanic_origin passenger (harmless)", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    inp$hispanic_origin <- "all"
+    out <- suppressMessages(add_pop_counts(inp))
+    expect_false(anyNA(out$pop))
+})
+
+test_that("legacy rejects a sub-national geography column (national pop_est)", {
+    ## pop_est is national: a state_fips/county_fips/st_fips passenger would
+    ## silently attach the national denominator to every area. Must error.
+    for (col in c("state_fips", "county_fips", "st_fips")) {
+        inp <- rate_input(year = 2015L, sex = "male", race = "white")
+        inp[[col]] <- "06"
+        expect_error(suppressMessages(add_pop_counts(inp)),
+                     "no geographic denominator", info = col)
+    }
+})
+
+# ---- P4 origin matrix (single) -----------------------------------------------
+
+test_that("single origins are complementary: hispanic + non_hispanic == all, and differ (G6)", {
+    ## Positive control that the pin is truly lifted: each stratum must get its
+    ## OWN denominator (so hispanic != all-origin), and the two must sum to it.
+    cell <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)[1, ]
+    by5 <- c("year", "age", "sex", "race", "hispanic_origin")
+    strat <- rbind(transform(cell, hispanic_origin = "hispanic"),
+                   transform(cell, hispanic_origin = "non_hispanic"))
+    strat$deaths <- 1
+    s <- add_pop_counts(strat, race_scheme = "single", by_vars = by5)
+    ph <- s$pop[s$hispanic_origin == "hispanic"]
+    pnh <- s$pop[s$hispanic_origin == "non_hispanic"]
+    coll <- cell; coll$deaths <- 1
+    pall <- add_pop_counts(coll, race_scheme = "single",
+                           by_vars = c("year", "age", "sex", "race"))$pop
+    expect_equal(ph + pnh, pall)
+    expect_true(ph != pall)
+})
+
+test_that("DD2: a mixed c('all','all',NA) frame hits the carve-out, not the generic message (G3)", {
+    ## Guards against an implementer copy-pasting the sex/age na.rm pattern (which
+    ## would let the NA slip past DD2 while the valid "all" masks it).
+    cell <- dplyr::distinct(
+        narcan::pop_singlerace[narcan::pop_singlerace$year == 2024L, ],
+        year, age, sex, race)[1, ]
+    frame <- cell[rep(1, 3), ]
+    frame$hispanic_origin <- c("all", "all", NA)
+    frame$deaths <- 1
+    expect_error(
+        add_pop_counts(frame, race_scheme = "single",
+                       by_vars = c("year", "age", "sex", "race", "hispanic_origin")),
+        "no denominator")
+})
+
+test_that("origin-stratified add_pop_counts matches get_pop_state at state grain (single)", {
+    gp <- get_pop_state(scheme = "single", states = "06", years = 2024L,
+                        hispanic_origin = "hispanic")
+    by6 <- c("state_fips", "year", "age", "sex", "race", "hispanic_origin")
+    deaths <- gp[, by6]
+    deaths$deaths <- 1
+    ap <- add_pop_counts(deaths, race_scheme = "single", by_vars = by6)
+    m <- merge(ap, gp, by = by6, suffixes = c("_ap", "_gp"))
+    expect_equal(nrow(m), nrow(gp))
+    expect_equal(m$pop_ap, m$pop_gp)
+})
+
+test_that("origin-stratified add_pop_counts matches get_pop_county at county grain (single, synthetic)", {
+    skip_if_not_installed("duckdb")
+    skip_if_not_installed("DBI")
+    syn <- expand.grid(
+        county_fips = c("06001", "36061"), year = 2024L, age = c(30L, 35L),
+        sex = c("male", "female"), race = c("white_only", "black_only"),
+        hispanic_origin = c("hispanic", "non_hispanic"), stringsAsFactors = FALSE)
+    syn$state_fips <- substr(syn$county_fips, 1, 2)
+    syn$pop <- seq_len(nrow(syn)) * 100
+    syn$scheme <- "single"; syn$source <- "census_pep"; syn$vintage <- "V2024"
+    path <- withr::local_tempfile(fileext = ".parquet")
+    con <- DBI::dbConnect(duckdb::duckdb())
+    on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+    duckdb::duckdb_register(con, "syn", syn)
+    DBI::dbExecute(con, sprintf("COPY syn TO '%s' (FORMAT PARQUET)", path))
+    withr::local_options(narcan.pop_single_county_parquet = path)
+
+    gp <- get_pop_county(scheme = "single", counties = "06001", years = 2024L,
+                         hispanic_origin = "hispanic")
+    by6 <- c("county_fips", "year", "age", "sex", "race", "hispanic_origin")
+    deaths <- gp[, by6]
+    deaths$deaths <- 1
+    ap <- add_pop_counts(deaths, race_scheme = "single", by_vars = by6)
+    m <- merge(ap, gp, by = by6, suffixes = c("_ap", "_gp"))
+    expect_equal(nrow(m), nrow(gp))
+    expect_equal(m$pop_ap, m$pop_gp)
 })
 
 # ---- get_pop_state() accessor -------------------------------------------------

@@ -18,6 +18,10 @@
 #'   assumed (with a warning) for backward compatibility.
 #'
 #' @return an ordered factor
+#' @seealso \code{\link{categorize_hispanic_origin}} for the binary
+#'   \code{hispanic}/\code{non_hispanic} origin axis used for population joins
+#'   (this function returns the full 9/14-category ethnicity recode, for
+#'   descriptive counts, which has no matching denominator).
 #' @export
 #'
 #' @examples
@@ -40,7 +44,11 @@ categorize_hspanicr <- function(hspanicr_column, year = NULL) {
                       "nonhispanic_nhopi", "nonhispanic_multi",
                       "hispanic_unknown")
 
-    code <- as.integer(hspanicr_column)
+    ## Coerce by VALUE, not factor position: as.integer(factor("9")) returns the
+    ## level's ordinal position, not 9, so a factor-valued hspanicr would silently
+    ## mis-recode (alphabetical level order diverges from numeric for codes 10-14).
+    ## as.character() first -- the idiom this file already uses for `year` below.
+    code <- as.integer(as.character(hspanicr_column))
     n <- length(code)
 
     if (is.null(year)) {
@@ -49,7 +57,10 @@ categorize_hspanicr <- function(hspanicr_column, year = NULL) {
                 "correctly.")
         yr <- rep(2000L, n)
     } else {
-        yr <- as.integer(year)
+        ## Coerce by VALUE, not factor position -- same idiom as `hspanicr_column`
+        ## above and as categorize_hispanic_origin(): a factor-valued `year` would
+        ## otherwise map to its level index, silently mis-selecting the era.
+        yr <- suppressWarnings(as.integer(as.numeric(as.character(year))))
         if (length(yr) == 1L) {
             yr <- rep(yr, n)
         } else if (length(yr) != n) {

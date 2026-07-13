@@ -27,13 +27,19 @@
 #'   years to reach the backfill)
 #' @param hispanic_origin \code{"all"} (default; sums the origin dimension),
 #'   \code{"non_hispanic"}, or \code{"hispanic"}. Bridged pre-1990 rows carry
-#'   only \code{"all"} (SEER has no Hispanic origin before 1990).
+#'   only \code{"all"} (SEER has no Hispanic origin before 1990), so requesting a
+#'   pre-1990 \code{years} with a stratified origin under \code{scheme =
+#'   "bridged"} is an error, not a silent empty result.
 #' @param parquet optional path to a local state parquet (single-race backfill
 #'   or bridged); default resolves the cached Release asset when the request
 #'   falls outside the bundled frozen window
 #'
 #' @return a tibble with columns \code{state_fips}, \code{year}, \code{age},
 #'   \code{sex}, \code{race}, \code{hispanic_origin}, \code{pop}, and metadata
+#' @seealso \code{\link{add_pop_counts}} for the death-to-population JOIN, which
+#'   keys on a \code{hispanic_origin} COLUMN in \code{by_vars}; this accessor
+#'   instead takes a \code{hispanic_origin=} filter ARGUMENT (same name, different
+#'   mechanism).
 #' @importFrom dplyr group_by across all_of summarize mutate
 #' @export
 #' @examples
@@ -45,6 +51,7 @@ get_pop_state <- function(scheme = c("single", "bridged"), states = NULL,
                           parquet = NULL) {
     scheme <- match.arg(scheme)
     hispanic_origin <- match.arg(hispanic_origin)
+    .stop_bridged_pre1990_origin("get_pop_state", scheme, years, hispanic_origin)
 
     if (identical(scheme, "single")) {
         ## Default to the frozen dependency-free table; widen to the *_full
@@ -120,6 +127,10 @@ get_pop_state <- function(scheme = c("single", "bridged"), states = NULL,
 #'   Release asset, downloaded on first use)
 #'
 #' @return a tibble with the county population schema plus metadata
+#' @seealso \code{\link{add_pop_counts}} for the death-to-population JOIN, which
+#'   keys on a \code{hispanic_origin} COLUMN in \code{by_vars}; this accessor
+#'   instead takes a \code{hispanic_origin=} filter ARGUMENT (same name, different
+#'   mechanism).
 #' @importFrom dplyr group_by across all_of summarize mutate
 #' @export
 #' @examples
@@ -133,6 +144,7 @@ get_pop_county <- function(scheme = c("single", "bridged"), states = NULL,
                            parquet = NULL) {
     scheme <- match.arg(scheme)
     hispanic_origin <- match.arg(hispanic_origin)
+    .stop_bridged_pre1990_origin("get_pop_county", scheme, years, hispanic_origin)
     ## D-COUNTYDEFAULT: single-race county defaults to the frozen narrow window
     ## (2020-2024, derived from the frozen coverage, not a literal); pre-2020 is
     ## opt-in via years=. Bridged defaults to its full span.
@@ -161,11 +173,34 @@ get_pop_county <- function(scheme = c("single", "bridged"), states = NULL,
     }
 }
 
+## Shared guard: bridged Hispanic-origin stratification is unavailable before
+## 1990 (SEER resolves origin from 1990; pre-1990 carries origin "all" only). The
+## descriptive accessors must REFUSE a pre-1990 stratified request rather than
+## silently return 0 rows -- mirroring the death-join guard in
+## .check_bridged_death_keys(). Fires only when specific pre-1990 years are asked
+## for; a years = NULL (all-years) stratified request returns the 1990+ rows that
+## do exist.
+.stop_bridged_pre1990_origin <- function(fn, scheme, years, hispanic_origin) {
+    if (identical(scheme, "bridged") && !identical(hispanic_origin, "all") &&
+        !is.null(years)) {
+        yy <- suppressWarnings(as.numeric(as.character(years)))
+        if (any(!is.na(yy) & yy < 1990)) {
+            stop(sprintf(paste0(
+                "%s(): Hispanic-origin stratification is not available before ",
+                "1990 under scheme = \"bridged\" (SEER resolves origin from 1990; ",
+                "pre-1990 carries origin \"all\" only). Request year >= 1990, or ",
+                "hispanic_origin = \"all\"."), fn), call. = FALSE)
+        }
+    }
+    invisible(NULL)
+}
+
 ## Internal: read the finest-cell rows (BOTH origins) from a population parquet at
 ## a given grain ("state" or "county"), with DuckDB predicate pushdown. Used by
 ## the descriptive accessors (which then collapse origin) and by
 ## add_pop_counts()'s geography routing (which passes the finest cells to
-## .guarded_pop_join() so Hispanic origin is pinned there). Resolution order for
+## .guarded_pop_join(), where origin is kept as a join key when the death frame
+## is stratified and collapsed to "all" only when it is all-origin). Resolution order for
 ## the parquet: explicit arg -> option (test hook
 ## narcan.pop_<scheme>_<grain>_parquet) -> the cached Release asset for (scheme,
 ## grain), downloaded on cache miss.
@@ -233,10 +268,35 @@ get_pop_county <- function(scheme = c("single", "bridged"), states = NULL,
     ## requested year present), not just the MIN/MAX range, so a mid-range hole is
     ## caught too (does not rely on the contiguity invariant).
     if (!is.null(yi)) {
+        ## Scope the coverage probe to the requested geography: a year present
+        ## for SOME state/county but not the one asked for is still a miss (a
+        ## geography-scoped gap in an otherwise year-covered asset would else
+        ## return a silent short slice).
+        geo_where <- character()
+        if (!is.null(states)) {
+            geo_where <- c(geo_where, sprintf("state_fips IN (%s)",
+                                              paste(sqlq(states), collapse = ", ")))
+        }
+        if (!is.null(counties) && identical(grain, "county")) {
+            geo_where <- c(geo_where, sprintf("county_fips IN (%s)",
+                                              paste(sqlq(counties), collapse = ", ")))
+        }
+        geo_sql <- if (length(geo_where)) {
+            paste0(" WHERE ", paste(geo_where, collapse = " AND "))
+        } else {
+            ""
+        }
         have <- DBI::dbGetQuery(con, sprintf(
-            "SELECT DISTINCT year FROM read_parquet(%s)", sqlq(parquet)))$year
+            "SELECT DISTINCT year FROM read_parquet(%s)%s",
+            sqlq(parquet), geo_sql))$year
         miss <- sort(setdiff(yi, have))
-        if (length(miss) > 0L) {
+        ## Error only when the requested geography IS present but is missing some
+        ## requested year(s) -- a partial-year gap in a present geography. An
+        ## entirely-absent geography (have empty) is a legitimate 0-row slice
+        ## (a nonexistent county FIPS), not an error, per the documented
+        ## empty-slice behavior; distinguishing "absent" from "corrupt" would need
+        ## the expected geography set, which we do not have here.
+        if (length(miss) > 0L && length(have) > 0L) {
             span <- if (length(have)) {
                 sprintf("%d-%d", as.integer(min(have)), as.integer(max(have)))
             } else {

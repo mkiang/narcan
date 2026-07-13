@@ -51,3 +51,9 @@ backfill. \code{scheme = "bridged"} defaults to its full 1969-2024 span.
 get_pop_county(states = "06", years = 2024)
 }
 }
+\seealso{
+\code{\link{add_pop_counts}} for the death-to-population JOIN, which
+  keys on a \code{hispanic_origin} COLUMN in \code{by_vars}; this accessor
+  instead takes a \code{hispanic_origin=} filter ARGUMENT (same name, different
+  mechanism).
+}

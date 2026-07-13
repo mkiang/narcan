@@ -20,3 +20,8 @@ conformable, add an NA column named hspanicr if one does not exist.
 df <- data.frame(year = 2019, ucod = "X42")
 add_hspanicr_column(df)
 }
+\seealso{
+\code{\link{add_hispanic_origin}}, which adds the binary
+  \code{hispanic_origin} column (for population joins) derived from
+  \code{hspanicr}; this function only backfills the raw \code{hspanicr} field.
+}

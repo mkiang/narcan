@@ -34,3 +34,9 @@ boundary must not be treated as a single ordered scale.
 categorize_hspanicr(c(1:5, NA, 9, 8, 4), year = 2019)
 categorize_hspanicr(c(1, 4, 10, 13, 14), year = 2023)
 }
+\seealso{
+\code{\link{categorize_hispanic_origin}} for the binary
+  \code{hispanic}/\code{non_hispanic} origin axis used for population joins
+  (this function returns the full 9/14-category ethnicity recode, for
+  descriptive counts, which has no matching denominator).
+}

@@ -6,6 +6,9 @@
 #' @param icd_df an MCOD dataframe)
 #'
 #' @return dataframe
+#' @seealso \code{\link{add_hispanic_origin}}, which adds the binary
+#'   \code{hispanic_origin} column (for population joins) derived from
+#'   \code{hspanicr}; this function only backfills the raw \code{hspanicr} field.
 #' @importFrom tibble add_column
 #' @export
 #' @examples

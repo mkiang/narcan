@@ -7,24 +7,24 @@
 add_pop_counts(
   df,
   by_vars = c("year", "age", "sex", "race"),
-  race_scheme = c("legacy", "single", "bridged"),
-  hispanic = "all"
+  race_scheme = c("legacy", "single", "bridged")
 )
 }
 \arguments{
-\item{df}{MCOD dataframe}
+\item{df}{MCOD dataframe. A two-digit \code{datayear} (1979-1995) is coalesced
+into \code{year} per row when \code{year} is absent or \code{NA}.}
 
 \item{by_vars}{variables to match on}
 
 \item{race_scheme}{denominator scheme: \code{"legacy"} (bridged-race
 \code{pop_est}, the default), \code{"single"} (single-race), or
 \code{"bridged"} (SEER-uniform bridged-race, 1969-2024)}
-
-\item{hispanic}{Hispanic-origin denominator to use; only \code{"all"} is
-supported in this release}
 }
 \value{
-dataframe
+\code{df} with an added \code{pop} column. Under the strict schemes
+  (\code{"single"}/\code{"bridged"}) it also carries a \code{pop_scheme} column
+  marking which scheme produced it, so results from different schemes are not
+  accidentally combined. The \code{"legacy"} output is unchanged.
 }
 \description{
 Attaches a \code{pop} column of population estimates matched on \code{by_vars}.
@@ -68,9 +68,18 @@ Legacy bridged-race (\code{"legacy"}), SEER bridged (\code{"bridged"}),
   and single-race (\code{"single"}) schemes are NOT comparable and must not be
   chained into a single trend. \code{"legacy"} and \code{"bridged"} share the
   labels white/black/other/total, so passing the wrong \code{race_scheme}
-  cannot be detected automatically -- set it deliberately. In this release the
-  death-side join is pinned to all-origin denominators (\code{hispanic =
-  "all"}); the Hispanic-stratified death join arrives in a later version.
+  cannot be detected automatically -- set it deliberately. For
+  Hispanic-stratified denominators, add a \code{hispanic_origin} column
+  (\code{"hispanic"}/\code{"non_hispanic"}, from \code{add_hispanic_origin()})
+  to \code{by_vars} under \code{"single"} (2000+) or \code{"bridged"} (1990+);
+  \code{"unknown"}/\code{NA} origin is non-denominable and hard-errors. (Note
+  the shared name: \code{add_pop_counts()} joins on a \code{hispanic_origin}
+  COLUMN listed in \code{by_vars}, whereas \code{get_pop_state()} /
+  \code{get_pop_county()} take a \code{hispanic_origin=} filter ARGUMENT.) Two
+  caveats apply to origin-stratified rates: (A) numerator origin (death
+  certificate) and denominator origin (Census/SEER) are separately measured
+  and differentially misclassified; (B) origin was phased onto state death
+  certificates through ~1997, so 1990-1996 rates are biased low.
 }
 \examples{
 df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")

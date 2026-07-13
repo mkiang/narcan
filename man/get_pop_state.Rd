@@ -25,7 +25,9 @@ years to reach the backfill)}
 
 \item{hispanic_origin}{\code{"all"} (default; sums the origin dimension),
 \code{"non_hispanic"}, or \code{"hispanic"}. Bridged pre-1990 rows carry
-only \code{"all"} (SEER has no Hispanic origin before 1990).}
+only \code{"all"} (SEER has no Hispanic origin before 1990), so requesting a
+pre-1990 \code{years} with a stratified origin under \code{scheme =
+"bridged"} is an error, not a silent empty result.}
 
 \item{parquet}{optional path to a local state parquet (single-race backfill
 or bridged); default resolves the cached Release asset when the request
@@ -57,4 +59,10 @@ to its full 56-year span (1969-2024).
 }
 \examples{
 get_pop_state(states = "06", years = 2024)
+}
+\seealso{
+\code{\link{add_pop_counts}} for the death-to-population JOIN, which
+  keys on a \code{hispanic_origin} COLUMN in \code{by_vars}; this accessor
+  instead takes a \code{hispanic_origin=} filter ARGUMENT (same name, different
+  mechanism).
 }

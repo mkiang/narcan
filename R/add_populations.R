@@ -39,35 +39,108 @@
 #'   and single-race (\code{"single"}) schemes are NOT comparable and must not be
 #'   chained into a single trend. \code{"legacy"} and \code{"bridged"} share the
 #'   labels white/black/other/total, so passing the wrong \code{race_scheme}
-#'   cannot be detected automatically -- set it deliberately. In this release the
-#'   death-side join is pinned to all-origin denominators (\code{hispanic =
-#'   "all"}); the Hispanic-stratified death join arrives in a later version.
+#'   cannot be detected automatically -- set it deliberately. For
+#'   Hispanic-stratified denominators, add a \code{hispanic_origin} column
+#'   (\code{"hispanic"}/\code{"non_hispanic"}, from \code{add_hispanic_origin()})
+#'   to \code{by_vars} under \code{"single"} (2000+) or \code{"bridged"} (1990+);
+#'   \code{"unknown"}/\code{NA} origin is non-denominable and hard-errors. (Note
+#'   the shared name: \code{add_pop_counts()} joins on a \code{hispanic_origin}
+#'   COLUMN listed in \code{by_vars}, whereas \code{get_pop_state()} /
+#'   \code{get_pop_county()} take a \code{hispanic_origin=} filter ARGUMENT.) Two
+#'   caveats apply to origin-stratified rates: (A) numerator origin (death
+#'   certificate) and denominator origin (Census/SEER) are separately measured
+#'   and differentially misclassified; (B) origin was phased onto state death
+#'   certificates through ~1997, so 1990-1996 rates are biased low.
 #'
-#' @param df MCOD dataframe
+#' @param df MCOD dataframe. A two-digit \code{datayear} (1979-1995) is coalesced
+#'   into \code{year} per row when \code{year} is absent or \code{NA}.
 #' @param by_vars variables to match on
 #' @param race_scheme denominator scheme: \code{"legacy"} (bridged-race
 #'   \code{pop_est}, the default), \code{"single"} (single-race), or
 #'   \code{"bridged"} (SEER-uniform bridged-race, 1969-2024)
-#' @param hispanic Hispanic-origin denominator to use; only \code{"all"} is
-#'   supported in this release
 #'
-#' @return dataframe
+#' @return \code{df} with an added \code{pop} column. Under the strict schemes
+#'   (\code{"single"}/\code{"bridged"}) it also carries a \code{pop_scheme} column
+#'   marking which scheme produced it, so results from different schemes are not
+#'   accidentally combined. The \code{"legacy"} output is unchanged.
 #' @importFrom dplyr left_join select
 #' @export
 #' @examples
 #' df <- data.frame(year = 2019, age = 25, sex = "male", race = "white")
 #' add_pop_counts(df)
 add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
-                           race_scheme = c("legacy", "single", "bridged"),
-                           hispanic = "all") {
+                           race_scheme = c("legacy", "single", "bridged")) {
     race_scheme <- match.arg(race_scheme)
+    ## Accept a two-digit `datayear` (pre-1996 files) the way add_hispanic_origin()
+    ## does: coalesce it into a canonical `year` per row, so the documented
+    ## add_hispanic_origin() -> add_pop_counts() pipeline works for a datayear-only
+    ## frame (the join keys on `year`). `year` takes precedence where present.
+    if (is.data.frame(df) && "datayear" %in% names(df)) {
+        dy <- suppressWarnings(as.numeric(as.character(df[["datayear"]])))
+        two <- !is.na(dy) & dy < 100
+        dy[two] <- dy[two] + 1900
+        if (!"year" %in% names(df)) {
+            df[["year"]] <- dy
+        } else {
+            yy <- suppressWarnings(as.numeric(as.character(df[["year"]])))
+            df[["year"]] <- ifelse(!is.na(yy), yy, dy)
+        }
+    }
     .check_mcod_df(df, need = by_vars, fn = "add_pop_counts")
     if ("pop" %in% names(df)) {
         stop("add_pop_counts(): `df` already has a `pop` column; remove or ",
              "rename it before joining population estimates.", call. = FALSE)
     }
+    ## `year` is the join key: an NA year (e.g. a pre-1996 row whose `datayear`
+    ## was absent, so the coalesce above could not fill it) would otherwise
+    ## surface downstream as a misleading "no population / check coverage" error.
+    ## Fail early and name the real cause.
+    if ("year" %in% by_vars && "year" %in% names(df) && anyNA(df[["year"]])) {
+        stop("add_pop_counts(): `year` is a join key but has NA value(s); every ",
+             "row needs a data year -- a 4-digit `year`, or a two-digit ",
+             "`datayear` to coalesce from. Fill or drop the NA-year rows.",
+             call. = FALSE)
+    }
 
     if (identical(race_scheme, "legacy")) {
+        ## DD4: legacy pop_est has no Hispanic-origin denominator. Key on
+        ## names(df), NOT by_vars: a non-"all" hispanic_origin column left OUT of
+        ## by_vars (the documented add_hispanic_origin() -> add_pop_counts()
+        ## handoff, run with the legacy default) would otherwise be silently
+        ## summed over, giving BOTH strata of a cell the same all-origin pop_est
+        ## denominator. A pure-"all" (or absent) column is harmless. Fail fast on
+        ## this structural error, before the bridged-overlap nudge below.
+        if ("hispanic_origin" %in% names(df)) {
+            ho <- df[["hispanic_origin"]]
+            ## Error if origin is a join key (any value -- pop_est has no origin
+            ## column to join on) OR a non-"all" passenger (the silent-sum trap).
+            ## A pure-"all" passenger is harmless and allowed.
+            if ("hispanic_origin" %in% by_vars || anyNA(ho) || !all(ho == "all")) {
+                stop(paste0(
+                    "add_pop_counts(): race_scheme = \"legacy\" has no ",
+                    "Hispanic-origin denominator (pop_est is not ",
+                    "origin-stratified); `df` carries a `hispanic_origin` column ",
+                    "that this scheme cannot denominate. Drop the ",
+                    "hispanic_origin column for an all-origin legacy join, or ",
+                    "use race_scheme = \"single\"/\"bridged\" for ",
+                    "Hispanic-stratified denominators."), call. = FALSE)
+            }
+        }
+        ## Geography: pop_est is NATIONAL, so a sub-national key (st_fips from
+        ## add_county_fips(), or state_fips/county_fips) would silently attach the
+        ## national denominator to every area -- the same silent-sum class as the
+        ## origin guard above. Reject up front. (Strict schemes DO support
+        ## geography, so this is legacy-only.)
+        geo <- intersect(c("st_fips", "state_fips", "county_fips"), names(df))
+        if (length(geo) > 0L) {
+            stop(sprintf(paste0(
+                "add_pop_counts(): race_scheme = \"legacy\" uses the national ",
+                "pop_est and has no geographic denominator, but `df` carries ",
+                "%s. Drop the geography column(s) for a national legacy join, or ",
+                "use race_scheme = \"single\"/\"bridged\" (which support ",
+                "state_fips/county_fips denominators)."),
+                paste0("`", geo, "`", collapse = ", ")), call. = FALSE)
+        }
         ## D-SCHEMESELECT: "legacy" and "bridged" share the race labels
         ## white/black/other/total, so a bridged-intent by-race join left on the
         ## legacy default silently gets single-race-alone denominators. No guard
@@ -90,12 +163,6 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     ## Strict schemes ("single", "bridged"): shared call-site guards, then
     ## scheme-aware geography routing. Every per-row correctness guard runs in
     ## .guarded_pop_join(); these are the call-site framing checks.
-    if (!identical(hispanic, "all")) {
-        stop("add_pop_counts(): `hispanic` must be \"all\" in this release; ",
-             "the death-side Hispanic join arrives in narcan 0.5.2. Use ",
-             "get_pop_state()/get_pop_county() for Hispanic-stratified counts.",
-             call. = FALSE)
-    }
     ## Every population dimension present in `df` must also be in `by_vars`. A
     ## stratifier left out of `by_vars` (geography OR sex/race/age/origin) would
     ## be silently summed over -- e.g. asian_only deaths joined without `race`
@@ -103,9 +170,7 @@ add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
     ## national count. To aggregate a dimension, drop it from `df` (or use its
     ## reserved token: race "total", sex "both"), never omit it while it is still
     ## a column. Geography is also routed by this membership.
-    pop_dims <- c("year", "age", "sex", "race", "hispanic_origin",
-                  "state_fips", "county_fips")
-    stray <- setdiff(intersect(pop_dims, names(df)), by_vars)
+    stray <- setdiff(intersect(.pop_dimensions, names(df)), by_vars)
     if (length(stray) > 0L) {
         stop(sprintf(
             paste0("add_pop_counts(): `df` carries population-dimension ",

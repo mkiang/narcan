@@ -9,6 +9,7 @@ DuckDB
 Dwyer
 Fentanyl
 HTTPS
+Hyattsville
 ICD
 IHME
 ISW
@@ -21,6 +22,7 @@ NIOSH
 Natality
 Opioid
 Pre
+Rican
 Stata
 UCOD
 UCODs
@@ -34,6 +36,7 @@ backfilling
 backfills
 cdc
 certifier
+chainable
 chinese
 chr
 countyoc
@@ -42,6 +45,8 @@ csv
 dataset's
 datayear
 dct
+denominable
+denominate
 deterministically
 df
 dicts
@@ -75,6 +80,7 @@ labelled
 mcod
 mis
 misassigns
+misclassified
 misweight
 misweights
 mkdir
@@ -122,6 +128,7 @@ stateoc
 staters
 statersr
 stdpopulations
+stratifier
 subcodes
 subtype
 subtypes
@@ -131,6 +138,7 @@ tidyverse
 tramadol
 ucod
 ucr
+undercount
 undeterminable
 ungrouped
 unmapped
