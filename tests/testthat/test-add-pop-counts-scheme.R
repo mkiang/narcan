@@ -103,6 +103,17 @@ test_that("single national join matches every key with no NA", {
     expect_equal(chk$pop, chk$pop_exp)
 })
 
+test_that("a strict-scheme 0-row death frame returns 0 rows, not a pop_scheme error (regression)", {
+    # A split-apply pipeline can hand add_pop_counts() an empty per-stratum group.
+    # Tagging pop_scheme via `x[["pop_scheme"]] <- scheme` used to crash with
+    # "replacement has 1 row, data has 0" (a scalar cannot recycle onto 0 rows).
+    empty <- single_input(2024L)[0, ]
+    out <- add_pop_counts(empty, race_scheme = "single")
+    expect_equal(nrow(out), 0L)
+    expect_true(all(c("pop", "pop_scheme") %in% names(out)))
+    expect_type(out$pop_scheme, "character")
+})
+
 test_that("single state join uses the state table and matches", {
     st <- narcan::pop_singlerace_state
     keys <- dplyr::distinct(
@@ -117,6 +128,24 @@ test_that("single state join uses the state table and matches", {
 })
 
 # ---- single scheme: domain guards (no silent NA) ------------------------------
+
+test_that("cross-scheme: a single slice carrying a bridged race label errors", {
+    # scheme='single' must reject bridged vocabulary ('black' vs 'black_only');
+    # the old cross-scheme UNION check passed 'black' silently. Real single slice
+    # (both origins, all six labels) + one injected bridged 'black' row.
+    slice <- narcan::pop_singlerace[
+        narcan::pop_singlerace$year == 2024L &
+        narcan::pop_singlerace$age == 40L &
+        narcan::pop_singlerace$sex == "male", ]
+    slice <- rbind(slice, transform(slice[1, ], race = "black"))
+    d <- data.frame(year = 2024L, age = 40L, sex = "male",
+                    race = "white_only", hispanic_origin = "hispanic", deaths = 1)
+    expect_error(
+        narcan:::.synthesize_pop(
+            d, slice, c("year", "age", "sex", "race", "hispanic_origin"),
+            "single"),
+        "unrecognized `race`")
+})
 
 test_that("single scheme hard-errors on out-of-domain keys", {
     good <- single_input(2024L)

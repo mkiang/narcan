@@ -50,6 +50,10 @@
   request** (e.g. `years = 1985, hispanic_origin = "hispanic"`) instead of
   silently returning zero rows -- SEER resolves Hispanic origin only from 1990,
   matching the death-join guard.
+* **The accessor year-coverage guard is scoped to the requested geography.** A
+  year present for some state/county but missing for the one requested now
+  errors, instead of returning a silent short slice. An entirely-absent geography
+  (a nonexistent FIPS) still returns zero rows, not an error.
 
 ## Other changes
 

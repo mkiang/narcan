@@ -149,7 +149,7 @@
         } else {
             .check_bridged_death_keys(deaths, by_vars)
         }
-        pop_slice <- .synthesize_pop(deaths, pop_slice, by_vars)
+        pop_slice <- .synthesize_pop(deaths, pop_slice, by_vars, scheme)
     }
 
     ## The strict schemes assert many-to-one: the synthesized slice is unique on
@@ -209,7 +209,10 @@
     ## distinguishable. Legacy is left byte-for-byte unchanged (no origin axis, and
     ## its historical output must not gain a column).
     if (strict) {
-        x[["pop_scheme"]] <- scheme
+        ## rep() over nrow(x) so a 0-row death frame (e.g. an empty per-stratum
+        ## group in a split-apply pipeline) is tagged with a 0-length column
+        ## rather than erroring -- `[[<-` does not recycle a scalar onto 0 rows.
+        x[["pop_scheme"]] <- rep(scheme, nrow(x))
     }
 
     ## Restore the caller's grouping. group_vars() also captures a rowwise frame's
@@ -460,10 +463,12 @@
 #' @param deaths ungrouped death frame (read for its reserved-token usage).
 #' @param pop_slice finest-cell population table.
 #' @param by_vars join keys.
+#' @param scheme the strict scheme (\code{"single"}/\code{"bridged"}); scopes the
+#'   race-label domain check so it cannot pass a cross-scheme/cross-era mislabel.
 #' @return a population slice with columns \code{by_vars} + \code{pop}.
-#' @importFrom dplyr group_by across all_of summarize mutate
+#' @importFrom dplyr group_by across all_of summarize mutate n_distinct
 #' @keywords internal
-.synthesize_pop <- function(deaths, pop_slice, by_vars) {
+.synthesize_pop <- function(deaths, pop_slice, by_vars, scheme) {
     ## Defense in depth: the strict-scheme population tables store exactly one row
     ## per finest cell (the builders assert this before writing). If a resolved
     ## slice has DUPLICATE finest-cell rows -- a corrupted or partially-appended
@@ -530,11 +535,19 @@
     ## surface. (Origin's reserved token "all" is LEGAL -- pre-1990 bridged stores
     ## it -- so origin gets a domain check only; the per-year invariant governs
     ## its all-vs-stratified mixing.)
-    .assert_pop_dim <- function(col, valid, tok) {
-        if (!col %in% names(pop_slice)) return(invisible(NULL))
+    ## Format offending labels for a corruption message (NA prints as "NA").
+    .fmt_bad <- function(bad) {
+        disp <- shQuote(bad)
+        disp[is.na(bad)] <- "NA"
+        paste(disp, collapse = ", ")
+    }
+    ## A stored reserved token beside finest cells would double-count. NA is inert
+    ## for this test, so drop it here (only here).
+    .assert_pop_token <- function(col, tok) {
+        if (!col %in% names(pop_slice) || is.na(tok)) return(invisible(NULL))
         vals <- unique(as.character(pop_slice[[col]]))
         vals <- vals[!is.na(vals)]
-        if (!is.na(tok) && tok %in% vals && length(setdiff(vals, tok)) > 0L) {
+        if (tok %in% vals && length(setdiff(vals, tok)) > 0L) {
             stop(sprintf(paste0(
                 "add_pop_counts(): the population slice stores a reserved `%s` ",
                 "marginal (\"%s\") beside finest cells; aggregating `%s` would ",
@@ -542,21 +555,63 @@
                 "corrupt -- re-download or rebuild it."), col, tok, col),
                 call. = FALSE)
         }
+        invisible(NULL)
+    }
+    ## Domain-membership. An NA is itself an undenominable value, so it is NOT
+    ## stripped -- a canonical asset never carries NA in these dimensions (verified
+    ## on the shipped bridged/single tables), so flagging it can only catch
+    ## corruption. `vals` may be supplied pre-computed (the race path does).
+    .assert_pop_domain <- function(col, valid, vals = NULL) {
+        if (!col %in% names(pop_slice)) return(invisible(NULL))
+        if (is.null(vals)) vals <- unique(as.character(pop_slice[[col]]))
         bad <- setdiff(vals, valid)
         if (length(bad) > 0L) {
             stop(sprintf(paste0(
                 "add_pop_counts(): the population slice has unrecognized `%s` ",
                 "value(s): %s. The population asset may be corrupt -- re-download ",
-                "or rebuild it."), col, paste(shQuote(bad), collapse = ", ")),
-                call. = FALSE)
+                "or rebuild it."), col, .fmt_bad(bad)), call. = FALSE)
         }
         invisible(NULL)
     }
-    .assert_pop_dim("sex", c("male", "female", "both"), "both")
-    .assert_pop_dim("race", c(.single_race_labels, .bridged_race_labels_1990,
-                              .bridged_race_labels_pre1990, "total"), "total")
-    .assert_pop_dim("hispanic_origin", c("hispanic", "non_hispanic", "all"),
-                    NA_character_)
+    .assert_pop_token("sex", "both")
+    .assert_pop_domain("sex", c("male", "female", "both"))
+    .assert_pop_domain("hispanic_origin", c("hispanic", "non_hispanic", "all"))
+
+    ## Race domain, scheme- and era-conditioned (mirrors the death-side guards in
+    ## .check_single_death_keys / .check_bridged_death_keys). Validating against
+    ## the cross-scheme/cross-era UNION would silently pass a mislabeled slice --
+    ## a "single" asset carrying a bridged "black", or a pre-1990 bridged slice
+    ## carrying the 1990+-only "api". "total" is the one legal reserved marginal.
+    .assert_pop_token("race", "total")
+    if ("race" %in% names(pop_slice)) {
+        rv <- unique(as.character(pop_slice[["race"]]))
+        if (identical(scheme, "single")) {
+            .assert_pop_domain("race", c(.single_race_labels, "total"), rv)
+        } else if ("year" %in% names(pop_slice)) {
+            ## Per-row era vocab: pre-1990 white/black/other, 1990+
+            ## white/black/american_indian/api. A row whose year will not parse
+            ## falls back to the union so a corrupt year cannot mask a bad label.
+            yp <- suppressWarnings(as.integer(as.character(pop_slice[["year"]])))
+            rp <- as.character(pop_slice[["race"]])
+            bad <- unique(c(
+                setdiff(unique(rp[!is.na(yp) & yp < 1990]),
+                        c(.bridged_race_labels_pre1990, "total")),
+                setdiff(unique(rp[!is.na(yp) & yp >= 1990]),
+                        c(.bridged_race_labels_1990, "total")),
+                setdiff(unique(rp[is.na(yp)]),
+                        c(.bridged_race_labels_pre1990,
+                          .bridged_race_labels_1990, "total"))))
+            if (length(bad) > 0L) {
+                stop(sprintf(paste0(
+                    "add_pop_counts(): the population slice has unrecognized ",
+                    "`race` value(s): %s. The population asset may be corrupt -- ",
+                    "re-download or rebuild it."), .fmt_bad(bad)), call. = FALSE)
+            }
+        } else {
+            .assert_pop_domain("race", c(.bridged_race_labels_pre1990,
+                                         .bridged_race_labels_1990, "total"), rv)
+        }
+    }
 
     ## Per-cell origin completeness: within a stratified year, every finest cell
     ## must carry BOTH origins. A missing stratum row would be summed as zero (a
@@ -569,11 +624,16 @@
         strat <- pop_slice[as.character(pop_slice[["hispanic_origin"]]) %in%
                                c("hispanic", "non_hispanic"), , drop = FALSE]
         if (nrow(strat) > 0L && length(cell_keys) > 0L) {
-            key <- do.call(paste, c(strat[, c("year", cell_keys), drop = FALSE],
-                                    sep = "\r"))
-            n_orig <- tapply(as.character(strat[["hispanic_origin"]]), key,
-                             function(s) length(unique(s)))
-            if (any(n_orig < 2L)) {
+            ## Group on the actual typed columns (not a pasted string key) so no
+            ## in-field separator -- e.g. a stray "\r" from a CRLF CSV->parquet
+            ## convert -- can collide two distinct cells into one and mask a
+            ## missing stratum. n_distinct over the (already hispanic/non_hispanic
+            ## filtered) origin must be 2 for every finest cell.
+            comp <- strat |>
+                dplyr::group_by(dplyr::across(dplyr::all_of(c("year", cell_keys)))) |>
+                dplyr::summarize(.n_orig = dplyr::n_distinct(hispanic_origin),
+                                 .groups = "drop")
+            if (any(comp[[".n_orig"]] < 2L)) {
                 stop(paste0(
                     "add_pop_counts(): the population slice is missing a ",
                     "Hispanic-origin stratum for one or more finest cells (a ",

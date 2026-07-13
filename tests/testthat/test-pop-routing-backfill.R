@@ -305,6 +305,33 @@ test_that("the coverage guard catches an interior gap (membership, not just rang
         "does not cover year\\(s\\) 2012")
 })
 
+test_that("the coverage guard is geography-scoped: a year present elsewhere but absent for the requested county errors (not silent)", {
+    skip_if_not_installed("duckdb")
+    fx <- cty_fixture()
+    # Drop year 2012 for ONE county (56001) only; every other county keeps it.
+    # The old unscoped probe found 2012 present globally (via 56003 etc.) and
+    # returned a silent short slice for 56001; the scoped probe sees 2012 absent
+    # for 56001 and errors. 56001 is NOT entirely absent (it holds 2000-2024 minus
+    # 2012), so this is a partial-year gap, not the legitimate empty-slice case.
+    asym <- withr::local_tempfile(fileext = ".parquet")
+    con <- DBI::dbConnect(duckdb::duckdb())
+    on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
+    q <- function(x) paste0("'", x, "'")
+    DBI::dbExecute(con, sprintf(paste0(
+        "COPY (SELECT * FROM read_parquet(%s) ",
+        "WHERE NOT (county_fips = '56001' AND year = 2012)) TO %s (FORMAT PARQUET)"),
+        q(fx), q(asym)))
+    expect_error(
+        get_pop_county(scheme = "single", counties = "56001", years = 2012L,
+                       parquet = asym),
+        "does not cover year\\(s\\) 2012")
+    # Control: a county that still has 2012 returns rows, no error -- proves the
+    # guard is scoped, not globally tripped by 56001's gap.
+    ok <- get_pop_county(scheme = "single", counties = "56003", years = 2012L,
+                         parquet = asym)
+    expect_setequal(ok$year, 2012)
+})
+
 test_that("get_pop_state(single) hard-errors past the frozen coverage (not silent 0 rows)", {
     # 2025 is past the frozen 2020-2024 window; the dep-free branch must fail loud.
     expect_error(

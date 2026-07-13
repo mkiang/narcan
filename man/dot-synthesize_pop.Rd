@@ -4,7 +4,7 @@
 \alias{.synthesize_pop}
 \title{Synthesize the population slice to the join grain (strict schemes)}
 \usage{
-.synthesize_pop(deaths, pop_slice, by_vars)
+.synthesize_pop(deaths, pop_slice, by_vars, scheme)
 }
 \arguments{
 \item{deaths}{ungrouped death frame (read for its reserved-token usage).}
@@ -12,6 +12,9 @@
 \item{pop_slice}{finest-cell population table.}
 
 \item{by_vars}{join keys.}
+
+\item{scheme}{the strict scheme (\code{"single"}/\code{"bridged"}); scopes the
+race-label domain check so it cannot pass a cross-scheme/cross-era mislabel.}
 }
 \value{
 a population slice with columns \code{by_vars} + \code{pop}.

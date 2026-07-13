@@ -396,6 +396,55 @@ test_that("B2: a finest cell missing an origin stratum errors (undercount guard)
         "missing a Hispanic-origin stratum")
 })
 
+test_that("B4: a pre-1990 slice carrying the 1990+-only 'api' label errors (era-conditioned)", {
+    # The old cross-era UNION race check passed a pre-1990 'api' silently; the
+    # per-row era vocab (pre-1990 = white/black/other) rejects it. The death frame
+    # itself is valid pre-1990 (race 'white'), so this exercises the POP-side check.
+    bad <- rbind(bridged_pop(), data.frame(
+        year = 1985L, age = 40L, sex = "male", race = "api",
+        hispanic_origin = "all", pop = 999, scheme = "bridged",
+        source = "s", vintage = "v"))
+    d <- data.frame(year = 1985L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "all", deaths = 1)
+    expect_error(narcan:::.guarded_pop_join(
+        d, bad, c("year", "age", "sex", "race", "hispanic_origin"), "bridged"),
+        "unrecognized `race`")
+})
+
+test_that("B5: the completeness check is collision-proof (an in-field separator cannot mask a missing stratum)", {
+    # Two DISTINCT corrupt cells whose OLD paste-with-'\r' keys collided: cell A
+    # (state '06\r40', missing non_hispanic) hashed identically to a non_hispanic
+    # row of a different cell, masking A's missing stratum -> n_orig read 2. Typed
+    # grouping cannot collide. age is character only to construct the boundary shift.
+    slice <- tibble::tibble(
+        year = 2000L,
+        state_fips = c("06\r40", "06"),
+        age = c("40", "40\r40"),
+        sex = "male", race = "white",
+        hispanic_origin = c("hispanic", "non_hispanic"),
+        pop = c(10, 20))
+    d <- data.frame(year = 2000L, state_fips = "06", age = "40", sex = "male",
+                    race = "white", hispanic_origin = "all", deaths = 1)
+    expect_error(
+        narcan:::.synthesize_pop(
+            d, slice,
+            c("year", "state_fips", "age", "sex", "race", "hispanic_origin"),
+            "bridged"),
+        "missing a Hispanic-origin stratum")
+})
+
+test_that("B6: an NA race label in the slice errors (NA is not silently tolerated)", {
+    bad <- rbind(bridged_pop(), data.frame(
+        year = 2000L, age = 40L, sex = "male", race = NA_character_,
+        hispanic_origin = "hispanic", pop = 999, scheme = "bridged",
+        source = "s", vintage = "v"))
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "hispanic", deaths = 1)
+    expect_error(narcan:::.guarded_pop_join(
+        d, bad, c("year", "age", "sex", "race", "hispanic_origin"), "bridged"),
+        "unrecognized `race`")
+})
+
 # ---- P6 Bucket C: accessor era guard, datayear, scheme marker -----------------
 
 test_that("C4: get_pop_* refuse a bridged pre-1990 stratified request", {
