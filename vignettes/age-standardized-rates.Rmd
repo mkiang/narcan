@@ -221,6 +221,8 @@ rate pipeline.
 ## See also
 
 - `vignette("getting-started")` -- the full pipeline and where rates fit.
+- `vignette("real-data-end-to-end")` -- this same rate pipeline run on a real
+  public-use file (2004), with real numbers.
 - `vignette("population-denominators")` -- choosing and joining the denominator.
 - `vignette("hispanic-origin")` -- add a Hispanic-origin stratum to these rates.
 - `vignette("geography-fips")` -- compute the same rates at sub-national grains.

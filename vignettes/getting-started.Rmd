@@ -33,11 +33,14 @@ Most analyses follow the same four steps, from a raw NCHS file to a rate.
 | 3. Denominators | `add_pop_counts()` | `vignette("population-denominators")` |
 | 4. Rates | `add_std_pop()`, `calc_stdrate_var()` | `vignette("age-standardized-rates")` |
 
-Two more vignettes cover needs that branch off this spine:
-`vignette("hispanic-origin")` (Hispanic-origin stratification) and
+Further vignettes branch off this spine: `vignette("demographic-recodes")` (the
+year-aware age/sex/race recodes that produce the columns above),
+`vignette("hispanic-origin")` (Hispanic-origin stratification), and
 `vignette("geography-fips")` (sub-national geography). A measurement caveat --
 how the share of *unspecified* drug deaths shifts trends over time -- is in
-`vignette("unspecified-drug-deaths")`.
+`vignette("unspecified-drug-deaths")`. To see every step run on a real file,
+`vignette("real-data-end-to-end")` takes the public-use 2004 data all the way to an
+age-standardized opioid rate.
 
 ## Getting the data
 
@@ -122,8 +125,10 @@ is the minimal set; each vignette introduces the ones it needs.
 
 Start with `vignette("classifying-overdose-deaths")` (the flag step), then
 `vignette("population-denominators")` and `vignette("age-standardized-rates")` to
-turn counts into rates. Branch to `vignette("hispanic-origin")` to stratify by
-Hispanic origin or `vignette("geography-fips")` for sub-national work;
+turn counts into rates. `vignette("real-data-end-to-end")` runs that whole path on a
+real public-use file. Branch to `vignette("demographic-recodes")` for the age/sex/race
+recoders, `vignette("hispanic-origin")` to stratify by Hispanic origin, or
+`vignette("geography-fips")` for sub-national work;
 `vignette("unspecified-drug-deaths")` covers a measurement caveat.
 
 ## A note on this documentation
