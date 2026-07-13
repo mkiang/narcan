@@ -38,8 +38,13 @@ test_that("flag_opioid_contributed(): opioid in contributory but not the UCOD", 
     expect_gt(sum(out$opioid_contributed), 0)
 })
 
-test_that("flag_opioid_contributed() runs on ICD-9 data without error", {
+test_that("flag_opioid_contributed() warns and returns NA for ICD-9 (undefined there)", {
+    # ICD-9 opioid_death fires on any opioid mention, so "contributed but not the
+    # underlying opioid death" is an empty set; the column is NA, not a
+    # misleading always-redundant 0/1.
     proc <- flag_pipeline(flag_icd9_fixture(), year = 1993L, era = "icd9")$proc
-    out <- suppressWarnings(flag_opioid_contributed(proc, year = 1993L))
+    expect_warning(out <- flag_opioid_contributed(proc, year = 1993L),
+                   "not defined for ICD-9")
     expect_true("opioid_contributed" %in% names(out))
+    expect_true(all(is.na(out$opioid_contributed)))
 })

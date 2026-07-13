@@ -54,7 +54,7 @@ E950.5,icd9,ucod,Suicide/self-poisoning by unspecified drug or medicinal substan
 E962.0,icd9,ucod,Assault by drugs and medicinal substances (ICD-9 E962.0),1,0,none,homicide,E9620
 E980.0,icd9,ucod,"Poisoning by analgesics/antipyretics/antirheumatics, undetermined intent (ICD-9 E980.0)",1,0,none,undetermined,E9800
 E980.5,icd9,ucod,"Poisoning by unspecified drug/medicinal, undetermined intent (ICD-9 E980.5)",1,0,none,undetermined,E9805
-965.0,icd9,record,Poisoning by opiates and related narcotics (ICD-9 965.0),1,1,other_opioid,na,N9650
+965.0,icd9,record,Poisoning by opiates and related narcotics (ICD-9 965.0),1,1,unspecified,na,N9650
 965.00,icd9,record,"Poisoning by opium (alkaloids), unspecified (ICD-9-CM 965.00)",1,1,opium,na,N96500
 965.01,icd9,record,Poisoning by heroin (ICD-9-CM 965.01),1,1,heroin,na,N96501
 965.02,icd9,record,Poisoning by methadone (ICD-9-CM 965.02),1,1,methadone,na,N96502
