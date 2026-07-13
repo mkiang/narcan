@@ -25,7 +25,9 @@ years to reach the backfill)}
 
 \item{hispanic_origin}{\code{"all"} (default; sums the origin dimension),
 \code{"non_hispanic"}, or \code{"hispanic"}. Bridged pre-1990 rows carry
-only \code{"all"} (SEER has no Hispanic origin before 1990).}
+only \code{"all"} (SEER has no Hispanic origin before 1990), so requesting a
+pre-1990 \code{years} with a stratified origin under \code{scheme =
+"bridged"} is an error, not a silent empty result.}
 
 \item{parquet}{optional path to a local state parquet (single-race backfill
 or bridged); default resolves the cached Release asset when the request

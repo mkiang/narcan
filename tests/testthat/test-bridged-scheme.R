@@ -358,3 +358,80 @@ test_that("legacy by-race join in 2000-2020 nudges once toward bridged", {
     # second call is silent (once per session)
     expect_message(add_pop_counts(inp), NA)
 })
+
+# ---- P6 Bucket B: .synthesize_pop corrupt-slice hardening ---------------------
+
+test_that("B1: a stored reserved race='total' marginal in the slice errors", {
+    bad <- rbind(bridged_pop(), data.frame(
+        year = 2000L, age = 40L, sex = "male", race = "total",
+        hispanic_origin = "hispanic", pop = 999, scheme = "bridged",
+        source = "s", vintage = "v"))
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "hispanic", deaths = 1)
+    expect_error(narcan:::.guarded_pop_join(
+        d, bad, c("year", "age", "sex", "race", "hispanic_origin"), "bridged"),
+        "reserved `race` marginal")
+})
+
+test_that("B3: an off-canonical race label in the slice errors", {
+    bad <- rbind(bridged_pop(), data.frame(
+        year = 2000L, age = 40L, sex = "male", race = "White",  # mis-cased
+        hispanic_origin = "hispanic", pop = 999, scheme = "bridged",
+        source = "s", vintage = "v"))
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "hispanic", deaths = 1)
+    expect_error(narcan:::.guarded_pop_join(
+        d, bad, c("year", "age", "sex", "race", "hispanic_origin"), "bridged"),
+        "unrecognized `race`")
+})
+
+test_that("B2: a finest cell missing an origin stratum errors (undercount guard)", {
+    bp <- bridged_pop()
+    bad <- bp[!(bp$year == 2000 & bp$age == 40 & bp$sex == "male" &
+                bp$race == "white" & bp$hispanic_origin == "non_hispanic"), ]
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "all", deaths = 1)
+    expect_error(narcan:::.guarded_pop_join(
+        d, bad, c("year", "age", "sex", "race", "hispanic_origin"), "bridged"),
+        "missing a Hispanic-origin stratum")
+})
+
+# ---- P6 Bucket C: accessor era guard, datayear, scheme marker -----------------
+
+test_that("C4: get_pop_* refuse a bridged pre-1990 stratified request", {
+    expect_error(get_pop_state(scheme = "bridged", years = 1985L,
+                               hispanic_origin = "hispanic"),
+                 "not available before 1990")
+    expect_error(get_pop_county(scheme = "bridged", years = 1985L,
+                                hispanic_origin = "hispanic"),
+                 "not available before 1990")
+})
+
+test_that("C6: add_pop_counts coalesces a two-digit datayear into year", {
+    inp <- data.frame(datayear = 90, age = 40L, sex = "male", race = "white",
+                      hispanic_origin = "hispanic")
+    out <- suppressMessages(add_pop_counts(
+        inp, race_scheme = "bridged",
+        by_vars = c("year", "age", "sex", "race", "hispanic_origin")))
+    expect_false(anyNA(out$pop))
+    expect_equal(unique(out$year), 1990)
+})
+
+test_that("C6: add_pop_counts errors clearly on an NA year join key", {
+    inp <- data.frame(year = NA_real_, age = 40L, sex = "male", race = "white",
+                      hispanic_origin = "hispanic")
+    expect_error(add_pop_counts(
+        inp, race_scheme = "bridged",
+        by_vars = c("year", "age", "sex", "race", "hispanic_origin")),
+        "NA value")
+})
+
+test_that("C7: strict output carries a pop_scheme column", {
+    d <- data.frame(year = 2000L, age = 40L, sex = "male", race = "white",
+                    hispanic_origin = "hispanic", deaths = 1)
+    out <- narcan:::.guarded_pop_join(
+        d, bridged_pop(), c("year", "age", "sex", "race", "hispanic_origin"),
+        "bridged")
+    expect_true("pop_scheme" %in% names(out))
+    expect_true(all(out$pop_scheme == "bridged"))
+})

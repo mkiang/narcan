@@ -11,7 +11,8 @@ add_pop_counts(
 )
 }
 \arguments{
-\item{df}{MCOD dataframe}
+\item{df}{MCOD dataframe. A two-digit \code{datayear} (1979-1995) is coalesced
+into \code{year} per row when \code{year} is absent or \code{NA}.}
 
 \item{by_vars}{variables to match on}
 
@@ -20,7 +21,10 @@ add_pop_counts(
 \code{"bridged"} (SEER-uniform bridged-race, 1969-2024)}
 }
 \value{
-dataframe
+\code{df} with an added \code{pop} column. Under the strict schemes
+  (\code{"single"}/\code{"bridged"}) it also carries a \code{pop_scheme} column
+  marking which scheme produced it, so results from different schemes are not
+  accidentally combined. The \code{"legacy"} output is unchanged.
 }
 \description{
 Attaches a \code{pop} column of population estimates matched on \code{by_vars}.

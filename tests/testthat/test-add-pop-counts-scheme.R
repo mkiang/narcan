@@ -40,6 +40,12 @@ test_that("legacy positional by_vars call still works", {
     expect_equal(nrow(out), nrow(inp))
 })
 
+test_that("C7: legacy output does NOT gain a pop_scheme column (byte-for-byte)", {
+    inp <- rate_input(year = 2015L, sex = "male", race = "white")
+    out <- add_pop_counts(inp)
+    expect_false("pop_scheme" %in% names(out))
+})
+
 test_that("legacy unmatched CHARACTER race warns and leaves pop NA", {
     inp <- rate_input(year = 2015L, sex = "male", race = "white")
     inp$race <- "unknown_group"                      # char, absent from pop_est

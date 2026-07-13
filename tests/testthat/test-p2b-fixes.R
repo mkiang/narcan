@@ -16,8 +16,18 @@ test_that("calc_stdrate_var: a multi-year frame without year grouping warns (R2)
                      opioid_rate = c(5, 7, 50, 70), opioid_var = c(.1, .2, 1, 2),
                      unit_w = c(.5, .5, .5, .5))
     expect_warning(calc_stdrate_var(df, opioid_rate, opioid_var, race),
-                   "collapse across years")
+                   "varies over dimension")
     expect_no_warning(calc_stdrate_var(df, opioid_rate, opioid_var, year, race))
+})
+
+test_that("calc_stdrate_var: an omitted hispanic_origin stratifier warns (P6)", {
+    df <- data.frame(hispanic_origin = c("hispanic", "non_hispanic"),
+                     race = "white", opioid_rate = c(5, 7),
+                     opioid_var = c(.1, .2), unit_w = c(.5, .5))
+    expect_warning(calc_stdrate_var(df, opioid_rate, opioid_var, race),
+                   "hispanic_origin")
+    expect_no_warning(calc_stdrate_var(df, opioid_rate, opioid_var, race,
+                                       hispanic_origin))
 })
 
 test_that("calc_stdrate_var: an NA standardization weight warns (R3)", {

@@ -52,13 +52,17 @@
 #'   and differentially misclassified; (B) origin was phased onto state death
 #'   certificates through ~1997, so 1990-1996 rates are biased low.
 #'
-#' @param df MCOD dataframe
+#' @param df MCOD dataframe. A two-digit \code{datayear} (1979-1995) is coalesced
+#'   into \code{year} per row when \code{year} is absent or \code{NA}.
 #' @param by_vars variables to match on
 #' @param race_scheme denominator scheme: \code{"legacy"} (bridged-race
 #'   \code{pop_est}, the default), \code{"single"} (single-race), or
 #'   \code{"bridged"} (SEER-uniform bridged-race, 1969-2024)
 #'
-#' @return dataframe
+#' @return \code{df} with an added \code{pop} column. Under the strict schemes
+#'   (\code{"single"}/\code{"bridged"}) it also carries a \code{pop_scheme} column
+#'   marking which scheme produced it, so results from different schemes are not
+#'   accidentally combined. The \code{"legacy"} output is unchanged.
 #' @importFrom dplyr left_join select
 #' @export
 #' @examples
@@ -67,10 +71,35 @@
 add_pop_counts <- function(df, by_vars = c("year", "age", "sex", "race"),
                            race_scheme = c("legacy", "single", "bridged")) {
     race_scheme <- match.arg(race_scheme)
+    ## Accept a two-digit `datayear` (pre-1996 files) the way add_hispanic_origin()
+    ## does: coalesce it into a canonical `year` per row, so the documented
+    ## add_hispanic_origin() -> add_pop_counts() pipeline works for a datayear-only
+    ## frame (the join keys on `year`). `year` takes precedence where present.
+    if (is.data.frame(df) && "datayear" %in% names(df)) {
+        dy <- suppressWarnings(as.numeric(as.character(df[["datayear"]])))
+        two <- !is.na(dy) & dy < 100
+        dy[two] <- dy[two] + 1900
+        if (!"year" %in% names(df)) {
+            df[["year"]] <- dy
+        } else {
+            yy <- suppressWarnings(as.numeric(as.character(df[["year"]])))
+            df[["year"]] <- ifelse(!is.na(yy), yy, dy)
+        }
+    }
     .check_mcod_df(df, need = by_vars, fn = "add_pop_counts")
     if ("pop" %in% names(df)) {
         stop("add_pop_counts(): `df` already has a `pop` column; remove or ",
              "rename it before joining population estimates.", call. = FALSE)
+    }
+    ## `year` is the join key: an NA year (e.g. a pre-1996 row whose `datayear`
+    ## was absent, so the coalesce above could not fill it) would otherwise
+    ## surface downstream as a misleading "no population / check coverage" error.
+    ## Fail early and name the real cause.
+    if ("year" %in% by_vars && "year" %in% names(df) && anyNA(df[["year"]])) {
+        stop("add_pop_counts(): `year` is a join key but has NA value(s); every ",
+             "row needs a data year -- a 4-digit `year`, or a two-digit ",
+             "`datayear` to coalesce from. Fill or drop the NA-year rows.",
+             call. = FALSE)
     }
 
     if (identical(race_scheme, "legacy")) {

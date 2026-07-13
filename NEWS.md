@@ -40,9 +40,31 @@
 * **Unknown/`NA` origin is non-denominable.** In a stratified join, an origin of
   `"unknown"` or `NA` hard-errors (there is no matching denominator); exclude
   those deaths from stratified rates or use `"all"`.
-* **Per-year population-slice invariant.** A corrupt denominator asset that
-  stored an `"all"` marginal beside stratified cells for the same year (a
-  double-count the finest-key check cannot see) now hard-errors.
+* **Population-slice validation.** `add_pop_counts()` now validates the resolved
+  denominator slice before summing it, so a corrupt or hand-supplied parquet
+  cannot silently mis-count: a stored `"all"` origin marginal beside stratified
+  cells (per-year), a stored `race="total"`/`sex="both"` marginal beside finest
+  cells, an off-canonical label, or a finest cell missing an origin stratum each
+  hard-error. Shipped assets are unaffected.
+* **`get_pop_state()`/`get_pop_county()` refuse a bridged pre-1990 stratified
+  request** (e.g. `years = 1985, hispanic_origin = "hispanic"`) instead of
+  silently returning zero rows -- SEER resolves Hispanic origin only from 1990,
+  matching the death-join guard.
+
+## Other changes
+
+* **`add_pop_counts()` accepts a two-digit `datayear`.** It coalesces `datayear`
+  (1979-1995 files) into a canonical `year` per row, so the
+  `add_hispanic_origin()` -> `add_pop_counts()` pipeline works for pre-1996
+  frames; an NA join-year now fails with a clear message rather than a misleading
+  "no population" error.
+* **Strict-scheme `add_pop_counts()` output gains a `pop_scheme` column**
+  (`"single"`/`"bridged"`) so results from different schemes are not silently
+  chainable (their origin labels are identical). The `"legacy"` output is
+  unchanged.
+* **`calc_stdrate_var()` warns on any omitted demographic stratifier**
+  (`sex`/`race`/`hispanic_origin`/geography), not just `year` -- a forgotten
+  stratifier silently averages the strata into one blended rate.
 
 ## Bug fixes
 

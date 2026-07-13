@@ -202,6 +202,16 @@
         }
     }
 
+    ## Tag strict-scheme output with the scheme that produced it. The
+    ## single/bridged origin labels are identical ("hispanic"/"non_hispanic") and
+    ## nothing else marks the scheme, so a bind_rows() of single + bridged results
+    ## would otherwise be silently chainable; `pop_scheme` makes it mechanically
+    ## distinguishable. Legacy is left byte-for-byte unchanged (no origin axis, and
+    ## its historical output must not gain a column).
+    if (strict) {
+        x[["pop_scheme"]] <- scheme
+    }
+
     ## Restore the caller's grouping. group_vars() also captures a rowwise frame's
     ## kept variables (rowwise(df, x)), so pass them back through.
     if (was_rowwise) {
@@ -506,6 +516,72 @@
                 "The population asset may be corrupt -- re-download or rebuild ",
                 "it."),
                 paste(sort(bad_years), collapse = ", ")), call. = FALSE)
+        }
+    }
+
+    ## Validate the population slice's OWN dimension values before trusting them
+    ## in the sum below -- symmetric to the death-side domain guards, and to the
+    ## Hispanic-origin per-year invariant above. A corrupt or hand-supplied
+    ## parquet could carry (a) a stored reserved-token marginal ("total"/"both")
+    ## beside finest cells, (b) an off-canonical label ("White_Only"), or (c) a
+    ## missing stratum -- each a silent mis-count the finest-key uniqueness assert
+    ## cannot see. Shipped assets are canonical + rectangular (verified), so these
+    ## never fire on real data; they defend the exported parquet=/option-hook
+    ## surface. (Origin's reserved token "all" is LEGAL -- pre-1990 bridged stores
+    ## it -- so origin gets a domain check only; the per-year invariant governs
+    ## its all-vs-stratified mixing.)
+    .assert_pop_dim <- function(col, valid, tok) {
+        if (!col %in% names(pop_slice)) return(invisible(NULL))
+        vals <- unique(as.character(pop_slice[[col]]))
+        vals <- vals[!is.na(vals)]
+        if (!is.na(tok) && tok %in% vals && length(setdiff(vals, tok)) > 0L) {
+            stop(sprintf(paste0(
+                "add_pop_counts(): the population slice stores a reserved `%s` ",
+                "marginal (\"%s\") beside finest cells; aggregating `%s` would ",
+                "double-count the denominator. The population asset may be ",
+                "corrupt -- re-download or rebuild it."), col, tok, col),
+                call. = FALSE)
+        }
+        bad <- setdiff(vals, valid)
+        if (length(bad) > 0L) {
+            stop(sprintf(paste0(
+                "add_pop_counts(): the population slice has unrecognized `%s` ",
+                "value(s): %s. The population asset may be corrupt -- re-download ",
+                "or rebuild it."), col, paste(shQuote(bad), collapse = ", ")),
+                call. = FALSE)
+        }
+        invisible(NULL)
+    }
+    .assert_pop_dim("sex", c("male", "female", "both"), "both")
+    .assert_pop_dim("race", c(.single_race_labels, .bridged_race_labels_1990,
+                              .bridged_race_labels_pre1990, "total"), "total")
+    .assert_pop_dim("hispanic_origin", c("hispanic", "non_hispanic", "all"),
+                    NA_character_)
+
+    ## Per-cell origin completeness: within a stratified year, every finest cell
+    ## must carry BOTH origins. A missing stratum row would be summed as zero (a
+    ## silent undercount) on an all-origin request -- invisible to the per-year
+    ## invariant (which only checks the year's label SET). Shipped assets are
+    ## rectangular here (verified); this defends corrupt/partial parquets.
+    if (all(c("hispanic_origin", "year") %in% names(pop_slice))) {
+        cell_keys <- intersect(c("state_fips", "county_fips", "age", "sex",
+                                 "race"), names(pop_slice))
+        strat <- pop_slice[as.character(pop_slice[["hispanic_origin"]]) %in%
+                               c("hispanic", "non_hispanic"), , drop = FALSE]
+        if (nrow(strat) > 0L && length(cell_keys) > 0L) {
+            key <- do.call(paste, c(strat[, c("year", cell_keys), drop = FALSE],
+                                    sep = "\r"))
+            n_orig <- tapply(as.character(strat[["hispanic_origin"]]), key,
+                             function(s) length(unique(s)))
+            if (any(n_orig < 2L)) {
+                stop(paste0(
+                    "add_pop_counts(): the population slice is missing a ",
+                    "Hispanic-origin stratum for one or more finest cells (a ",
+                    "stratified cell has only one of hispanic/non_hispanic); the ",
+                    "all-origin denominator would be undercounted. The ",
+                    "population asset may be corrupt -- re-download or rebuild ",
+                    "it."), call. = FALSE)
+            }
         }
     }
 
