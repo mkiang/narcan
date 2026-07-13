@@ -199,13 +199,15 @@ coverage (single-race) can differ, so join only where both exist.
 
 ## Coverage and the frozen slice
 
-Only the single-race 2020-2024 slice is **bundled** (frozen at 0.5.0,
-dependency-free). The 2000-2019 backfill is additive -- it does not change those
-five years -- but it ships only in the downloadable single-race `*_full` parquet
-(`pop_singlerace_full` and its state/county counterparts), fetched once from the
-tag-pinned GitHub Release asset and cached. So `get_pop_state()`/`get_pop_county()`
-serve 2020-2024 straight from the bundled table, but a pre-2020 `years` request
-routes to that downloadable parquet -- or to a local copy via the
+The **national** single-race table is bundled at every covered year: the frozen
+0.5.0 `pop_singlerace` (2020-2024) plus `pop_singlerace_full` (2000-2024,
+dependency-free `.rda`), so a national pre-2020 request needs no download. The
+2000-2019 backfill is additive -- it does not change those five years. The
+**state and county** backfills are the ones distributed as downloadable
+single-race `*_full` parquets (tag-pinned GitHub Release assets, cached on first
+use). So `get_pop_state()`/`get_pop_county()` serve 2020-2024 from the bundled
+frozen table, but a pre-2020 `years` request at state/county grain routes to that
+downloadable parquet -- or to a local copy via the
 `narcan.pop_single_<grain>_parquet` option, as in the county chunk above. A
 request for a year the resolved data does not cover hard-errors -- never a silent
 0-row or `NA`:

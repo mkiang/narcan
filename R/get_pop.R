@@ -34,6 +34,10 @@
 #'
 #' @return a tibble with columns \code{state_fips}, \code{year}, \code{age},
 #'   \code{sex}, \code{race}, \code{hispanic_origin}, \code{pop}, and metadata
+#' @seealso \code{\link{add_pop_counts}} for the death-to-population JOIN, which
+#'   keys on a \code{hispanic_origin} COLUMN in \code{by_vars}; this accessor
+#'   instead takes a \code{hispanic_origin=} filter ARGUMENT (same name, different
+#'   mechanism).
 #' @importFrom dplyr group_by across all_of summarize mutate
 #' @export
 #' @examples
@@ -120,6 +124,10 @@ get_pop_state <- function(scheme = c("single", "bridged"), states = NULL,
 #'   Release asset, downloaded on first use)
 #'
 #' @return a tibble with the county population schema plus metadata
+#' @seealso \code{\link{add_pop_counts}} for the death-to-population JOIN, which
+#'   keys on a \code{hispanic_origin} COLUMN in \code{by_vars}; this accessor
+#'   instead takes a \code{hispanic_origin=} filter ARGUMENT (same name, different
+#'   mechanism).
 #' @importFrom dplyr group_by across all_of summarize mutate
 #' @export
 #' @examples

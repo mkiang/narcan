@@ -57,7 +57,10 @@ categorize_hspanicr <- function(hspanicr_column, year = NULL) {
                 "correctly.")
         yr <- rep(2000L, n)
     } else {
-        yr <- as.integer(year)
+        ## Coerce by VALUE, not factor position -- same idiom as `hspanicr_column`
+        ## above and as categorize_hispanic_origin(): a factor-valued `year` would
+        ## otherwise map to its level index, silently mis-selecting the era.
+        yr <- suppressWarnings(as.integer(as.numeric(as.character(year))))
         if (length(yr) == 1L) {
             yr <- rep(yr, n)
         } else if (length(yr) != n) {

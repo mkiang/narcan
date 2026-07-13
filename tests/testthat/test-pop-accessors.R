@@ -46,6 +46,11 @@ test_that("manifest is current: backfill/bridged coverage + one asset per scheme
     expect_setequal(names(counts),
                     c("single county", "single state", "bridged county",
                       "bridged state"))
+    # code-only 0.5.2: every downloadable asset must still pin the v0.5.1 release
+    # tag. A v0.5.2 tag with no re-upload (or a regen to "latest") would 404 every
+    # download; this gate fails loudly if the manifest drifts off v0.5.1.
+    expect_true(all(grepl("releases/download/v0.5.1/", assets$asset_url,
+                          fixed = TRUE)))
 })
 
 # ---- get_pop_state() ----------------------------------------------------------

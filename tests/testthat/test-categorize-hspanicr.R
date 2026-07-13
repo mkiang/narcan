@@ -77,6 +77,18 @@ test_that("categorize_hspanicr errors on a mismatched year length", {
     expect_error(categorize_hspanicr(1:3, year = c(2000, 2023)), "length")
 })
 
+test_that("categorize_hspanicr reads a factor `year` by value, not level position", {
+    ## as.integer(factor("2023")) is the level position (1), not 2023 -> would
+    ## silently select the wrong era. Value-coercion must pick the 14-cat scheme.
+    lab <- categorize_hspanicr(c(1, 10, 14), year = factor(c(2023, 2023, 2023)))
+    expect_equal(as.character(lab),
+                 c("mexican", "nonhispanic_aian", "hispanic_unknown"))
+    ## mixed factor years, position != value: 6@2019 (9-cat) and 8@2023 (14-cat)
+    ## both label nonhispanic_white.
+    lab2 <- categorize_hspanicr(c(6, 8), year = factor(c(2019, 2023)))
+    expect_equal(as.character(lab2), c("nonhispanic_white", "nonhispanic_white"))
+})
+
 test_that("categorize_hspanicr reads a factor hspanicr by value, not level position", {
     ## as.integer(factor(...)) would return the level's ordinal position. For
     ## 2022+ codes 10-14 alphabetical level order diverges from numeric

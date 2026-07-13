@@ -91,6 +91,12 @@ Each origin gets its own denominator. An `"unknown"` or `NA` origin left in the
 frame is a hard error, not a silent all-origin fallback -- the counts for those
 deaths belong in an all-origin numerator, never a stratified one.
 
+When you carry this into an age-standardized rate (`add_std_pop()` then
+`calc_stdrate_var()`), list `hispanic_origin` among the grouping variables you
+pass to the rate helper, alongside the others (e.g. `year`, `sex`). Omitting a
+stratifier does not error -- it silently averages over it -- so a forgotten
+`hispanic_origin` returns one blended rate instead of a per-origin pair.
+
 ### Which knob? A shared name, two mechanisms
 
 The join and the accessors both say `hispanic_origin`, but they are different
@@ -135,7 +141,7 @@ If you genuinely want to show the eras side by side, compute each **separately**
 (each call internally homogeneous, so neither trips the guard) and `rbind()` the
 results -- keeping the pre-1990 segment as all-origin:
 
-```{r two-call}
+```{r two-call, message = FALSE}
 pre <- data.frame(year = 1985L, age = 40L, sex = "male", race = "white",
                   hispanic_origin = "all", deaths = 500)
 pre <- add_pop_counts(pre, race_scheme = "bridged",
