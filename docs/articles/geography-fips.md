@@ -120,14 +120,14 @@ told apart:
 
 head(st_fips_map)
 #> # A tibble: 6 × 4
-#>   name           abbrev  fips  nchs
-#>   <chr>          <chr>  <dbl> <dbl>
-#> 1 Alabama        AL         1     1
-#> 2 Alaska         AK         2     2
-#> 3 American Samoa AS        60    62
-#> 4 Arizona        AZ         4     3
-#> 5 Arkansas       AR         5     4
-#> 6 California     CA         6     5
+#>   name       abbrev  fips  nchs
+#>   <chr>      <chr>  <dbl> <dbl>
+#> 1 Alabama    AL         1     1
+#> 2 Alaska     AK         2     2
+#> 3 Arizona    AZ         4     3
+#> 4 Arkansas   AR         5     4
+#> 5 California CA         6     5
+#> 6 Colorado   CO         8     6
 ```
 
 `ihme_fips` handles the other half of the problem – counties that split,

@@ -29,6 +29,18 @@ flag_drug_deaths(processed_df, year = NULL, keep_cols = FALSE)
 
 new dataframe with a drug_death column
 
+## Note
+
+The ICD-10 rule requires BOTH a drug-poisoning underlying cause
+(X40-X44, X60-X64, X85, Y10-Y14) AND at least one drug T-code (T36-T50)
+on the record. This is marginally stricter than the CDC WONDER / NCHS
+"drug overdose" count and most other studies, which key on the
+underlying cause alone. narcan therefore excludes the small number of
+drug-poisoning-UCOD deaths that carry no drug T-code at all – on the
+order of 0.1 example, 31 of 27,424 such deaths, 0.11 This is deliberate:
+every death narcan flags as a drug death carries an identifiable drug
+T-code.
+
 ## Examples
 
 ``` r

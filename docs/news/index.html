@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,38 @@
       <small>Source: <a href="https://github.com/mkiang/narcan/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.3" id="narcan-053">narcan 0.5.3<a class="anchor" aria-label="anchor" href="#narcan-053"></a></h2>
+<div class="section level3">
+<h3 id="new-vignettes-and-documentation-0-5-3">New vignettes and documentation<a class="anchor" aria-label="anchor" href="#new-vignettes-and-documentation-0-5-3"></a></h3>
+<ul><li>Added a <strong>“Getting started”</strong> overview vignette and two new worked vignettes: <strong>“End-to-end on real public-use data (2004)”</strong> (the whole pipeline to an age-standardized opioid death rate, with real 2004 numbers) and <strong>“Demographic recodes across coding eras”</strong>. Applied a clarity/accuracy pass across the existing vignettes and reordered the pkgdown Articles.</li>
+<li>
+<code><a href="../reference/flag_drug_deaths.html">flag_drug_deaths()</a></code>: documented that the ICD-10 rule requires a poisoning underlying cause <strong>and</strong> a drug T-code, making it ~0.1% stricter than the CDC WONDER underlying-cause-only “drug overdose” count (it drops poisoning-UCOD deaths that carry no drug T-code). Resolves the drug-death definition question.</li>
+<li>Corrected the ISW7 attribution in the vignettes to the <strong>Safe States Alliance</strong> (the report’s publisher; CSTE/CDC were among the participating organizations).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-5-3">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-3"></a></h3>
+<ul><li>
+<code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code>: fixed a variance error. The standardized rate was written into the input rate column’s name, so the variance expression then read that scalar instead of the age-specific rate vector and dropped the wrong strata; it now drops the same strata as the rate. A <code>pop == 0</code>/<code>deaths &gt; 0</code> (<code>Inf</code>) stratum is now dropped (with a warning) rather than coercing the whole group to <code>Inf</code>. The standard <code><a href="../reference/calc_asrate_var.html">calc_asrate_var()</a></code> -&gt; <code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code> pipeline is unchanged (verified byte-identical).</li>
+<li>
+<code><a href="../reference/flag_opioid_contributed.html">flag_opioid_contributed()</a></code>: for ICD-9-era data the flag is undefined – the ICD-9 any-mention rule makes every opioid-in-a-contributory-field death an opioid death, so there is no “contributed but not the underlying opioid death” subset. It now warns and returns <code>NA</code> for ICD-9 instead of a redundant, always-1 value. The ICD-10 branch is unchanged.</li>
+<li>
+<code><a href="../reference/remap_age.html">remap_age()</a></code>: 2003+ detail-age codes outside the documented domain (the undocumented unit 3; a years quantity above 135) now map to <code>NA</code> with a warning instead of a plausible-looking wrong age.</li>
+<li>
+<code><a href="../reference/categorize_hspanicr.html">categorize_hspanicr()</a></code>: now warns on out-of-domain / era-mismatched codes (was silent), matching <code><a href="../reference/categorize_hispanic_origin.html">categorize_hispanic_origin()</a></code>.</li>
+<li>
+<code>st_fips_map</code> / <code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> / <code><a href="../reference/state_abbrev_to_fips.html">state_abbrev_to_fips()</a></code>: dropped territories (narcan is US-only: 50 states + DC). This removes an American Samoa / Northern Mariana Islands NCHS-code collision; territory codes now resolve to <code>NA</code> with a warning.</li>
+<li>
+<code>std_pops</code>: fixed a corrupted factor label on the WHO 2000-2025 standard population (it now reads “Std Million” like the others); the <code>pop_std</code> values are unchanged.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-5-3">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-5-3"></a></h3>
+<ul><li>
+<code><a href="../reference/flag_od_intent.html">flag_od_intent()</a></code>: documented that for ICD-9 a drug death flagged via a contributory nature-of-injury code, whose underlying cause is a determinate non-drug mechanism, is labeled <code>undetermined</code> by design (narcan derives overdose intent only from a drug-poisoning underlying cause).</li>
+<li>
+<code>import_restricted_data()</code>: corrected a misleading note – restricted files carry sub-state geography for all years; the public files stop at 2004.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.2" id="narcan-052">narcan 0.5.2<a class="anchor" aria-label="anchor" href="#narcan-052"></a></h2>
 <div class="section level3">

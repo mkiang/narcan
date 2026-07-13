@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,11 +75,11 @@
     
 <p>narcan turns raw US multiple-cause-of-death (MCOD) micro-data into
 drug- and opioid-overdose death counts and age-standardized rates. It
-implements the Injury Surveillance Workgroup (ISW7; CSTE/CDC) case
-definitions across both the ICD-9 (1979-1998) and ICD-10 (1999+) eras,
-and harmonizes the race, Hispanic-origin, and county recodes that NCHS
-changed over the years. This vignette maps the whole package; each step
-links to a dedicated vignette.</p>
+implements the Injury Surveillance Workgroup (ISW7; Safe States
+Alliance) case definitions across both the ICD-9 (1979-1998) and ICD-10
+(1999+) eras, and harmonizes the race, Hispanic-origin, and county
+recodes that NCHS changed over the years. This vignette maps the whole
+package; each step links to a dedicated vignette.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mkiang/narcan" class="external-link">narcan</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -168,7 +168,7 @@ you obtain the restricted All-County files:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">raw04</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/import_mcod_fwf.html">import_mcod_fwf</a></span><span class="op">(</span><span class="st">"mort2004us.dat"</span>, year <span class="op">=</span> <span class="fl">2004</span>, tier <span class="op">=</span> <span class="st">"public"</span><span class="op">)</span></span></code></pre></div>
 <p>Two caveats. On the public file, county FIPS are populated only for
-counties with a population of at least 100,000; smaller
+counties with a 2000-Census population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code, so this
 stand-in exercises large-county behavior only. And
 <code>tier = "restricted"</code> adds nothing for 2004 – the single

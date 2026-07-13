@@ -1,7 +1,7 @@
 # Classifying overdose deaths (ISW7)
 
-narcan operationalizes the Injury Surveillance Workgroup (ISW7;
-CSTE/CDC) case definitions for drug- and opioid-involved overdose
+narcan operationalizes the Injury Surveillance Workgroup (ISW7; Safe
+States Alliance) case definitions for drug- and opioid-involved overdose
 deaths, reading them straight off ICD-10 multiple-cause-of-death (MCOD)
 records. A death is classified from two fields – the **underlying
 cause** (`ucod`, e.g. `"X42"`) and the space-joined string of all
@@ -169,6 +169,12 @@ that also carry an opioid T-code (T40.0-T40.4 or T40.6). So a poisoning
 with a non-opioid drug is a drug death but not an opioid death. Row
 `X40` / `T436` (a psychostimulant, e.g. methamphetamine) is exactly that
 edge case – `drug_death` is 1, `opioid_death` is 0.
+
+Requiring the T-code makes narcan’s `drug_death` marginally stricter
+than the CDC WONDER “drug overdose” count, which keys on the underlying
+cause alone – about 0.1% fewer deaths, because narcan drops the few
+poisoning-UCOD deaths that carry no drug T-code at all (see
+[`?flag_drug_deaths`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)).
 
 ``` r
 

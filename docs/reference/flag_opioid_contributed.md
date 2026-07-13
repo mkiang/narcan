@@ -22,12 +22,19 @@ flag_opioid_contributed(processed_df, year = NULL)
 
 ## Value
 
-new dataframe with an opioid_contributed column
+new dataframe with an \`opioid_contributed\` column (\`NA\` for
+ICD-9-era data; see the note above)
 
 ## Details
 
-NOTE: This function really doesn't make sense for ICD-9 years. Use with
-caution.
+For ICD-9-era data (pre-1999) this flag is undefined: narcan's ICD-9
+opioid-death rule fires on any opioid code in any field, so an opioid
+recorded only in a contributory cause already makes the death an opioid
+death – there is no "opioid contributed but not the underlying opioid
+death" subset to flag. On ICD-9 input the function therefore warns and
+returns \`NA\` rather than a misleading 0/1. (For ICD-10 the
+underlying-cause and contributory sets are disjoint, so the flag is well
+defined.)
 
 ## Examples
 

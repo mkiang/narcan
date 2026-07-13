@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,8 +73,8 @@
 
     
     
-<p>narcan operationalizes the Injury Surveillance Workgroup (ISW7;
-CSTE/CDC) case definitions for drug- and opioid-involved overdose
+<p>narcan operationalizes the Injury Surveillance Workgroup (ISW7; Safe
+States Alliance) case definitions for drug- and opioid-involved overdose
 deaths, reading them straight off ICD-10 multiple-cause-of-death (MCOD)
 records. A death is classified from two fields – the <strong>underlying
 cause</strong> (<code>ucod</code>, e.g. <code>"X42"</code>) and the
@@ -221,6 +221,11 @@ drug is a drug death but not an opioid death. Row <code>X40</code> /
 <code>T436</code> (a psychostimulant, e.g. methamphetamine) is exactly
 that edge case – <code>drug_death</code> is 1, <code>opioid_death</code>
 is 0.</p>
+<p>Requiring the T-code makes narcan’s <code>drug_death</code>
+marginally stricter than the CDC WONDER “drug overdose” count, which
+keys on the underlying cause alone – about 0.1% fewer deaths, because
+narcan drops the few poisoning-UCOD deaths that carry no drug T-code at
+all (see <code><a href="../reference/flag_drug_deaths.html">?flag_drug_deaths</a></code>).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">classified</span><span class="op">[</span><span class="va">classified</span><span class="op">$</span><span class="va">ucod</span> <span class="op">==</span> <span class="st">"X40"</span>,</span>
 <span>           <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ucod"</span>, <span class="st">"f_records_all"</span>, <span class="st">"drug_death"</span>, <span class="st">"opioid_death"</span><span class="op">)</span><span class="op">]</span></span>

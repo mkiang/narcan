@@ -1,8 +1,10 @@
 # Wrapper for importing restricted MCOD data
 
-Restricted MCOD data contains geographical location (for years after
-2004), that the public-use files do not contain. Further, restricted
-files come as plaintext, fixed-width files. This helper function simply
+Restricted MCOD files carry sub-state geography (state and county of
+residence and occurrence) for every data year. The public-use files stop
+providing sub-state geography from 2005 (2004 is the last public year
+with county); the restricted files carry it throughout. Restricted files
+come as plaintext, fixed-width files. This helper function simply
 imports these text files with known dictionaries.
 
 ## Usage

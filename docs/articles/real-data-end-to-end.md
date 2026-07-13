@@ -250,7 +250,7 @@ MCOD (US 2000 standard). Bars are 95% confidence intervals.
 ## Caveats
 
 **County geography on the public file.** County FIPS are populated only
-for counties with a population of at least 100,000; smaller
+for counties with a 2000-Census population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code. The
 2004 stand-in exercises large-county behavior only – the restricted
 All-County files carry every county.

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -182,14 +182,14 @@ schemes can be told apart:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">st_fips_map</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 4</span></span></span>
-<span><span class="co">#&gt;   name           abbrev  fips  nchs</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Alabama        AL         1     1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Alaska         AK         2     2</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> American Samoa AS        60    62</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Arizona        AZ         4     3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Arkansas       AR         5     4</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> California     CA         6     5</span></span></code></pre></div>
+<span><span class="co">#&gt;   name       abbrev  fips  nchs</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Alabama    AL         1     1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Alaska     AK         2     2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Arizona    AZ         4     3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Arkansas   AR         5     4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> California CA         6     5</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> Colorado   CO         8     6</span></span></code></pre></div>
 <p><code>ihme_fips</code> handles the other half of the problem –
 counties that split, merge, or are renamed over a long series. It
 collapses unstable <code>orig_fips</code> codes to a temporally stable

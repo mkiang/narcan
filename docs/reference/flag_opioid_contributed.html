@@ -11,7 +11,7 @@ cause is **NOT** an opioid-related death."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,12 +74,18 @@ cause is **NOT** an opioid-related death.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>new dataframe with an opioid_contributed column</p>
+    <p>new dataframe with an `opioid_contributed` column (`NA` for ICD-9-era
+  data; see the note above)</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>NOTE: This function really doesn't make sense for ICD-9 years. Use with
-caution.</p>
+    <p>For ICD-9-era data (pre-1999) this flag is undefined: narcan's ICD-9
+opioid-death rule fires on any opioid code in any field, so an opioid recorded
+only in a contributory cause already makes the death an opioid death – there
+is no "opioid contributed but not the underlying opioid death" subset to flag.
+On ICD-9 input the function therefore warns and returns `NA` rather than a
+misleading 0/1. (For ICD-10 the underlying-cause and contributory sets are
+disjoint, so the flag is well defined.)</p>
     </div>
 
     <div class="section level2">

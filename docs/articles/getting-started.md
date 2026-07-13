@@ -2,11 +2,11 @@
 
 narcan turns raw US multiple-cause-of-death (MCOD) micro-data into drug-
 and opioid-overdose death counts and age-standardized rates. It
-implements the Injury Surveillance Workgroup (ISW7; CSTE/CDC) case
-definitions across both the ICD-9 (1979-1998) and ICD-10 (1999+) eras,
-and harmonizes the race, Hispanic-origin, and county recodes that NCHS
-changed over the years. This vignette maps the whole package; each step
-links to a dedicated vignette.
+implements the Injury Surveillance Workgroup (ISW7; Safe States
+Alliance) case definitions across both the ICD-9 (1979-1998) and ICD-10
+(1999+) eras, and harmonizes the race, Hispanic-origin, and county
+recodes that NCHS changed over the years. This vignette maps the whole
+package; each step links to a dedicated vignette.
 
 ``` r
 
@@ -83,7 +83,7 @@ raw04 <- import_mcod_fwf("mort2004us.dat", year = 2004, tier = "public")
 ```
 
 Two caveats. On the public file, county FIPS are populated only for
-counties with a population of at least 100,000; smaller
+counties with a 2000-Census population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code, so this
 stand-in exercises large-county behavior only. And `tier = "restricted"`
 adds nothing for 2004 – the single field it would add (`racer40`) sits

@@ -203,6 +203,6 @@ Bundled reference tables and crosswalks.
 - [`pop_singlerace_state`](https://mkiang.github.io/narcan/reference/pop_singlerace_state.md)
   : Single-race population estimates, state, 2020-2024
 - [`st_fips_map`](https://mkiang.github.io/narcan/reference/st_fips_map.md)
-  : Mapping of state/territory name to abbreviation to FIPS code
+  : Mapping of US state name to abbreviation to FIPS and NCHS code
 - [`std_pops`](https://mkiang.github.io/narcan/reference/std_pops.md) :
   Dataframe of common standard populations from SEER website.
