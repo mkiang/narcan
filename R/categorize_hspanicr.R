@@ -84,6 +84,19 @@ categorize_hspanicr <- function(hspanicr_column, year = NULL) {
     out[legacy] <- lab(code[legacy], labels_9)
     out[new14] <- lab(code[new14], labels_14)
 
+    ## Warn on codes outside the valid range for their era (mirrors
+    ## categorize_hispanic_origin()): an out-of-range or era-mismatched code
+    ## (e.g. a 14-category code paired with a pre-2022 year) is otherwise silently
+    ## NA'd by lab() -- the strata-corrupting failure mode the recodes guard
+    ## against elsewhere.
+    bad <- !is.na(code) & (legacy | new14) & is.na(out)
+    if (any(bad)) {
+        warning(sprintf(paste0(
+            "categorize_hspanicr(): %d hspanicr value(s) are outside the valid ",
+            "code range for their data year and were set to NA."), sum(bad)),
+            call. = FALSE)
+    }
+
     if (any(!is.na(yr) & yr == 2021)) {
         warning("hspanicr is reserved/not populated for 2021; ",
                 "returning NA for those rows.")

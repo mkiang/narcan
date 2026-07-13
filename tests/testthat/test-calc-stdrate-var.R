@@ -44,3 +44,29 @@ test_that("calc_stdrate_var() renormalizes the variance when age bins are droppe
     expect_equal(out$opioid_rate,
                  stats::weighted.mean(dropped$opioid_rate, dropped$unit_w))
 })
+
+test_that("calc_stdrate_var() variance drops the SAME strata as the rate (masking fix)", {
+    # Regression: the std rate was written into the input rate column's name,
+    # exposing that scalar to the variance expression, so .std_var() dropped the
+    # wrong strata. Stratum 2 has a NaN rate but a finite variance -> both the
+    # rate and the variance must drop it (variance was wrongly 0.375, not 1).
+    df <- data.frame(race = "white", r = c(10, NaN), v = c(1, 0.5),
+                     unit_w = c(0.5, 0.5))
+    out <- suppressWarnings(calc_stdrate_var(df, r, v, race))
+    expect_equal(out$r, 10)
+    expect_equal(out$v, 1)
+})
+
+test_that("calc_stdrate_var() drops non-finite (Inf/NaN) strata and warns", {
+    # A pop == 0, deaths > 0 cell yields an Inf age-specific rate/variance;
+    # .std_keep now uses is.finite(), so the stratum is dropped rather than
+    # poisoning the whole group to Inf, and the drop is flagged.
+    df <- data.frame(race = "white", r = c(5, Inf, 7), v = c(0.1, Inf, 0.2),
+                     unit_w = c(0.4, 0.2, 0.4))
+    expect_warning(out <- calc_stdrate_var(df, r, v, race), "non-finite")
+    expect_true(is.finite(out$r))
+    expect_true(is.finite(out$v))
+    keep <- c(1L, 3L)
+    expect_equal(out$r,
+                 sum(df$unit_w[keep] * df$r[keep]) / sum(df$unit_w[keep]))
+})

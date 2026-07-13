@@ -68,9 +68,13 @@ test_that("categorize_hspanicr warns and assumes the legacy scheme when year is 
     expect_equal(as.character(lab)[1], "mexican")
 })
 
-test_that("categorize_hspanicr returns NA for out-of-domain codes", {
-    expect_true(all(is.na(categorize_hspanicr(c(0, 10, NA, 15), year = 2000))))
-    expect_true(all(is.na(categorize_hspanicr(c(0, 15, NA), year = 2023))))
+test_that("categorize_hspanicr returns NA for out-of-domain codes, with a warning", {
+    expect_warning(
+        r1 <- categorize_hspanicr(c(0, 10, NA, 15), year = 2000), "outside")
+    expect_true(all(is.na(r1)))
+    expect_warning(
+        r2 <- categorize_hspanicr(c(0, 15, NA), year = 2023), "outside")
+    expect_true(all(is.na(r2)))
 })
 
 test_that("categorize_hspanicr errors on a mismatched year length", {

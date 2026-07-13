@@ -55,11 +55,13 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
             paste(sprintf("`%s`", collapsed), collapse = ", ")), call. = FALSE)
     }
 
-    ## Guard: an NA weight (e.g. an age that is not a 5-year-bin start) or an
-    ## NaN age-specific rate (a legitimate pop == 0 stratum) drops that stratum.
-    ## Both the rate and the variance drop the SAME strata and renormalize over
-    ## the survivors (see .std_rate/.std_var), so they stay consistent -- but the
-    ## result then standardizes to a *truncated* standard, which is worth a flag.
+    ## Guard: a stratum is dropped when its weight is NA (an age that is not a
+    ## 5-year-bin start) OR its age-specific rate/variance is non-finite (a
+    ## pop == 0 cell gives a NaN rate+var when deaths == 0, or Inf when
+    ## deaths > 0). Both the rate and the variance drop the SAME strata and
+    ## renormalize over the survivors (see .std_rate/.std_var), so they stay
+    ## consistent -- but the result then standardizes to a *truncated* standard,
+    ## which is worth a flag.
     w <- dplyr::pull(df, {{ weight_col }})
     if (all(is.na(w)) || sum(w, na.rm = TRUE) == 0) {
         warning("Standardization weights are all missing or sum to zero; the ",
@@ -71,25 +73,45 @@ calc_stdrate_var <- function(df, asrate_col, asvar_col, ...,
                 "to a truncated standard. Check that `add_std_pop()` was applied ",
                 "to binned ages.", call. = FALSE)
     }
+    ## Flag strata dropped for a non-finite rate/variance (NaN or Inf) even when
+    ## their weight is valid -- e.g. a legitimate pop == 0 cell. Without this the
+    ## truncation would be silent at the point of standardization.
+    .rr <- suppressWarnings(dplyr::pull(df, {{ asrate_col }}))
+    .vv <- suppressWarnings(dplyr::pull(df, {{ asvar_col }}))
+    .drop_rv <- (!is.finite(.rr) | !is.finite(.vv)) & !is.na(w)
+    if (any(.drop_rv)) {
+        warning(sprintf(paste0(
+            "%d stratum/strata have a non-finite age-specific rate or variance ",
+            "(e.g. a pop == 0 cell -> NaN or Inf); they are dropped from both the ",
+            "standardized rate and its variance, so the result standardizes to a ",
+            "truncated standard. Aggregate sparse ages/geographies for a defined ",
+            "rate."), sum(.drop_rv)), call. = FALSE)
+    }
 
+    ## Compute into temp names, THEN rename, so .std_var() reads the ORIGINAL
+    ## age-specific rate vector -- not the standardized scalar that a same-name
+    ## `"{{ asrate_col }}" :=` in the first expression would create and expose to
+    ## the second (which silently defeats the shared drop-set invariant below).
     grouped |>
         dplyr::summarize(
-            "{{ asrate_col }}" := .std_rate({{ asrate_col }}, {{ asvar_col }},
-                                            {{ weight_col }}),
-            "{{ asvar_col }}" := .std_var({{ asrate_col }}, {{ asvar_col }},
-                                          {{ weight_col }})
-        )
+            .narcan_std_rate = .std_rate({{ asrate_col }}, {{ asvar_col }},
+                                         {{ weight_col }}),
+            .narcan_std_var  = .std_var({{ asrate_col }}, {{ asvar_col }},
+                                        {{ weight_col }})
+        ) |>
+        dplyr::rename("{{ asrate_col }}" := .narcan_std_rate,
+                      "{{ asvar_col }}" := .narcan_std_var)
 }
 
 ## The age-standardized rate and its variance MUST agree on which strata
-## contributed. A stratum is dropped iff its rate, variance, or weight is NA/NaN
-## (a pop == 0 cell gives a NaN rate+variance; an unbinned age gives an NA
-## weight). Both statistics then renormalize over the identical surviving set:
-## rate = sum(w*r)/sum(w); var = sum(w^2*v)/sum(w)^2, over survivors. With no
-## missing strata (the usual case) this is byte-for-byte the old weighted.mean +
-## sum((w/sum w)^2 v).
+## contributed. A stratum is dropped iff its rate or variance is non-finite
+## (NA/NaN/Inf -- a pop == 0 cell gives NaN when deaths == 0 and Inf when
+## deaths > 0) or its weight is NA (an unbinned age). Both statistics then
+## renormalize over the identical surviving set: rate = sum(w*r)/sum(w); var =
+## sum(w^2*v)/sum(w)^2, over survivors. With no missing/non-finite strata (the
+## usual case) this is byte-for-byte the old weighted.mean + sum((w/sum w)^2 v).
 .std_keep <- function(asrate, asvar, weight) {
-    !is.na(asrate) & !is.na(asvar) & !is.na(weight)
+    is.finite(asrate) & is.finite(asvar) & !is.na(weight)
 }
 
 .std_rate <- function(asrate, asvar, weight) {

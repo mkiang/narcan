@@ -67,13 +67,19 @@ remap_age <- function(df, year = NULL) {
     )
 }
 
-## 2003+ detail age (4-digit): unit 1 = years (code - 1000); 2/4/5/6 = sub-year
-## -> 0; 1999 (years, number not stated) and 9999 (not stated) -> NA.
+## 2003+ detail age (4-digit): Location 70 = unit (1 years, 2 months, 4 days,
+## 5 hours, 6 minutes, 9 not stated), locations 71-73 = quantity -- verified
+## against the NCHS 2004 record layout (years 001-135). Years -> code - 1000;
+## any sub-year unit -> 0; 1999 (years, quantity not stated) and 9999 (age not
+## stated) -> NA. Unit 3 is undocumented and years > 135 are impossible, so those
+## fall through to NA and are flagged by .warn_unmapped() rather than silently
+## mislabeled (a "136-year-old" or a unit-3 code quietly coerced to sub-year).
 .remap_age_2003plus <- function(age_col) {
     dplyr::case_when(
         age_col == 9999 ~ NA_real_,
         age_col == 1999 ~ NA_real_,
-        dplyr::between(age_col, 1000, 1998) ~ age_col - 1000,
-        dplyr::between(age_col, 2000, 6999) ~ 0
+        dplyr::between(age_col, 1000, 1135) ~ age_col - 1000,
+        dplyr::between(age_col, 2000, 2999) ~ 0,
+        dplyr::between(age_col, 4000, 6999) ~ 0
     )
 }

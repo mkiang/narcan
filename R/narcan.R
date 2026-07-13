@@ -70,7 +70,8 @@ if (getRversion() >= "2.15.1") {
     utils::globalVariables(c("restatus"))
 
     ## Globals for adding population data
-    utils::globalVariables(c("pop_std", "unit_w", "hispanic_origin"))
+    utils::globalVariables(c("pop_std", "unit_w", "hispanic_origin",
+                             ".narcan_std_rate", ".narcan_std_var"))
 
     ## Globals for state_abbrev_to_fips examples
     utils::globalVariables(c("AK", "AL", "MA", "CA",

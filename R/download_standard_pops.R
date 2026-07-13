@@ -25,7 +25,7 @@
         s7   = "1991 Canadian Std Million (19 age groups)",
         s5   = "European (Scandinavian 1960) Std Million (19 age groups)",
         s8   = "1996 Canadian Std Million (19 age groups)",
-        s10  = "World (WHO 2000-2025) Std Mlibrarillion (19 age groups)",
+        s10  = "World (WHO 2000-2025) Std Million (19 age groups)",
         s141 = "1940 US Std Million (19 age groups)",
         s151 = "1950 US Std Million (19 age groups)",
         s161 = "1960 US Std Million (19 age groups)",
