@@ -8,6 +8,8 @@
   deaths](https://mkiang.github.io/narcan/articles/unspecified-drug-deaths.md):
 - [Population denominators: bridged, single-race, and
   legacy](https://mkiang.github.io/narcan/articles/population-denominators.md):
+- [Hispanic origin: the two recode
+  pairs](https://mkiang.github.io/narcan/articles/hispanic-origin.md):
 - [Harmonizing geography with
   FIPS](https://mkiang.github.io/narcan/articles/geography-fips.md):
 - [Age-standardized fentanyl death rates by

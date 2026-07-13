@@ -10,8 +10,7 @@ guarded join so the same correctness guards always apply.
 add_pop_counts(
   df,
   by_vars = c("year", "age", "sex", "race"),
-  race_scheme = c("legacy", "single", "bridged"),
-  hispanic = "all"
+  race_scheme = c("legacy", "single", "bridged")
 )
 ```
 
@@ -19,7 +18,8 @@ add_pop_counts(
 
 - df:
 
-  MCOD dataframe
+  MCOD dataframe. A two-digit `datayear` (1979-1995) is coalesced into
+  `year` per row when `year` is absent or `NA`.
 
 - by_vars:
 
@@ -31,14 +31,12 @@ add_pop_counts(
   `"single"` (single-race), or `"bridged"` (SEER-uniform bridged-race,
   1969-2024)
 
-- hispanic:
-
-  Hispanic-origin denominator to use; only `"all"` is supported in this
-  release
-
 ## Value
 
-dataframe
+`df` with an added `pop` column. Under the strict schemes
+(`"single"`/`"bridged"`) it also carries a `pop_scheme` column marking
+which scheme produced it, so results from different schemes are not
+accidentally combined. The `"legacy"` output is unchanged.
 
 ## Details
 
@@ -86,10 +84,22 @@ Legacy bridged-race (`"legacy"`), SEER bridged (`"bridged"`), and
 single-race (`"single"`) schemes are NOT comparable and must not be
 chained into a single trend. `"legacy"` and `"bridged"` share the labels
 white/black/other/total, so passing the wrong `race_scheme` cannot be
-detected automatically – set it deliberately. In this release the
-death-side join is pinned to all-origin denominators
-(`hispanic = "all"`); the Hispanic-stratified death join arrives in a
-later version.
+detected automatically – set it deliberately. For Hispanic-stratified
+denominators, add a `hispanic_origin` column
+(`"hispanic"`/`"non_hispanic"`, from
+[`add_hispanic_origin()`](https://mkiang.github.io/narcan/reference/add_hispanic_origin.md))
+to `by_vars` under `"single"` (2000+) or `"bridged"` (1990+);
+`"unknown"`/`NA` origin is non-denominable and hard-errors. (Note the
+shared name: `add_pop_counts()` joins on a `hispanic_origin` COLUMN
+listed in `by_vars`, whereas
+[`get_pop_state()`](https://mkiang.github.io/narcan/reference/get_pop_state.md)
+/
+[`get_pop_county()`](https://mkiang.github.io/narcan/reference/get_pop_county.md)
+take a `hispanic_origin=` filter ARGUMENT.) Two caveats apply to
+origin-stratified rates: (A) numerator origin (death certificate) and
+denominator origin (Census/SEER) are separately measured and
+differentially misclassified; (B) origin was phased onto state death
+certificates through ~1997, so 1990-1996 rates are biased low.
 
 ## Examples
 

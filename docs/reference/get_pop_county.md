@@ -62,6 +62,13 @@ with `scheme = "single"` and no `years`, this defaults to the frozen
 2020-2024 window; request pre-2020 `years` to reach the 2000-2024
 backfill. `scheme = "bridged"` defaults to its full 1969-2024 span.
 
+## See also
+
+[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+for the death-to-population JOIN, which keys on a `hispanic_origin`
+COLUMN in `by_vars`; this accessor instead takes a `hispanic_origin=`
+filter ARGUMENT (same name, different mechanism).
+
 ## Examples
 
 ``` r

@@ -85,13 +85,13 @@ adds the matched `pop` column:
 
 rated <- add_pop_counts(deaths, race_scheme = "single")
 head(rated)
-#>   year age  sex       race deaths    pop
-#> 1 2024   0 male asian_only      1 600728
-#> 2 2024   5 male asian_only      2 678658
-#> 3 2024  10 male asian_only      5 659666
-#> 4 2024  15 male asian_only     12 666097
-#> 5 2024  20 male asian_only     30 760220
-#> 6 2024  25 male asian_only     55 826163
+#>   year age  sex       race deaths    pop pop_scheme
+#> 1 2024   0 male asian_only      1 600728     single
+#> 2 2024   5 male asian_only      2 678658     single
+#> 3 2024  10 male asian_only      5 659666     single
+#> 4 2024  15 male asian_only     12 666097     single
+#> 5 2024  20 male asian_only     30 760220     single
+#> 6 2024  25 male asian_only     55 826163     single
 ```
 
 [`add_std_pop()`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
@@ -159,8 +159,8 @@ Hispanic origin only from 1990 (pre-1990 is white/black/other), so
 api <- data.frame(year = 2019L, age = 40L, sex = "female", race = "api")
 add_pop_counts(api, race_scheme = "bridged",
                by_vars = c("year", "age", "sex", "race"))
-#>   year age    sex race    pop
-#> 1 2019  40 female  api 874749
+#>   year age    sex race    pop pop_scheme
+#> 1 2019  40 female  api 874749    bridged
 ```
 
 Omitting `year` from `by_vars` is an error – the valid race set is
@@ -227,8 +227,8 @@ ca <- data.frame(state_fips = "06", year = 2024L, age = 40L, sex = "female",
                  race = "asian_only", deaths = 20)
 add_pop_counts(ca, race_scheme = "single",
                by_vars = c("state_fips", "year", "age", "sex", "race"))
-#>   state_fips year age    sex       race deaths    pop
-#> 1         06 2024  40 female asian_only     20 269078
+#>   state_fips year age    sex       race deaths    pop pop_scheme
+#> 1         06 2024  40 female asian_only     20 269078     single
 ```
 
 A geography column that is in the frame but absent from `by_vars` is an
@@ -268,12 +268,12 @@ wy_deaths
 options(narcan.pop_single_county_parquet = fx)   # normally a downloaded parquet
 add_pop_counts(subset(wy_deaths, year >= 2000), race_scheme = "single",
                by_vars = c("county_fips", "year", "age", "sex", "race"))
-#>   county_fips year age  sex       race deaths  pop
-#> 1       56013 2000  40 male white_only      2 1198
-#> 2       56013 2001  40 male white_only      4 1195
-#> 3       56013 2002  40 male white_only      3 1201
-#> 4       56013 2003  40 male white_only      5 1180
-#> 5       56013 2004  40 male white_only      2 1106
+#>   county_fips year age  sex       race deaths  pop pop_scheme
+#> 1       56013 2000  40 male white_only      2 1198     single
+#> 2       56013 2001  40 male white_only      4 1195     single
+#> 3       56013 2002  40 male white_only      3 1201     single
+#> 4       56013 2003  40 male white_only      5 1180     single
+#> 5       56013 2004  40 male white_only      2 1106     single
 ```
 
 Single-race denominators start in 2000, so the 1999 row is dropped
@@ -283,18 +283,19 @@ both exist.
 
 ## Coverage and the frozen slice
 
-Only the single-race 2020-2024 slice is **bundled** (frozen at 0.5.0,
-dependency-free). The 2000-2019 backfill is additive – it does not
-change those five years – but it ships only in the downloadable
-single-race `*_full` parquet (`pop_singlerace_full` and its state/county
-counterparts), fetched once from the tag-pinned GitHub Release asset and
-cached. So
+The **national** single-race table is bundled at every covered year: the
+frozen 0.5.0 `pop_singlerace` (2020-2024) plus `pop_singlerace_full`
+(2000-2024, dependency-free `.rda`), so a national pre-2020 request
+needs no download. The 2000-2019 backfill is additive – it does not
+change those five years. The **state and county** backfills are the ones
+distributed as downloadable single-race `*_full` parquets (tag-pinned
+GitHub Release assets, cached on first use). So
 [`get_pop_state()`](https://mkiang.github.io/narcan/reference/get_pop_state.md)/[`get_pop_county()`](https://mkiang.github.io/narcan/reference/get_pop_county.md)
-serve 2020-2024 straight from the bundled table, but a pre-2020 `years`
-request routes to that downloadable parquet – or to a local copy via the
-`narcan.pop_single_<grain>_parquet` option, as in the county chunk
-above. A request for a year the resolved data does not cover hard-errors
-– never a silent 0-row or `NA`:
+serve 2020-2024 from the bundled frozen table, but a pre-2020 `years`
+request at state/county grain routes to that downloadable parquet – or
+to a local copy via the `narcan.pop_single_<grain>_parquet` option, as
+in the county chunk above. A request for a year the resolved data does
+not cover hard-errors – never a silent 0-row or `NA`:
 
 ``` r
 
@@ -327,6 +328,50 @@ knitr::kable(src[, c("dataset", "scheme", "grain", "vintage",
 | pop_singlerace_state_full | single | state | int2000/int2010/V2024 | 2000 | 2024 |
 | pop_bridged_state | bridged | state | seer_1969_2024 | 1969 | 2024 |
 | pop_bridged_county | bridged | county | seer_1969_2024 | 1969 | 2024 |
+
+## Hispanic-stratified denominators
+
+Both strict schemes carry a Hispanic-origin axis. For an origin-specific
+denominator, add a `hispanic_origin` column (from
+[`add_hispanic_origin()`](https://mkiang.github.io/narcan/reference/add_hispanic_origin.md))
+to `by_vars`; for the all-origin denominator, drop the column entirely.
+The two answer different questions – and origin-unknown deaths belong
+only in the all-origin numerator, because there is no “unknown-origin”
+population to divide by.
+
+``` r
+
+# All-origin: one row, every death counts (the 3 origin-unknown deaths are here).
+all_origin <- data.frame(year = 2024L, age = 30L, sex = "female",
+                         race = "white_only", deaths = 12 + 210 + 3)
+add_pop_counts(all_origin, race_scheme = "single",
+               by_vars = c("year", "age", "sex", "race"))$pop
+#> [1] 8373814
+```
+
+``` r
+
+# Origin-stratified: the non-denominable unknowns are dropped; origin is a key.
+strat <- data.frame(
+    year = 2024L, age = 30L, sex = "female", race = "white_only",
+    hispanic_origin = c("hispanic", "non_hispanic"), deaths = c(12, 210)
+)
+add_pop_counts(strat, race_scheme = "single",
+               by_vars = c("year", "age", "sex", "race", "hispanic_origin")
+)[, c("hispanic_origin", "deaths", "pop")]
+#>   hispanic_origin deaths     pop
+#> 1        hispanic     12 2199747
+#> 2    non_hispanic    210 6174067
+```
+
+The two stratified denominators sum to the all-origin one; the
+difference is only which deaths sit in the numerator. Leaving a
+`hispanic_origin` column in the frame but out of `by_vars` is a hard
+error (it would be silently summed over), as is an `"unknown"`/`NA`
+origin in a stratified join. The detailed-vs-binary recode distinction,
+the pre-1990 mixed-era trap, and the misclassification caveats are
+covered in
+[`vignette("hispanic-origin")`](https://mkiang.github.io/narcan/articles/hispanic-origin.md).
 
 ## A note on hand-joins
 

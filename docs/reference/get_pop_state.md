@@ -49,7 +49,9 @@ get_pop_state(
 
   `"all"` (default; sums the origin dimension), `"non_hispanic"`, or
   `"hispanic"`. Bridged pre-1990 rows carry only `"all"` (SEER has no
-  Hispanic origin before 1990).
+  Hispanic origin before 1990), so requesting a pre-1990 `years` with a
+  stratified origin under `scheme = "bridged"` is an error, not a silent
+  empty result.
 
 - parquet:
 
@@ -68,6 +70,13 @@ Note the default-span asymmetry between schemes: `scheme = "single"`
 defaults to the frozen 5-year window (2020-2024; pass pre-2020 `years`
 to reach the 2000-2024 backfill), whereas `scheme = "bridged"` defaults
 to its full 56-year span (1969-2024).
+
+## See also
+
+[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+for the death-to-population JOIN, which keys on a `hispanic_origin`
+COLUMN in `by_vars`; this accessor instead takes a `hispanic_origin=`
+filter ARGUMENT (same name, different mechanism).
 
 ## Examples
 

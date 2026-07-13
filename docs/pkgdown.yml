@@ -5,9 +5,10 @@ articles:
   age-standardized-rates: age-standardized-rates.html
   classifying-overdose-deaths: classifying-overdose-deaths.html
   geography-fips: geography-fips.html
+  hispanic-origin: hispanic-origin.html
   population-denominators: population-denominators.html
   unspecified-drug-deaths: unspecified-drug-deaths.html
-last_built: 2026-07-12T19:22Z
+last_built: 2026-07-13T02:39Z
 urls:
   reference: https://mkiang.github.io/narcan/reference
   article: https://mkiang.github.io/narcan/articles

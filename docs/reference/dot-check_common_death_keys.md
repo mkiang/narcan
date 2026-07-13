@@ -1,8 +1,11 @@
 # Shared pre-join domain guards (sex, age, Hispanic origin)
 
 The scheme-agnostic domain checks used by both strict schemes. Reserved
-aggregate tokens (`"both"`, `"all"`) are exempt per dimension; the
-death-side Hispanic join is pinned to `"all"` in this release (0.5.2).
+aggregate tokens (`"both"`, `"all"`) are exempt per dimension.
+`hispanic_origin` must be `"hispanic"`/`"non_hispanic"`/ `"all"`
+(`"unknown"` and `NA` are non-denominable and hard-error here, NOT
+`na.rm`-exempt); a frame mixing `"all"` with stratified values is
+rejected as an incoherent double-count.
 
 ## Usage
 

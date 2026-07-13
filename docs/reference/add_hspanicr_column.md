@@ -20,6 +20,13 @@ add_hspanicr_column(icd_df)
 
 dataframe
 
+## See also
+
+[`add_hispanic_origin`](https://mkiang.github.io/narcan/reference/add_hispanic_origin.md),
+which adds the binary `hispanic_origin` column (for population joins)
+derived from `hspanicr`; this function only backfills the raw `hspanicr`
+field.
+
 ## Examples
 
 ``` r

@@ -11,7 +11,7 @@ join so the same correctness guards always apply."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,7 @@ join so the same correctness guards always apply."></head><body>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
     <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul></li>
@@ -56,8 +57,7 @@ join so the same correctness guards always apply.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">add_pop_counts</span><span class="op">(</span></span>
 <span>  <span class="va">df</span>,</span>
 <span>  by_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"year"</span>, <span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"race"</span><span class="op">)</span>,</span>
-<span>  race_scheme <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"legacy"</span>, <span class="st">"single"</span>, <span class="st">"bridged"</span><span class="op">)</span>,</span>
-<span>  hispanic <span class="op">=</span> <span class="st">"all"</span></span>
+<span>  race_scheme <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"legacy"</span>, <span class="st">"single"</span>, <span class="st">"bridged"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -66,7 +66,8 @@ join so the same correctness guards always apply.</p>
 
 
 <dl><dt id="arg-df">df<a class="anchor" aria-label="anchor" href="#arg-df"></a></dt>
-<dd><p>MCOD dataframe</p></dd>
+<dd><p>MCOD dataframe. A two-digit <code>datayear</code> (1979-1995) is coalesced
+into <code>year</code> per row when <code>year</code> is absent or <code>NA</code>.</p></dd>
 
 
 <dt id="arg-by-vars">by_vars<a class="anchor" aria-label="anchor" href="#arg-by-vars"></a></dt>
@@ -78,15 +79,13 @@ join so the same correctness guards always apply.</p>
 <code>pop_est</code>, the default), <code>"single"</code> (single-race), or
 <code>"bridged"</code> (SEER-uniform bridged-race, 1969-2024)</p></dd>
 
-
-<dt id="arg-hispanic">hispanic<a class="anchor" aria-label="anchor" href="#arg-hispanic"></a></dt>
-<dd><p>Hispanic-origin denominator to use; only <code>"all"</code> is
-supported in this release</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>dataframe</p>
+    <p><code>df</code> with an added <code>pop</code> column. Under the strict schemes
+  (<code>"single"</code>/<code>"bridged"</code>) it also carries a <code>pop_scheme</code> column
+  marking which scheme produced it, so results from different schemes are not
+  accidentally combined. The <code>"legacy"</code> output is unchanged.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -125,9 +124,18 @@ filipino) have no separate bridged denominator; collapse them to <code>api</code
   and single-race (<code>"single"</code>) schemes are NOT comparable and must not be
   chained into a single trend. <code>"legacy"</code> and <code>"bridged"</code> share the
   labels white/black/other/total, so passing the wrong <code>race_scheme</code>
-  cannot be detected automatically – set it deliberately. In this release the
-  death-side join is pinned to all-origin denominators (<code>hispanic =
-  "all"</code>); the Hispanic-stratified death join arrives in a later version.</p>
+  cannot be detected automatically – set it deliberately. For
+  Hispanic-stratified denominators, add a <code>hispanic_origin</code> column
+  (<code>"hispanic"</code>/<code>"non_hispanic"</code>, from <code><a href="add_hispanic_origin.html">add_hispanic_origin()</a></code>)
+  to <code>by_vars</code> under <code>"single"</code> (2000+) or <code>"bridged"</code> (1990+);
+  <code>"unknown"</code>/<code>NA</code> origin is non-denominable and hard-errors. (Note
+  the shared name: <code>add_pop_counts()</code> joins on a <code>hispanic_origin</code>
+  COLUMN listed in <code>by_vars</code>, whereas <code><a href="get_pop_state.html">get_pop_state()</a></code> /
+  <code><a href="get_pop_county.html">get_pop_county()</a></code> take a <code>hispanic_origin=</code> filter ARGUMENT.) Two
+  caveats apply to origin-stratified rates: (A) numerator origin (death
+  certificate) and denominator origin (Census/SEER) are separately measured
+  and differentially misclassified; (B) origin was phased onto state death
+  certificates through ~1997, so 1990-1996 rates are biased low.</p>
     </div>
 
     <div class="section level2">

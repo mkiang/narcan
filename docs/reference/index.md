@@ -130,6 +130,11 @@ recodes.
   column
 - [`add_hspanicr_column()`](https://mkiang.github.io/narcan/reference/add_hspanicr_column.md)
   : Add an NA hspanicr column if one doesn't exist
+- [`categorize_hispanic_origin()`](https://mkiang.github.io/narcan/reference/categorize_hispanic_origin.md)
+  : Collapse hspanicr to the binary Hispanic-origin axis (for population
+  joins)
+- [`add_hispanic_origin()`](https://mkiang.github.io/narcan/reference/add_hispanic_origin.md)
+  : Add a binary Hispanic-origin column from hspanicr
 - [`remap_age()`](https://mkiang.github.io/narcan/reference/remap_age.md)
   : Remap the raw NCHS detail-age field to age in completed years
 - [`categorize_age_5()`](https://mkiang.github.io/narcan/reference/categorize_age_5.md)

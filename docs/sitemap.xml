@@ -5,6 +5,7 @@
 <url><loc>https://mkiang.github.io/narcan/articles/age-standardized-rates.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/articles/classifying-overdose-deaths.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/articles/geography-fips.html</loc></url>
+<url><loc>https://mkiang.github.io/narcan/articles/hispanic-origin.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/articles/index.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/articles/population-denominators.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/articles/unspecified-drug-deaths.html</loc></url>
@@ -13,6 +14,7 @@
 <url><loc>https://mkiang.github.io/narcan/news/index.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/add_coded_occupation.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/add_county_fips.html</loc></url>
+<url><loc>https://mkiang.github.io/narcan/reference/add_hispanic_origin.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/add_hspanicr_column.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/add_pop_counts.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/add_std_pop.html</loc></url>
@@ -22,6 +24,7 @@
 <url><loc>https://mkiang.github.io/narcan/reference/categorize_age_5.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/categorize_age_5u1.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/categorize_female.html</loc></url>
+<url><loc>https://mkiang.github.io/narcan/reference/categorize_hispanic_origin.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/categorize_hspanicr.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/categorize_race.html</loc></url>
 <url><loc>https://mkiang.github.io/narcan/reference/categorize_sex.html</loc></url>

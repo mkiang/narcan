@@ -37,6 +37,13 @@ American, and non-Hispanics gain single-race detail – so a factor
 spanning the 2021 boundary must not be treated as a single ordered
 scale.
 
+## See also
+
+[`categorize_hispanic_origin`](https://mkiang.github.io/narcan/reference/categorize_hispanic_origin.md)
+for the binary `hispanic`/`non_hispanic` origin axis used for population
+joins (this function returns the full 9/14-category ethnicity recode,
+for descriptive counts, which has no matching denominator).
+
 ## Examples
 
 ``` r

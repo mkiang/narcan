@@ -1,5 +1,120 @@
 # Changelog
 
+## narcan 0.5.2
+
+### New features – Hispanic-origin death-side join
+
+- **Two new exported helpers add a binary Hispanic-origin column to a
+  death frame.** `categorize_hispanic_origin(hspanicr_column, year)`
+  maps the NCHS `hspanicr` recode to `"hispanic"` / `"non_hispanic"` /
+  `"unknown"` (or `NA` before 1989, in 2021, or out of range), and
+  `add_hispanic_origin(df)` adds it as a `hispanic_origin` column, read
+  per row from `year` (or two-digit `datayear`) so a multi-year
+  `bind_rows()` frame is labeled correctly. `year` is required (no
+  silent-scheme default): the 9-category (1989-2020) and 14-category
+  (2022+) `hspanicr` schemes are not comparable, but the binary origin
+  axis is.
+- **[`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+  now joins Hispanic-stratified denominators.** Add a `hispanic_origin`
+  column to `by_vars` (values `"hispanic"`/`"non_hispanic"`) under
+  `race_scheme = "single"` (2000+) or `"bridged"` (1990+) to get
+  origin-specific population counts; the all-origin denominator is
+  unchanged when `hispanic_origin` is absent or `"all"`.
+  [`get_pop_state()`](https://mkiang.github.io/narcan/reference/get_pop_state.md)/[`get_pop_county()`](https://mkiang.github.io/narcan/reference/get_pop_county.md)
+  already expose the same axis via their `hispanic_origin=` filter
+  argument.
+
+### Breaking changes
+
+- **The `add_pop_counts(hispanic=)` argument is removed.** It only ever
+  accepted its no-op `"all"` default; Hispanic-stratified joins now use
+  the `hispanic_origin` column in `by_vars` instead. A call passing
+  `hispanic=` now errors (`unused argument`).
+- **`race_scheme = "legacy"` now hard-errors on a Hispanic-origin or
+  sub-national geography column.** The bundled `pop_est` is national and
+  all-origin, so a death frame carrying a non-`"all"` `hispanic_origin`,
+  or a `state_fips`/`county_fips`/`st_fips` column, previously attached
+  the wrong (all-origin, or national) denominator silently. It now fails
+  loud, pointing to `race_scheme = "single"`/`"bridged"` (which resolve
+  origin and geography).
+
+### New guards
+
+- **Mixed-era coherence stop.** A single frame that mixes `"all"` with
+  stratified (`"hispanic"`/`"non_hispanic"`) origins is rejected:
+  `"all"` already sums the strata, so mixing them double-counts. Combine
+  eras with separate calls and
+  [`rbind()`](https://rdrr.io/r/base/cbind.html) (see
+  [`vignette("hispanic-origin")`](https://mkiang.github.io/narcan/articles/hispanic-origin.md)).
+- **Unknown/`NA` origin is non-denominable.** In a stratified join, an
+  origin of `"unknown"` or `NA` hard-errors (there is no matching
+  denominator); exclude those deaths from stratified rates or use
+  `"all"`.
+- **Population-slice validation.**
+  [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+  now validates the resolved denominator slice before summing it, so a
+  corrupt or hand-supplied parquet cannot silently mis-count: a stored
+  `"all"` origin marginal beside stratified cells (per-year), a stored
+  `race="total"`/`sex="both"` marginal beside finest cells, an
+  off-canonical label, or a finest cell missing an origin stratum each
+  hard-error. Shipped assets are unaffected.
+- **[`get_pop_state()`](https://mkiang.github.io/narcan/reference/get_pop_state.md)/[`get_pop_county()`](https://mkiang.github.io/narcan/reference/get_pop_county.md)
+  refuse a bridged pre-1990 stratified request**
+  (e.g. `years = 1985, hispanic_origin = "hispanic"`) instead of
+  silently returning zero rows – SEER resolves Hispanic origin only from
+  1990, matching the death-join guard.
+- **The accessor year-coverage guard is scoped to the requested
+  geography.** A year present for some state/county but missing for the
+  one requested now errors, instead of returning a silent short slice.
+  An entirely-absent geography (a nonexistent FIPS) still returns zero
+  rows, not an error.
+
+### Other changes
+
+- **[`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+  accepts a two-digit `datayear`.** It coalesces `datayear` (1979-1995
+  files) into a canonical `year` per row, so the
+  [`add_hispanic_origin()`](https://mkiang.github.io/narcan/reference/add_hispanic_origin.md)
+  -\>
+  [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+  pipeline works for pre-1996 frames; an NA join-year now fails with a
+  clear message rather than a misleading “no population” error.
+- **Strict-scheme
+  [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+  output gains a `pop_scheme` column** (`"single"`/`"bridged"`) so
+  results from different schemes are not silently chainable (their
+  origin labels are identical). The `"legacy"` output is unchanged.
+- **[`calc_stdrate_var()`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md)
+  warns on any omitted demographic stratifier**
+  (`sex`/`race`/`hispanic_origin`/geography), not just `year` – a
+  forgotten stratifier silently averages the strata into one blended
+  rate.
+
+### Bug fixes
+
+- **[`categorize_hspanicr()`](https://mkiang.github.io/narcan/reference/categorize_hspanicr.md)
+  now reads a factor-valued `hspanicr` by value, not by factor-level
+  position.** A factor whose present levels did not line up
+  position-to-value (e.g. the 2022+ codes 10-14, or a filtered
+  9-category frame) was silently mislabeled. Non-factor
+  (integer/character) input is unchanged. The pre-fix behavior is
+  reproducible from the `v0.5.1` tag.
+
+### Caveats for Hispanic-stratified rates
+
+- **Numerator/denominator origin misclassification.** Death-certificate
+  Hispanic origin (numerator) and Census/SEER origin (denominator) are
+  separately measured and differentially misclassified; see
+  [`?add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+  and
+  [`vignette("hispanic-origin")`](https://mkiang.github.io/narcan/articles/hispanic-origin.md).
+- **Incomplete early reporting.** Hispanic origin was phased onto state
+  death certificates through ~1997, so 1990-1996 origin-stratified
+  bridged rates undercount Hispanic deaths (biased low).
+  [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
+  emits a once-per-session message when a bridged join touches that
+  span.
+
 ## narcan 0.5.1
 
 ### New features – single-race backfill to 2000 + SEER-uniform bridged denominators

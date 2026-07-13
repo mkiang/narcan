@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/classifying-overdose-deaths.html">Classifying overdose deaths (ISW7)</a></li>
     <li><a class="dropdown-item" href="../articles/unspecified-drug-deaths.html">Trends in unspecified drug overdose deaths</a></li>
     <li><a class="dropdown-item" href="../articles/population-denominators.html">Population denominators: bridged, single-race, and legacy</a></li>
+    <li><a class="dropdown-item" href="../articles/hispanic-origin.html">Hispanic origin: the two recode pairs</a></li>
     <li><a class="dropdown-item" href="../articles/geography-fips.html">Harmonizing geography with FIPS</a></li>
     <li><a class="dropdown-item" href="../articles/age-standardized-rates.html">Age-standardized fentanyl death rates by sex</a></li>
   </ul></li>
@@ -40,6 +41,57 @@
       <small>Source: <a href="https://github.com/mkiang/narcan/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.2" id="narcan-052">narcan 0.5.2<a class="anchor" aria-label="anchor" href="#narcan-052"></a></h2>
+<div class="section level3">
+<h3 id="new-features--hispanic-origin-death-side-join-0-5-2">New features – Hispanic-origin death-side join<a class="anchor" aria-label="anchor" href="#new-features--hispanic-origin-death-side-join-0-5-2"></a></h3>
+<ul><li>
+<strong>Two new exported helpers add a binary Hispanic-origin column to a death frame.</strong> <code>categorize_hispanic_origin(hspanicr_column, year)</code> maps the NCHS <code>hspanicr</code> recode to <code>"hispanic"</code> / <code>"non_hispanic"</code> / <code>"unknown"</code> (or <code>NA</code> before 1989, in 2021, or out of range), and <code>add_hispanic_origin(df)</code> adds it as a <code>hispanic_origin</code> column, read per row from <code>year</code> (or two-digit <code>datayear</code>) so a multi-year <code>bind_rows()</code> frame is labeled correctly. <code>year</code> is required (no silent-scheme default): the 9-category (1989-2020) and 14-category (2022+) <code>hspanicr</code> schemes are not comparable, but the binary origin axis is.</li>
+<li>
+<strong><code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> now joins Hispanic-stratified denominators.</strong> Add a <code>hispanic_origin</code> column to <code>by_vars</code> (values <code>"hispanic"</code>/<code>"non_hispanic"</code>) under <code>race_scheme = "single"</code> (2000+) or <code>"bridged"</code> (1990+) to get origin-specific population counts; the all-origin denominator is unchanged when <code>hispanic_origin</code> is absent or <code>"all"</code>. <code><a href="../reference/get_pop_state.html">get_pop_state()</a></code>/<code><a href="../reference/get_pop_county.html">get_pop_county()</a></code> already expose the same axis via their <code>hispanic_origin=</code> filter argument.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="breaking-changes-0-5-2">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-5-2"></a></h3>
+<ul><li>
+<strong>The <code>add_pop_counts(hispanic=)</code> argument is removed.</strong> It only ever accepted its no-op <code>"all"</code> default; Hispanic-stratified joins now use the <code>hispanic_origin</code> column in <code>by_vars</code> instead. A call passing <code>hispanic=</code> now errors (<code>unused argument</code>).</li>
+<li>
+<strong><code>race_scheme = "legacy"</code> now hard-errors on a Hispanic-origin or sub-national geography column.</strong> The bundled <code>pop_est</code> is national and all-origin, so a death frame carrying a non-<code>"all"</code> <code>hispanic_origin</code>, or a <code>state_fips</code>/<code>county_fips</code>/<code>st_fips</code> column, previously attached the wrong (all-origin, or national) denominator silently. It now fails loud, pointing to <code>race_scheme = "single"</code>/<code>"bridged"</code> (which resolve origin and geography).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-guards-0-5-2">New guards<a class="anchor" aria-label="anchor" href="#new-guards-0-5-2"></a></h3>
+<ul><li>
+<strong>Mixed-era coherence stop.</strong> A single frame that mixes <code>"all"</code> with stratified (<code>"hispanic"</code>/<code>"non_hispanic"</code>) origins is rejected: <code>"all"</code> already sums the strata, so mixing them double-counts. Combine eras with separate calls and <code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code> (see <code><a href="../articles/hispanic-origin.html">vignette("hispanic-origin")</a></code>).</li>
+<li>
+<strong>Unknown/<code>NA</code> origin is non-denominable.</strong> In a stratified join, an origin of <code>"unknown"</code> or <code>NA</code> hard-errors (there is no matching denominator); exclude those deaths from stratified rates or use <code>"all"</code>.</li>
+<li>
+<strong>Population-slice validation.</strong> <code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> now validates the resolved denominator slice before summing it, so a corrupt or hand-supplied parquet cannot silently mis-count: a stored <code>"all"</code> origin marginal beside stratified cells (per-year), a stored <code>race="total"</code>/<code>sex="both"</code> marginal beside finest cells, an off-canonical label, or a finest cell missing an origin stratum each hard-error. Shipped assets are unaffected.</li>
+<li>
+<strong><code><a href="../reference/get_pop_state.html">get_pop_state()</a></code>/<code><a href="../reference/get_pop_county.html">get_pop_county()</a></code> refuse a bridged pre-1990 stratified request</strong> (e.g. <code>years = 1985, hispanic_origin = "hispanic"</code>) instead of silently returning zero rows – SEER resolves Hispanic origin only from 1990, matching the death-join guard.</li>
+<li>
+<strong>The accessor year-coverage guard is scoped to the requested geography.</strong> A year present for some state/county but missing for the one requested now errors, instead of returning a silent short slice. An entirely-absent geography (a nonexistent FIPS) still returns zero rows, not an error.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="other-changes-0-5-2">Other changes<a class="anchor" aria-label="anchor" href="#other-changes-0-5-2"></a></h3>
+<ul><li>
+<strong><code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> accepts a two-digit <code>datayear</code>.</strong> It coalesces <code>datayear</code> (1979-1995 files) into a canonical <code>year</code> per row, so the <code><a href="../reference/add_hispanic_origin.html">add_hispanic_origin()</a></code> -&gt; <code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> pipeline works for pre-1996 frames; an NA join-year now fails with a clear message rather than a misleading “no population” error.</li>
+<li>
+<strong>Strict-scheme <code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> output gains a <code>pop_scheme</code> column</strong> (<code>"single"</code>/<code>"bridged"</code>) so results from different schemes are not silently chainable (their origin labels are identical). The <code>"legacy"</code> output is unchanged.</li>
+<li>
+<strong><code><a href="../reference/calc_stdrate_var.html">calc_stdrate_var()</a></code> warns on any omitted demographic stratifier</strong> (<code>sex</code>/<code>race</code>/<code>hispanic_origin</code>/geography), not just <code>year</code> – a forgotten stratifier silently averages the strata into one blended rate.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-5-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-2"></a></h3>
+<ul><li>
+<strong><code><a href="../reference/categorize_hspanicr.html">categorize_hspanicr()</a></code> now reads a factor-valued <code>hspanicr</code> by value, not by factor-level position.</strong> A factor whose present levels did not line up position-to-value (e.g. the 2022+ codes 10-14, or a filtered 9-category frame) was silently mislabeled. Non-factor (integer/character) input is unchanged. The pre-fix behavior is reproducible from the <code>v0.5.1</code> tag.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="caveats-for-hispanic-stratified-rates-0-5-2">Caveats for Hispanic-stratified rates<a class="anchor" aria-label="anchor" href="#caveats-for-hispanic-stratified-rates-0-5-2"></a></h3>
+<ul><li>
+<strong>Numerator/denominator origin misclassification.</strong> Death-certificate Hispanic origin (numerator) and Census/SEER origin (denominator) are separately measured and differentially misclassified; see <code><a href="../reference/add_pop_counts.html">?add_pop_counts</a></code> and <code><a href="../articles/hispanic-origin.html">vignette("hispanic-origin")</a></code>.</li>
+<li>
+<strong>Incomplete early reporting.</strong> Hispanic origin was phased onto state death certificates through ~1997, so 1990-1996 origin-stratified bridged rates undercount Hispanic deaths (biased low). <code><a href="../reference/add_pop_counts.html">add_pop_counts()</a></code> emits a once-per-session message when a bridged join touches that span.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.1" id="narcan-051">narcan 0.5.1<a class="anchor" aria-label="anchor" href="#narcan-051"></a></h2>
 <div class="section level3">
