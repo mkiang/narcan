@@ -4,9 +4,30 @@
 \name{narcan-package}
 \alias{narcan}
 \alias{narcan-package}
-\title{narcan R package for working with multiple cause of death data}
+\title{narcan: tools for US multiple cause of death (MCOD) data}
 \description{
-R package for working with multiple cause of death data
+narcan turns raw NCHS Multiple Cause of Death micro-data into drug- and
+opioid-overdose death counts and age-standardized rates, using the Injury
+Surveillance Workgroup (ISW7) ICD-9/ICD-10 definitions.
+
+The canonical pipeline has four steps, each with a vignette:
+\enumerate{
+  \item \strong{Import} the raw fixed-width file
+    (\code{\link{import_mcod_fwf}}) and collapse its multiple-cause fields
+    (\code{\link{unite_records}}).
+  \item \strong{Flag} drug/opioid deaths (\code{\link{flag_drug_deaths}},
+    \code{\link{flag_opioid_deaths}}, \code{\link{flag_opioid_types}}); see
+    \code{vignette("classifying-overdose-deaths")}.
+  \item \strong{Denominators}: join population counts with
+    \code{\link{add_pop_counts}}; see
+    \code{vignette("population-denominators")}.
+  \item \strong{Rates}: age-standardize with \code{\link{add_std_pop}} and
+    \code{\link{calc_stdrate_var}}; see
+    \code{vignette("age-standardized-rates")}.
+}
+Stratify by Hispanic origin (\code{vignette("hispanic-origin")}) or harmonize
+geography (\code{vignette("geography-fips")}) as needed. New users should
+start with \code{vignette("getting-started")}.
 }
 \seealso{
 Useful links:

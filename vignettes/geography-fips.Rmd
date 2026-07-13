@@ -13,11 +13,12 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 County identifiers are not stable across data years. New counties appear, a few
 merge or are renamed, and -- more disruptively -- NCHS does not encode state the
-same way in every era. Public MCOD files use NCHS numeric state codes through
-2002 and 2-letter postal abbreviations from 2003 on, and the numeric schemes
-overlap while meaning different states (NCHS `"06"` is Colorado; FIPS `"06"` is
-California). `add_county_fips()` translates whichever scheme a file uses into one
-5-digit `county_fips` that is comparable across years.
+same way in every era. Public multiple-cause-of-death (MCOD) files use NCHS
+numeric state codes through 2002 and 2-letter postal abbreviations from 2003 on,
+and the numeric schemes overlap while meaning different states (NCHS `"06"` is
+Colorado; FIPS `"06"` is California). `add_county_fips()` translates whichever
+scheme a file uses into one 5-digit `county_fips` that is comparable across
+years.
 
 **Public-data caveat.** Public-use MCOD carries state and county geography only
 through **2004**. From 2005 on, any sub-national analysis requires the restricted
@@ -113,6 +114,13 @@ Once `county_fips` or a `state_fips` column exists, it is the join key for
 sub-national denominators. `add_county_fips()` names its state column `st_fips`;
 `add_pop_counts()` keys on `state_fips`, so rename `st_fips` to `state_fips` for a
 state join, or use the 5-digit `county_fips` directly for a county join (see the
-companion *Population denominators* vignette). As above, this path is only valid
-for **1999-2004** public data -- 2005+ sub-national denominators require the
-restricted NCHS All-County files.
+companion `vignette("population-denominators")`). As above, this path is only
+valid for **1999-2004** public data -- 2005+ sub-national denominators require
+the restricted NCHS All-County files.
+
+## See also
+
+- `vignette("population-denominators")` -- sub-national denominators use these
+  FIPS-harmonized geographies as their join key.
+- `vignette("getting-started")` -- the package overview and where this vignette
+  fits in the pipeline.

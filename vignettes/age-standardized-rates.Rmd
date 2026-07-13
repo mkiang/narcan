@@ -1,8 +1,8 @@
 ---
-title: "Age-standardized fentanyl death rates by sex"
+title: "Age-standardized synthetic-opioid death rates by sex"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Age-standardized fentanyl death rates by sex}
+  %\VignetteIndexEntry{Age-standardized synthetic-opioid death rates by sex}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,23 +12,28 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 This vignette turns multiple-cause-of-death (MCOD) records into an
-age-standardized synthetic-opioid death rate by sex, for US residents only,
-across 1999-2024. "Fentanyl" here means synthetic opioids other than methadone
-(ICD-10 **T40.4**), flagged by `flag_opioid_types()` as `other_synth_present`.
-T40.4 is the CDC-standard fentanyl proxy, but it is a *proxy* -- it also captures
-tramadol, U-47700, and other synthetics, so a small share of these deaths are not
-fentanyl. Denominators are the **SEER bridged-race** estimates
-(`race_scheme = "bridged"`, 1969-2024), one era-consistent series that predates
-the fentanyl surge, so a 1999-vs-2024 comparison is not confounded by a change in
-how the Census counts people.
+age-standardized **synthetic-opioid** death rate by sex, for US residents only,
+illustrated with 1999, 2010, and 2020. Synthetic opioids other than methadone are
+ICD-10 **T40.4**, flagged by `flag_opioid_types()` as `other_synth_present`. T40.4
+is the CDC-standard proxy for illicitly manufactured fentanyl, but it is a *proxy*
+-- it also captures tramadol, U-47700, and other synthetics. Its composition shifts
+over time: illicit fentanyl only came to dominate T40.4 around 2013-2014
+(Ciccarone's "third wave"), so early-series T40.4 deaths are largely pharmaceutical
+fentanyl and tramadol, not the illicit-fentanyl phenomenon of recent years. Read a
+long T40.4 series as "synthetic opioids," not "fentanyl," throughout. Denominators
+are the **SEER bridged-race** estimates (`race_scheme = "bridged"`), one internally
+consistent race series, so the comparison is not confounded by a change in how the
+Census classifies people by race.
 
 All death data below are **small inline synthetic counts, clearly labelled
 illustrative**; only the bundled population denominators are real. No chunk reads
 a restricted record, an external file, or the network.
 
 This vignette picks up where flagging leaves off. The *Classifying overdose
-deaths* vignette builds the `drug_death`/`opioid_death` flags used here and is the
-place to start if the flag steps below are unfamiliar.
+deaths* vignette (`vignette("classifying-overdose-deaths")`) builds the
+`drug_death`/`opioid_death` flags used here and is the place to start if the flag
+steps below are unfamiliar. For the full record-to-analysis workflow, begin with
+`vignette("getting-started")`.
 
 ```{r libs}
 library(narcan)
@@ -37,8 +42,10 @@ library(narcan)
 ## From records to a fentanyl flag
 
 Start with a handful of illustrative record-level rows. Real MCOD data carry
-`restatus` (residency), `ucod` (underlying cause), and `f_records_all` (the
-space-joined multiple-cause T-code string) that the flag helpers key on.
+`restatus` (residency) and `ucod` (underlying cause) as raw columns, plus a
+*derived* `f_records_all` -- the space-joined multiple-cause T-code string that
+the flag helpers key on (`f_records_all` is produced by `unite_records()`; see
+`vignette("getting-started")`).
 
 ```{r records}
 records <- data.frame(
@@ -134,7 +141,9 @@ head(counts[, c("year", "age", "sex", "deaths", "pop")])
 weights (`unit_w`, summing to 1 across the 18 five-year age groups). `s204` is
 narcan's code for that standard population in 18 five-year age bins (the default
 `std_cat`); see `?add_std_pop` for single-year alternatives, which must match
-your age binning.
+your age binning. Other standard populations are available too (e.g., the Segi
+world standard and alternative age binnings) -- see `?add_std_pop` and the
+`std_pops` dataset for the full list of `std_cat` codes.
 
 ```{r std}
 counts <- add_std_pop(counts, std_cat = "s204", by_vars = "age")
@@ -177,10 +186,41 @@ std$upper <- std$fentanyl_rate + 1.96 * sqrt(std$fentanyl_var)
 std[, c("year", "sex", "fentanyl_rate", "lower", "upper")]
 ```
 
+This normal-approximation (Wald) interval is fine for well-populated cells but
+under-covers when death counts are small -- it can even return a negative lower
+bound. For sparse strata (sub-national rates, or fine demographic cells; NCHS
+treats a rate from fewer than 20 deaths as unreliable), use a gamma-based interval
+(Fay and Feuer, *Stat Med* 1997) rather than this Wald form.
+
 Because both sexes are standardized to the same US 2000 age structure, the
 male-female gap reflects differences in death *rates*, not in age composition --
 that is the point of age standardization.
 
+Plotting `std` makes both patterns visible at once -- the steep rise over time and
+the persistent male-female gap. The chunk below needs ggplot2 (a Suggests-only
+dependency), so it only runs when that package is installed.
+
+```{r plot, eval = requireNamespace("ggplot2", quietly = TRUE), fig.alt = "Line plot of age-standardized synthetic-opioid death rate per 100,000 against year for 1999, 2010, and 2020, with separate lines for males and females. Both lines rise steeply across the period, and the male line sits roughly twice as high as the female line in every year. Vertical bars show 95% confidence intervals.", fig.cap = "Age-standardized synthetic-opioid (fentanyl-proxy) death rate per 100,000 by sex, illustrative data. Points are standardized rates and bars are 95% confidence intervals."}
+library(ggplot2)
+
+ggplot(std, aes(x = year, y = fentanyl_rate, color = sex)) +
+    geom_errorbar(aes(ymin = lower, ymax = upper), width = 1.2) +
+    geom_line() +
+    geom_point(size = 2) +
+    scale_x_continuous(breaks = unique(std$year)) +
+    labs(x = "Year", y = "Age-standardized rate per 100,000",
+         color = "Sex") +
+    theme_minimal()
+```
+
 These counts are synthetic and illustrative only. A real analysis flags the
-restricted or public MCOD records exactly as shown above (see the "Classifying
-overdose deaths" vignette), aggregates them, and runs this same rate pipeline.
+restricted or public MCOD records exactly as shown above (see
+`vignette("classifying-overdose-deaths")`), aggregates them, and runs this same
+rate pipeline.
+
+## See also
+
+- `vignette("getting-started")` -- the full pipeline and where rates fit.
+- `vignette("population-denominators")` -- choosing and joining the denominator.
+- `vignette("hispanic-origin")` -- add a Hispanic-origin stratum to these rates.
+- `vignette("geography-fips")` -- compute the same rates at sub-national grains.

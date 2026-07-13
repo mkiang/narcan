@@ -32,10 +32,13 @@ Two denominator schemes are available; both route through the single guarded
 join so the same correctness guards always apply.
 }
 \details{
-\code{race_scheme = "legacy"} (default) joins the frozen bridged-race
-\code{narcan::pop_est} (1979-2020) and reproduces the historical behavior
-byte-for-byte: unmatched keys warn and leave \code{pop = NA}. Use this to
-reproduce published bridged-race rates.
+\code{race_scheme = "legacy"} (default) joins the frozen \code{narcan::pop_est}
+(1979-2020) and reproduces the historical behavior byte-for-byte: unmatched
+keys warn and leave \code{pop = NA}. It reproduces published bridged-race
+rates, though \code{pop_est} is a pieced-together legacy series -- its
+2000-2020 denominators are single-race-alone Census estimates, which run low
+against bridged-race death counts. Prefer \code{"bridged"} for a coherent
+1969-2024 series.
 
 \code{race_scheme = "single"} joins the single-race denominators
 (\code{pop_singlerace_full}, 2000-2024; the frozen \code{pop_singlerace}
@@ -64,7 +67,7 @@ filipino) have no separate bridged denominator; collapse them to \code{api}
 (numerator and denominator together) before joining.
 }
 \note{
-Legacy bridged-race (\code{"legacy"}), SEER bridged (\code{"bridged"}),
+Legacy (\code{"legacy"}), SEER bridged (\code{"bridged"}),
   and single-race (\code{"single"}) schemes are NOT comparable and must not be
   chained into a single trend. \code{"legacy"} and \code{"bridged"} share the
   labels white/black/other/total, so passing the wrong \code{race_scheme}

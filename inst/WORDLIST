@@ -2,12 +2,15 @@ AIAN
 Alldata
 Anthropic
 BACKFILL
+Buchanich
 CSTE
+Ciccarone's
 DTA
+DUA
 DVS
 DuckDB
 Dwyer
-Fentanyl
+Feuer
 HTTPS
 Hyattsville
 ICD
@@ -18,11 +21,14 @@ Lindgren
 MCOD
 NBER
 NCHS
+NCI's
 NIOSH
 Natality
 Opioid
 Pre
 Rican
+Ruhm
+Segi
 Stata
 UCOD
 UCODs
@@ -31,9 +37,11 @@ Workgroup
 ZZ
 ager
 al
+artifactual
 backfill
 backfilling
 backfills
+binnings
 cdc
 certifier
 chainable
@@ -46,7 +54,6 @@ dataset's
 datayear
 dct
 denominable
-denominate
 deterministically
 df
 dicts
@@ -62,6 +69,7 @@ fips
 flagger
 flaggers
 fwf
+ggplot
 grepl
 hardcoded
 hawaiian
@@ -123,6 +131,7 @@ reweighting
 rnifla
 rniflag
 rowwise
+runnable
 sha
 stateoc
 staters
@@ -139,6 +148,7 @@ tramadol
 ucod
 ucr
 undercount
+undercounts
 undeterminable
 ungrouped
 unmapped

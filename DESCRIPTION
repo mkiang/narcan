@@ -31,6 +31,7 @@ Suggests:
     DBI,
     digest,
     duckdb (>= 0.9.0),
+    ggplot2,
     knitr,
     openssl,
     pkgdown,

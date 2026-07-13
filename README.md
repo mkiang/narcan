@@ -23,8 +23,17 @@ recodes across NCHS coding changes, and computes age-standardized rates.
 
 ## Start here
 
-New users should begin with the *Classifying overdose deaths* vignette, then work
-through the rest in order. Read them under Articles on the
+New to the package? Begin with the *Getting started* vignette for an overview and
+the raw-data-to-rate pipeline. Then follow the path for your task:
+
+- **Compute an overdose death rate:** *Classifying overdose deaths* -> *Population
+  denominators* -> *Age-standardized synthetic-opioid death rates by sex*.
+- **Stratify by Hispanic origin:** *Hispanic origin: the two recode pairs*.
+- **Work with sub-national geography:** *Harmonizing geography with FIPS*.
+- **Understand unspecified-drug coding over time:** *Trends in unspecified drug
+  overdose deaths*.
+
+All vignettes are under Articles on the
 [pkgdown site](https://mkiang.github.io/narcan/articles/).
 
 ## Installation
