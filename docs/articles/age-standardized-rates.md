@@ -30,10 +30,7 @@ to start if the flag steps below are unfamiliar. For the full
 record-to-analysis workflow, begin with
 [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md).
 
-``` r
-
-library(narcan)
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`narcan`](https://github.com/mkiang/narcan)`)`
 
 ## From records to a fentanyl flag
 
@@ -46,56 +43,20 @@ multiple-cause T-code string that the flag helpers key on
 see
 [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md)).
 
-``` r
-
-records <- data.frame(
-    year          = 2020L,
-    restatus      = c(1L, 1L, 4L, 2L, 3L),
-    ucod          = c("X42", "X44", "X42", "I250", "X42"),
-    f_records_all = c("T404 T519", "T404", "T404", "I250", "T400"),
-    age           = c(35L, 40L, 55L, 60L, 25L),
-    sex           = c("male", "female", "male", "male", "female"),
-    stringsAsFactors = FALSE
-)
-records
-#>   year restatus ucod f_records_all age    sex
-#> 1 2020        1  X42     T404 T519  35   male
-#> 2 2020        1  X44          T404  40 female
-#> 3 2020        4  X42          T404  55   male
-#> 4 2020        2 I250          I250  60   male
-#> 5 2020        3  X42          T400  25 female
-```
+`records`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`` `` year ``=`` ``2020L``,`` `` restatus ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1L``, ``1L``, ``4L``, ``2L``, ``3L``)``,`` `` ucod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"X42"``, ``"X44"``, ``"X42"``, ``"I250"``, ``"X42"``)``,`` `` f_records_all ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"T404 T519"``, ``"T404"``, ``"T404"``, ``"I250"``, ``"T400"``)``,`` `` age ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``35L``, ``40L``, ``55L``, ``60L``, ``25L``)``,`` `` sex ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"male"``, ``"female"``, ``"male"``, ``"male"``, ``"female"``)``,`` `` stringsAsFactors ``=`` ``FALSE`` ``)`` ``records`` ``#> year restatus ucod f_records_all age sex`` ``#> 1 2020 1 X42 T404 T519 35 male`` ``#> 2 2020 1 X44 T404 40 female`` ``#> 3 2020 4 X42 T404 55 male`` ``#> 4 2020 2 I250 I250 60 male`` ``#> 5 2020 3 X42 T400 25 female`
 
 [`subset_residents()`](https://mkiang.github.io/narcan/reference/subset_residents.md)
 keeps `restatus %in% 1:3` and drops the column. The non-resident row
 (`restatus == 4`) is removed.
 
-``` r
-
-resid <- subset_residents(records)
-resid
-#>   year ucod f_records_all age    sex
-#> 1 2020  X42     T404 T519  35   male
-#> 2 2020  X44          T404  40 female
-#> 3 2020 I250          I250  60   male
-#> 4 2020  X42          T400  25 female
-```
+`resid`` ``<-`` `[`subset_residents`](https://mkiang.github.io/narcan/reference/subset_residents.md)`(``records``)`` ``resid`` ``#> year ucod f_records_all age sex`` ``#> 1 2020 X42 T404 T519 35 male`` ``#> 2 2020 X44 T404 40 female`` ``#> 3 2020 I250 I250 60 male`` ``#> 4 2020 X42 T400 25 female`
 
 [`flag_drug_deaths()`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)
 adds `drug_death` under the ISW7 (Injury Surveillance Workgroup) rule –
 a drug `ucod` **and** a T-code. The cardiac death (`I250`) is not a drug
 death.
 
-``` r
-
-resid <- flag_drug_deaths(resid, year = 2020)
-resid[, c("ucod", "f_records_all", "drug_death")]
-#>   ucod f_records_all drug_death
-#> 1  X42     T404 T519          1
-#> 2  X44          T404          1
-#> 3 I250          I250          0
-#> 4  X42          T400          1
-```
+`resid`` ``<-`` `[`flag_drug_deaths`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)`(``resid``, year ``=`` ``2020``)`` ``resid``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"ucod"``, ``"f_records_all"``, ``"drug_death"``)``]`` ``#> ucod f_records_all drug_death`` ``#> 1 X42 T404 T519 1`` ``#> 2 X44 T404 1`` ``#> 3 I250 I250 0`` ``#> 4 X42 T400 1`
 
 [`flag_opioid_deaths()`](https://mkiang.github.io/narcan/reference/flag_opioid_deaths.md)
 adds `opioid_death`.
@@ -104,28 +65,11 @@ then splits the opioid into type flags; `other_synth_present` is the
 T40.4 fentanyl proxy. Note the T40.0-only row (opium, T40.0) is an
 opioid death but **not** a synthetic-opioid death.
 
-``` r
-
-resid <- resid |>
-    flag_opioid_deaths(year = 2020) |>
-    flag_opioid_types(year = 2020)
-resid[, c("f_records_all", "opioid_death", "other_synth_present")]
-#>   f_records_all opioid_death other_synth_present
-#> 1     T404 T519            1                   1
-#> 2          T404            1                   1
-#> 3          I250            0                   0
-#> 4          T400            1                   0
-```
+`resid`` ``<-`` ``resid`` ``|>`` `` `[`flag_opioid_deaths`](https://mkiang.github.io/narcan/reference/flag_opioid_deaths.md)`(``year ``=`` ``2020``)`` ``|>`` `` `[`flag_opioid_types`](https://mkiang.github.io/narcan/reference/flag_opioid_types.md)`(``year ``=`` ``2020``)`` ``resid``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"f_records_all"``, ``"opioid_death"``, ``"other_synth_present"``)``]`` ``#> f_records_all opioid_death other_synth_present`` ``#> 1 T404 T519 1 1`` ``#> 2 T404 1 1`` ``#> 3 I250 0 0`` ``#> 4 T400 1 0`
 
 The fentanyl-proxy deaths are the rows with `other_synth_present == 1`:
 
-``` r
-
-resid[resid$other_synth_present == 1, c("ucod", "f_records_all", "age", "sex")]
-#>   ucod f_records_all age    sex
-#> 1  X42     T404 T519  35   male
-#> 2  X44          T404  40 female
-```
+`resid``[``resid``$``other_synth_present`` ``==`` ``1``, `[`c`](https://rdrr.io/r/base/c.html)`(``"ucod"``, ``"f_records_all"``, ``"age"``, ``"sex"``)``]`` ``#> ucod f_records_all age sex`` ``#> 1 X42 T404 T519 35 male`` ``#> 2 X44 T404 40 female`
 
 ## Aggregate to counts, then rate
 
@@ -136,35 +80,7 @@ a deterministic Poisson draw tuned to rise steeply over time (the real
 synthetic-opioid surge) and to run higher for males. `age` is the 5-year
 bin start (0, 5, …, 85); `sex` is `"male"`/`"female"`.
 
-``` r
-
-counts <- expand.grid(
-    year = c(1999L, 2010L, 2020L),
-    age  = seq(0L, 85L, 5L),
-    sex  = c("male", "female"),
-    stringsAsFactors = FALSE
-)
-age_weight <- c(0, 0, .02, .2, .6, .9, 1, .95, .85, .7, .5, .3, .15, .07, .03,
-                .01, 0, 0)
-names(age_weight) <- seq(0, 85, 5)
-year_factor <- c("1999" = 75, "2010" = 450, "2020" = 3000)   # ~40x rise
-sex_factor  <- c("male" = 1.9, "female" = 1)
-
-lambda <- year_factor[as.character(counts$year)] *
-    sex_factor[counts$sex] *
-    age_weight[as.character(counts$age)]
-set.seed(42)
-counts$deaths <- rpois(nrow(counts), lambda)
-counts <- counts[order(counts$year, counts$sex, counts$age), ]
-head(counts)
-#>    year age    sex deaths
-#> 55 1999   0 female      0
-#> 58 1999   5 female      0
-#> 61 1999  10 female      1
-#> 64 1999  15 female     16
-#> 67 1999  20 female     49
-#> 70 1999  25 female     68
-```
+`counts`` ``<-`` `[`expand.grid`](https://rdrr.io/r/base/expand.grid.html)`(`` `` year ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1999L``, ``2010L``, ``2020L``)``,`` `` age ``=`` `[`seq`](https://rdrr.io/r/base/seq.html)`(``0L``, ``85L``, ``5L``)``,`` `` sex ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"male"``, ``"female"``)``,`` `` stringsAsFactors ``=`` ``FALSE`` ``)`` ``age_weight`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``0``, ``0``, ``.02``, ``.2``, ``.6``, ``.9``, ``1``, ``.95``, ``.85``, ``.7``, ``.5``, ``.3``, ``.15``, ``.07``, ``.03``,`` `` ``.01``, ``0``, ``0``)`` `[`names`](https://rdrr.io/r/base/names.html)`(``age_weight``)`` ``<-`` `[`seq`](https://rdrr.io/r/base/seq.html)`(``0``, ``85``, ``5``)`` ``year_factor`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1999"`` ``=`` ``75``, ``"2010"`` ``=`` ``450``, ``"2020"`` ``=`` ``3000``)`` ``# ~40x rise`` ``sex_factor`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"male"`` ``=`` ``1.9``, ``"female"`` ``=`` ``1``)`` `` ``lambda`` ``<-`` ``year_factor``[`[`as.character`](https://rdrr.io/r/base/character.html)`(``counts``$``year``)``]`` ``*`` `` ``sex_factor``[``counts``$``sex``]`` ``*`` `` ``age_weight``[`[`as.character`](https://rdrr.io/r/base/character.html)`(``counts``$``age``)``]`` `[`set.seed`](https://rdrr.io/r/base/Random.html)`(``42``)`` ``counts``$``deaths`` ``<-`` `[`rpois`](https://rdrr.io/r/stats/Poisson.html)`(`[`nrow`](https://rdrr.io/r/base/nrow.html)`(``counts``)``, ``lambda``)`` ``counts`` ``<-`` ``counts``[`[`order`](https://rdrr.io/r/base/order.html)`(``counts``$``year``, ``counts``$``sex``, ``counts``$``age``)``, ``]`` `[`head`](https://rdrr.io/r/utils/head.html)`(``counts``)`` ``#> year age sex deaths`` ``#> 55 1999 0 female 0`` ``#> 58 1999 5 female 0`` ``#> 61 1999 10 female 1`` ``#> 64 1999 15 female 16`` ``#> 67 1999 20 female 49`` ``#> 70 1999 25 female 68`
 
 `add_pop_counts(race_scheme = "bridged")` joins the SEER bridged-race
 denominator and adds `pop`. Race is not a `by_var`, so `pop` is the
@@ -172,19 +88,7 @@ all-race total for each `year x age x sex` cell; bridged **requires**
 `year` in `by_vars`. With no `state_fips`/`county_fips`, the national
 denominator is used automatically.
 
-``` r
-
-counts <- add_pop_counts(counts, by_vars = c("year", "age", "sex"),
-                         race_scheme = "bridged")
-head(counts[, c("year", "age", "sex", "deaths", "pop")])
-#>   year age    sex deaths      pop
-#> 1 1999   0 female      0  9345737
-#> 2 1999   5 female      0 10052618
-#> 3 1999  10 female      1  9855664
-#> 4 1999  15 female     16  9761569
-#> 5 1999  20 female     49  9098615
-#> 6 1999  25 female     68  9695967
-```
+`counts`` ``<-`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``counts``, by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``)``,`` `` race_scheme ``=`` ``"bridged"``)`` `[`head`](https://rdrr.io/r/utils/head.html)`(``counts``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"deaths"``, ``"pop"``)``]``)`` ``#> year age sex deaths pop`` ``#> 1 1999 0 female 0 9345737`` ``#> 2 1999 5 female 0 10052618`` ``#> 3 1999 10 female 1 9855664`` ``#> 4 1999 15 female 16 9761569`` ``#> 5 1999 20 female 49 9098615`` ``#> 6 1999 25 female 68 9695967`
 
 [`add_std_pop()`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
 adds the US 2000 standard population (`pop_std`) and its unit weights
@@ -198,18 +102,7 @@ and alternative age binnings) – see
 [`?add_std_pop`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
 and the `std_pops` dataset for the full list of `std_cat` codes.
 
-``` r
-
-counts <- add_std_pop(counts, std_cat = "s204", by_vars = "age")
-head(counts[, c("age", "pop_std", "unit_w")])
-#>   age  pop_std     unit_w
-#> 1   0 18986520 0.06913399
-#> 2   5 19919840 0.07253241
-#> 3  10 20056779 0.07303103
-#> 4  15 19819518 0.07216712
-#> 5  20 18257225 0.06647847
-#> 6  25 17722067 0.06452985
-```
+`counts`` ``<-`` `[`add_std_pop`](https://mkiang.github.io/narcan/reference/add_std_pop.md)`(``counts``, std_cat ``=`` ``"s204"``, by_vars ``=`` ``"age"``)`` `[`head`](https://rdrr.io/r/utils/head.html)`(``counts``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"age"``, ``"pop_std"``, ``"unit_w"``)``]``)`` ``#> age pop_std unit_w`` ``#> 1 0 18986520 0.06913399`` ``#> 2 5 19919840 0.07253241`` ``#> 3 10 20056779 0.07303103`` ``#> 4 15 19819518 0.07216712`` ``#> 5 20 18257225 0.06647847`` ``#> 6 25 17722067 0.06452985`
 
 [`calc_asrate_var()`](https://mkiang.github.io/narcan/reference/calc_asrate_var.md)
 adds the **age-specific** rate (`fentanyl_rate`, per 100,000) and its
@@ -217,50 +110,14 @@ Poisson variance (`fentanyl_var`) for each age-sex-year cell – the rate
 *before* standardization. Here are the 2020 male age-specific rates,
 which peak in early adulthood (~age 30) and decline thereafter:
 
-``` r
-
-counts <- calc_asrate_var(counts, new_name = fentanyl, death_col = deaths,
-                          pop_col = pop)
-subset(counts, year == 2020L & sex == "male",
-       select = c("age", "deaths", "pop", "fentanyl_rate"))
-#>     age deaths      pop fentanyl_rate
-#> 91    0      0  9863371      0.000000
-#> 92    5      0 10412874      0.000000
-#> 93   10    124 11110579      1.116053
-#> 94   15   1136 11011250     10.316722
-#> 95   20   3416 10951879     31.190995
-#> 96   25   5224 11580586     45.109980
-#> 97   30   5736 11573651     49.560852
-#> 98   35   5392 11228127     48.022257
-#> 99   40   4869 10370561     46.950208
-#> 100  45   3878 10159468     38.171290
-#> 101  50   2887 10370613     27.838277
-#> 102  55   1680 10855282     15.476337
-#> 103  60    845 10225137      8.263948
-#> 104  65    414  8553891      4.839903
-#> 105  70    176  6807350      2.585441
-#> 106  75     67  4358651      1.537173
-#> 107  80      0  2629908      0.000000
-#> 108  85      0  2180470      0.000000
-```
+`counts`` ``<-`` `[`calc_asrate_var`](https://mkiang.github.io/narcan/reference/calc_asrate_var.md)`(``counts``, new_name ``=`` ``fentanyl``, death_col ``=`` ``deaths``,`` `` pop_col ``=`` ``pop``)`` `[`subset`](https://rdrr.io/r/base/subset.html)`(``counts``, ``year`` ``==`` ``2020L`` ``&`` ``sex`` ``==`` ``"male"``,`` `` select ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"age"``, ``"deaths"``, ``"pop"``, ``"fentanyl_rate"``)``)`` ``#> age deaths pop fentanyl_rate`` ``#> 91 0 0 9863371 0.000000`` ``#> 92 5 0 10412874 0.000000`` ``#> 93 10 124 11110579 1.116053`` ``#> 94 15 1136 11011250 10.316722`` ``#> 95 20 3416 10951879 31.190995`` ``#> 96 25 5224 11580586 45.109980`` ``#> 97 30 5736 11573651 49.560852`` ``#> 98 35 5392 11228127 48.022257`` ``#> 99 40 4869 10370561 46.950208`` ``#> 100 45 3878 10159468 38.171290`` ``#> 101 50 2887 10370613 27.838277`` ``#> 102 55 1680 10855282 15.476337`` ``#> 103 60 845 10225137 8.263948`` ``#> 104 65 414 8553891 4.839903`` ``#> 105 70 176 6807350 2.585441`` ``#> 106 75 67 4358651 1.537173`` ``#> 107 80 0 2629908 0.000000`` ``#> 108 85 0 2180470 0.000000`
 
 [`calc_stdrate_var()`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md)
 collapses the age bins into one age-standardized rate per `year x sex`,
 reweighting each stratum to the US 2000 age structure. Pass the grouping
 columns (`year`, `sex`) explicitly – they are not added automatically.
 
-``` r
-
-std <- calc_stdrate_var(counts, fentanyl_rate, fentanyl_var, year, sex)
-as.data.frame(std)
-#>   year    sex fentanyl_rate fentanyl_var
-#> 1 1999 female     0.3249014 0.0002302396
-#> 2 1999   male     0.6528509 0.0004680040
-#> 3 2010 female     1.8209196 0.0012445350
-#> 4 2010   male     3.6311987 0.0024933476
-#> 5 2020 female    12.3640330 0.0082252947
-#> 6 2020   male    22.9116102 0.0150032081
-```
+`std`` ``<-`` `[`calc_stdrate_var`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md)`(``counts``, ``fentanyl_rate``, ``fentanyl_var``, ``year``, ``sex``)`` `[`as.data.frame`](https://rdrr.io/r/base/as.data.frame.html)`(``std``)`` ``#> year sex fentanyl_rate fentanyl_var`` ``#> 1 1999 female 0.3249014 0.0002302396`` ``#> 2 1999 male 0.6528509 0.0004680040`` ``#> 3 2010 female 1.8209196 0.0012445350`` ``#> 4 2010 male 3.6311987 0.0024933476`` ``#> 5 2020 female 12.3640330 0.0082252947`` ``#> 6 2020 male 22.9116102 0.0150032081`
 
 ## Reading the result
 
@@ -270,20 +127,7 @@ the shape of the real synthetic-opioid epidemic, if not the exact
 levels. A 95% confidence interval follows from the returned variance as
 `fentanyl_rate +/- 1.96 * sqrt(fentanyl_var)`:
 
-``` r
-
-std <- as.data.frame(std)
-std$lower <- std$fentanyl_rate - 1.96 * sqrt(std$fentanyl_var)
-std$upper <- std$fentanyl_rate + 1.96 * sqrt(std$fentanyl_var)
-std[, c("year", "sex", "fentanyl_rate", "lower", "upper")]
-#>   year    sex fentanyl_rate      lower      upper
-#> 1 1999 female     0.3249014  0.2951610  0.3546417
-#> 2 1999   male     0.6528509  0.6104495  0.6952524
-#> 3 2010 female     1.8209196  1.7517748  1.8900644
-#> 4 2010   male     3.6311987  3.5333292  3.7290682
-#> 5 2020 female    12.3640330 12.1862739 12.5417921
-#> 6 2020   male    22.9116102 22.6715346 23.1516859
-```
+`std`` ``<-`` `[`as.data.frame`](https://rdrr.io/r/base/as.data.frame.html)`(``std``)`` ``std``$``lower`` ``<-`` ``std``$``fentanyl_rate`` ``-`` ``1.96`` ``*`` `[`sqrt`](https://rdrr.io/r/base/MathFun.html)`(``std``$``fentanyl_var``)`` ``std``$``upper`` ``<-`` ``std``$``fentanyl_rate`` ``+`` ``1.96`` ``*`` `[`sqrt`](https://rdrr.io/r/base/MathFun.html)`(``std``$``fentanyl_var``)`` ``std``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"sex"``, ``"fentanyl_rate"``, ``"lower"``, ``"upper"``)``]`` ``#> year sex fentanyl_rate lower upper`` ``#> 1 1999 female 0.3249014 0.2951610 0.3546417`` ``#> 2 1999 male 0.6528509 0.6104495 0.6952524`` ``#> 3 2010 female 1.8209196 1.7517748 1.8900644`` ``#> 4 2010 male 3.6311987 3.5333292 3.7290682`` ``#> 5 2020 female 12.3640330 12.1862739 12.5417921`` ``#> 6 2020 male 22.9116102 22.6715346 23.1516859`
 
 This normal-approximation (Wald) interval is fine for well-populated
 cells but under-covers when death counts are small – it can even return
@@ -301,19 +145,7 @@ time and the persistent male-female gap. The chunk below needs ggplot2
 (a Suggests-only dependency), so it only runs when that package is
 installed.
 
-``` r
-
-library(ggplot2)
-
-ggplot(std, aes(x = year, y = fentanyl_rate, color = sex)) +
-    geom_errorbar(aes(ymin = lower, ymax = upper), width = 1.2) +
-    geom_line() +
-    geom_point(size = 2) +
-    scale_x_continuous(breaks = unique(std$year)) +
-    labs(x = "Year", y = "Age-standardized rate per 100,000",
-         color = "Sex") +
-    theme_minimal()
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`ggplot2`](https://ggplot2.tidyverse.org)`)`` `` `[`ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)`(``std``, `[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``x ``=`` ``year``, y ``=`` ``fentanyl_rate``, color ``=`` ``sex``)``)`` ``+`` `` `[`geom_errorbar`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)`(`[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``ymin ``=`` ``lower``, ymax ``=`` ``upper``)``, width ``=`` ``1.2``)`` ``+`` `` `[`geom_line`](https://ggplot2.tidyverse.org/reference/geom_path.html)`(``)`` ``+`` `` `[`geom_point`](https://ggplot2.tidyverse.org/reference/geom_point.html)`(``size ``=`` ``2``)`` ``+`` `` `[`scale_x_continuous`](https://ggplot2.tidyverse.org/reference/scale_continuous.html)`(``breaks ``=`` `[`unique`](https://rdrr.io/r/base/unique.html)`(``std``$``year``)``)`` ``+`` `` `[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``x ``=`` ``"Year"``, y ``=`` ``"Age-standardized rate per 100,000"``,`` `` color ``=`` ``"Sex"``)`` ``+`` `` `[`theme_minimal`](https://ggplot2.tidyverse.org/reference/ggtheme.html)`(``)`
 
 ![Line plot of age-standardized synthetic-opioid death rate per 100,000
 against year for 1999, 2010, and 2020, with separate lines for males and

@@ -9,10 +9,7 @@ All data here are synthetic death counts joined to bundled public
 Census/SEER population estimates; no restricted NCHS records are used,
 and no chunk downloads anything.
 
-``` r
-
-library(narcan)
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`narcan`](https://github.com/mkiang/narcan)`)`
 
 ## Two pairs, two jobs
 
@@ -34,16 +31,7 @@ The **binary** pair collapses the same field to the only Hispanic-origin
 granularity the population data resolve – Hispanic vs non-Hispanic. That
 is the recode to use when you are going to divide by a population.
 
-``` r
-
-codes <- c(1, 5, 6, 9)   # 9-category: Mexican, Other/unknown Hispanic,
-                         # non-Hispanic white, Hispanic origin unknown
-categorize_hspanicr(codes, year = 2019)          # detailed (subgroups)
-#> [1] mexican           other_hispanic    nonhispanic_white hispanic_unknown 
-#> 9 Levels: mexican < puerto_rican < cuban < ... < hispanic_unknown
-categorize_hispanic_origin(codes, year = 2019)   # binary (for rates)
-#> [1] "hispanic"     "hispanic"     "non_hispanic" "unknown"
-```
+`codes`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``5``, ``6``, ``9``)`` ``# 9-category: Mexican, Other/unknown Hispanic,`` `` ``# non-Hispanic white, Hispanic origin unknown`` `[`categorize_hspanicr`](https://mkiang.github.io/narcan/reference/categorize_hspanicr.md)`(``codes``, year ``=`` ``2019``)`` ``# detailed (subgroups)`` ``#> [1] mexican other_hispanic nonhispanic_white hispanic_unknown `` ``#> 9 Levels: mexican < puerto_rican < cuban < ... < hispanic_unknown`` `[`categorize_hispanic_origin`](https://mkiang.github.io/narcan/reference/categorize_hispanic_origin.md)`(``codes``, year ``=`` ``2019``)`` ``# binary (for rates)`` ``#> [1] "hispanic" "hispanic" "non_hispanic" "unknown"`
 
 [`categorize_hspanicr()`](https://mkiang.github.io/narcan/reference/categorize_hspanicr.md)
 prints as an ordered factor
@@ -64,41 +52,14 @@ is.
 reads the data year per row (from `year`, or two-digit `datayear`), so a
 multi-year frame is labeled correctly:
 
-``` r
-
-deaths <- data.frame(
-    year          = c(2019L, 2019L, 2019L),
-    age           = 25L,
-    sex           = "male",
-    race          = "white_only",
-    hspanicr      = c(1, 6, 9),   # Hispanic, non-Hispanic, origin-unknown
-    deaths        = c(40, 900, 5)
-)
-deaths <- add_hispanic_origin(deaths)
-deaths[, c("hspanicr", "hispanic_origin", "deaths")]
-#>   hspanicr hispanic_origin deaths
-#> 1        1        hispanic     40
-#> 2        6    non_hispanic    900
-#> 3        9         unknown      5
-```
+`deaths`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`` `` year ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``2019L``, ``2019L``, ``2019L``)``,`` `` age ``=`` ``25L``,`` `` sex ``=`` ``"male"``,`` `` race ``=`` ``"white_only"``,`` `` hspanicr ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``6``, ``9``)``, ``# Hispanic, non-Hispanic, origin-unknown`` `` deaths ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``40``, ``900``, ``5``)`` ``)`` ``deaths`` ``<-`` `[`add_hispanic_origin`](https://mkiang.github.io/narcan/reference/add_hispanic_origin.md)`(``deaths``)`` ``deaths``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"hspanicr"``, ``"hispanic_origin"``, ``"deaths"``)``]`` ``#> hspanicr hispanic_origin deaths`` ``#> 1 1 hispanic 40`` ``#> 2 6 non_hispanic 900`` ``#> 3 9 unknown 5`
 
 To get Hispanic-stratified **rates**, put `hispanic_origin` in `by_vars`
 and use a scheme that resolves origin – `"single"` (2000+) or
 `"bridged"` (1990+). Drop the origin-unknown deaths first: they have no
 denominator.
 
-``` r
-
-strat <- deaths[deaths$hispanic_origin != "unknown", ]
-add_pop_counts(
-    strat,
-    race_scheme = "single",
-    by_vars = c("year", "age", "sex", "race", "hispanic_origin")
-)[, c("hispanic_origin", "deaths", "pop")]
-#>   hispanic_origin deaths     pop
-#> 1        hispanic     40 2028208
-#> 2    non_hispanic    900 6102642
-```
+`strat`` ``<-`` ``deaths``[``deaths``$``hispanic_origin`` ``!=`` ``"unknown"``, ``]`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(`` `` ``strat``,`` `` race_scheme ``=`` ``"single"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``, ``"hispanic_origin"``)`` ``)``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"hispanic_origin"``, ``"deaths"``, ``"pop"``)``]`` ``#> hispanic_origin deaths pop`` ``#> 1 hispanic 40 2028208`` ``#> 2 non_hispanic 900 6102642`
 
 Each origin gets its own denominator. An `"unknown"` or `NA` origin left
 in the frame is a hard error, not a silent all-origin fallback – the
@@ -127,15 +88,7 @@ different controls:
   take a `hispanic_origin=` **filter argument** that selects which
   origin’s population to return.
 
-``` r
-
-get_pop_state(scheme = "single", states = "06", years = 2024L,
-              hispanic_origin = "hispanic")[1, ]
-#> # A tibble: 1 × 10
-#>   state_fips  year   age sex   race  hispanic_origin   pop scheme source vintage
-#>   <chr>      <int> <dbl> <chr> <chr> <chr>           <int> <chr>  <chr>  <chr>  
-#> 1 06          2024     0 fema… amer… hispanic        19836 single censu… V2024
-```
+[`get_pop_state`](https://mkiang.github.io/narcan/reference/get_pop_state.md)`(``scheme ``=`` ``"single"``, states ``=`` ``"06"``, years ``=`` ``2024L``,`` `` hispanic_origin ``=`` ``"hispanic"``)``[``1``, ``]`` ``#> ``# A tibble: 1 × 10`` ``#> state_fips year age sex race hispanic_origin pop scheme source vintage`` ``#> ``<chr>`` ``<int>`` ``<dbl>`` ``<chr>`` ``<chr>`` ``<chr>`` ``<int>`` ``<chr>`` ``<chr>`` ``<chr>`` `` ``#> ``1`` 06 ``2``024 0 fema… amer… hispanic ``19``836 single censu… V2024`
 
 Confusing the two is loud, not silent: passing the filter argument to
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
@@ -158,47 +111,14 @@ narcan will not let you fake one. A single frame that mixes the pre-1990
 `"all"` marginal with post-1990 stratified rows is rejected, because
 `"all"` already sums the strata – combining them double-counts:
 
-``` r
-
-mixed <- data.frame(
-    year = c(1985L, 2000L), age = 40L, sex = "male", race = "white",
-    hispanic_origin = c("all", "hispanic"), deaths = c(500, 30)
-)
-try(add_pop_counts(mixed, race_scheme = "bridged",
-                   by_vars = c("year", "age", "sex", "race", "hispanic_origin")))
-#> Error : add_pop_counts(): `hispanic_origin` mixes "all" with stratified values (hispanic/non_hispanic) in one frame; "all" already sums the strata, so this double-counts. Use one origin granularity per join (all-origin, OR hispanic+non_hispanic); combine eras with separate calls + rbind.
-```
+`mixed`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`` `` year ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1985L``, ``2000L``)``, age ``=`` ``40L``, sex ``=`` ``"male"``, race ``=`` ``"white"``,`` `` hispanic_origin ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"all"``, ``"hispanic"``)``, deaths ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``500``, ``30``)`` ``)`` `[`try`](https://rdrr.io/r/base/try.html)`(`[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``mixed``, race_scheme ``=`` ``"bridged"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``, ``"hispanic_origin"``)``)``)`` ``` #> Error : add_pop_counts(): `hispanic_origin` mixes "all" with stratified values (hispanic/non_hispanic) in one frame; "all" already sums the strata, so this double-counts. Use one origin granularity per join (all-origin, OR hispanic+non_hispanic); combine eras with separate calls + rbind. ``
 
 If you genuinely want to show the eras side by side, compute each
 **separately** (each call internally homogeneous, so neither trips the
 guard) and [`rbind()`](https://rdrr.io/r/base/cbind.html) the results –
 keeping the pre-1990 segment as all-origin:
 
-``` r
-
-pre <- data.frame(year = 1985L, age = 40L, sex = "male", race = "white",
-                  hispanic_origin = "all", deaths = 500)
-pre <- add_pop_counts(pre, race_scheme = "bridged",
-                      by_vars = c("year", "age", "sex", "race", "hispanic_origin"))
-
-post <- expand.grid(year = c(1990L, 2000L), age = 40L, sex = "male",
-                    race = "white",
-                    hispanic_origin = c("hispanic", "non_hispanic"),
-                    stringsAsFactors = FALSE)
-post$deaths <- c(20, 480, 40, 520)
-post <- add_pop_counts(post, race_scheme = "bridged",
-                       by_vars = c("year", "age", "sex", "race", "hispanic_origin"))
-
-trend <- rbind(pre, post)
-trend$rate <- trend$deaths / trend$pop * 1e5
-trend[order(trend$year), c("year", "hispanic_origin", "rate")]
-#>   year hispanic_origin       rate
-#> 1 1985             all  8.3092794
-#> 2 1990        hispanic  3.3810398
-#> 4 1990    non_hispanic  0.5743297
-#> 3 2000        hispanic 42.9855622
-#> 5 2000    non_hispanic  6.3746270
-```
+`pre`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``1985L``, age ``=`` ``40L``, sex ``=`` ``"male"``, race ``=`` ``"white"``,`` `` hispanic_origin ``=`` ``"all"``, deaths ``=`` ``500``)`` ``pre`` ``<-`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``pre``, race_scheme ``=`` ``"bridged"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``, ``"hispanic_origin"``)``)`` `` ``post`` ``<-`` `[`expand.grid`](https://rdrr.io/r/base/expand.grid.html)`(``year ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1990L``, ``2000L``)``, age ``=`` ``40L``, sex ``=`` ``"male"``,`` `` race ``=`` ``"white"``,`` `` hispanic_origin ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"hispanic"``, ``"non_hispanic"``)``,`` `` stringsAsFactors ``=`` ``FALSE``)`` ``post``$``deaths`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``20``, ``480``, ``40``, ``520``)`` ``post`` ``<-`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``post``, race_scheme ``=`` ``"bridged"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``, ``"hispanic_origin"``)``)`` `` ``trend`` ``<-`` `[`rbind`](https://rdrr.io/r/base/cbind.html)`(``pre``, ``post``)`` ``trend``$``rate`` ``<-`` ``trend``$``deaths`` ``/`` ``trend``$``pop`` ``*`` ``1e5`` ``trend``[`[`order`](https://rdrr.io/r/base/order.html)`(``trend``$``year``)``, `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"hispanic_origin"``, ``"rate"``)``]`` ``#> year hispanic_origin rate`` ``#> 1 1985 all 8.3092794`` ``#> 2 1990 hispanic 3.3810398`` ``#> 4 1990 non_hispanic 0.5743297`` ``#> 3 2000 hispanic 42.9855622`` ``#> 5 2000 non_hispanic 6.3746270`
 
 The discontinuity is the point. The 1985 row is an all-origin rate; the
 1990 and 2000 rows are Hispanic-specific. They are different series and

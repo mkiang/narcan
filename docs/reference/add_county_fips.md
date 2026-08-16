@@ -1,8 +1,7 @@
 # Make a new county_fips column that is consistent across years
 
-Adds a \`county_fips\` column (2-digit state FIPS + 3-digit county) that
-is comparable across data years, translating whichever state-coding
-scheme the input uses into FIPS.
+Adds a \`county_fips\` column (2-digit state FIPS + 3-digit county FIPS)
+that is comparable across data years.
 
 ## Usage
 
@@ -11,7 +10,8 @@ add_county_fips(
   df,
   county_vector,
   year = NULL,
-  scheme = c("auto", "nchs", "abbrev", "fips")
+  scheme = c("auto", "nchs", "abbrev", "fips"),
+  use_fips_cols = c("auto", "yes", "no")
 )
 ```
 
@@ -27,48 +27,115 @@ add_county_fips(
 
 - year:
 
-  data year(s) for the records, used to pick the coding scheme. A scalar
-  (or vector) of 4-digit years, or \`NULL\` (default) to read a \`year\`
-  column from \`df\` if present.
+  data year(s) for the records, used to pick the coding scheme and to
+  decide which rows are eligible for FIPS-column sourcing. Either a
+  single 4-digit year applied to every row, or one year per row
+  (\`length(year) == nrow(df)\`) matched positionally; any other length
+  is an error. \`NULL\` (default) reads a \`year\` column from \`df\` if
+  present.
 
 - scheme:
 
-  state-coding scheme: \`"auto"\` (default; resolve from \`year\`, then
-  from the codes) or force \`"nchs"\`, \`"abbrev"\`, or \`"fips"\`.
+  state-coding scheme for the \*state\* half: \`"auto"\` (default;
+  resolve from \`year\`, then from the codes) or force \`"nchs"\`,
+  \`"abbrev"\`, or \`"fips"\`. Independent of \`use_fips_cols\`, which
+  governs the \*county\* half – forcing a scheme does not disable the
+  FIPS-column sourcing.
+
+- use_fips_cols:
+
+  whether to source pre-2003 geography from the record's own FIPS
+  columns: \`"auto"\` (default; do it whenever they are present and the
+  year is in 1982-2002), \`"yes"\` (same span, but error instead of
+  falling back when an in-range row cannot be resolved) or \`"no"\`
+  (never; reproduces the pre-0.5.4 behavior, which returns the NCHS
+  county rank).
 
 ## Value
 
-same dataframe with new \`st_fips\` and \`county_fips\` columns
+same dataframe with four new columns: \`state_substr\` and
+\`county_substr\` (the 2- and 3-digit halves actually decoded, which on
+FIPS-sourced rows come from \`fipsctyr\`/\`fipsctyo\` rather than from
+the column you named), \`st_fips\` (2-digit state FIPS) and
+\`county_fips\` (5-digit state + county FIPS). The two \`\*\_substr\`
+columns keep the literal code, including \`"00"\` and \`"999"\`, so a
+public-file mask stays distinguishable from a blank field; only
+\`st_fips\`/\`county_fips\` resolve those to \`NA\`. Existing columns of
+those names are overwritten. Row order, row count, class and grouping
+are preserved.
 
-## Details
+## Why this is not just a state translation
 
-NCHS mortality files do not code state the same way in every era, so the
-scheme must be identified before it can be translated:
+NCHS mortality files change \*both\* halves of the county code across
+eras, and the two halves need different treatment:
 
 |  |  |  |
 |----|----|----|
-| **Data years** | **State field** | **\`scheme\`** |
-| 1979-2002 | NCHS numeric codes (e.g. Colorado = \`"06"\`) | \`"nchs"\` |
-| 2003-present | 2-letter postal abbreviations (e.g. \`"CO"\`, \`"ZZ"\`) | \`"abbrev"\` |
-| (user-preconverted) | already FIPS numeric (Colorado = \`"08"\`) | \`"fips"\` |
+| **Data years** | **State half** | **County half** |
+| 1979-1981 | NCHS numeric (Colorado = \`"06"\`) | alphabetical rank, no FIPS available |
+| 1982-2002 | NCHS numeric | alphabetical rank – but a true FIPS county is carried separately |
+| 2003-present | postal abbreviation (\`"CO"\`, \`"ZZ"\`) | already FIPS |
+
+Before 2003 the 3-digit county half of \`countyrs\`/\`countyoc\` is the
+county's \*\*alphabetical rank within its state\*\*, not its FIPS code.
+NCHS \`05019\` is Los Angeles; FIPS \`06019\` is Fresno. Translating
+only the state prefix and keeping the rank therefore lands on a
+valid-looking but wrong county, silently, for about 97 005 ...) while a
+rank steps by one, so the two coincide only at rank 001, the first
+county alphabetically in each state.
+
+Fortunately the raw records already carry the answer. From data year
+1982 the MCOD record holds a genuine FIPS geography block alongside the
+NCHS one – \`fipsctyr\` (residence) and \`fipsctyo\` (occurrence), each
+a complete 5-digit state + county FIPS – and \[import_mcod_fwf()\] reads
+it. When you pass \`countyrs\` or \`countyoc\` for a pre-2003 year and
+the matching column is present, \`add_county_fips()\` sources the
+geography from it and reports doing so once per session. \`use_fips_cols
+= "no"\` turns the sourcing off, not the reporting – the function then
+says instead that the county half is a rank, so the only way to a quiet
+call is \`suppressMessages()\`.
+
+The sourcing needs a data year, so pass \`year\` (or keep a \`year\`
+column). A row with no year of its own inherits one only when every
+year-bearing row in the frame agrees on an era \*and\* that era is the
+sourced 1982-2002 span – the same inheritance used to pick the state
+scheme, so the two halves of the code cannot disagree about which era a
+row is in. A frame with no year at all, one that straddles 2002/2003, or
+one whose years sit outside 1982-2002 lends nothing: its year-less rows
+are reported rather than guessed, because a numeric state half could
+equally be a pre-2003 NCHS code or a modern frame already converted to
+FIPS, and swapping on the wrong guess would overwrite a correct county.
+
+Coverage is 1982-2002, the full span in which the FIPS block exists. It
+is populated from the start: the public files carry ~3,135 distinct
+\`fipsctyr\` codes with no blanks in 1982-1988, at full county
+granularity, since public county masking does not begin until 1989.
+1979-1981 carry no FIPS county at all: those years return the NCHS rank
+and say so, since the county cannot be recovered from the file and only
+\`st_fips\` is usable.
+
+## Resolving the state scheme
 
 The NCHS numeric codes overlap the FIPS numeric codes but mean
 \*different\* states (NCHS Colorado \`"06"\` is FIPS California), so a
 bare 2-digit numeric code is ambiguous on its own. This is resolved by
 the data year: pass \`year\` (a scalar, or leave \`NULL\` to read a
-\`year\` column from \`df\`) and the scheme is chosen deterministically.
-Only if no year is available does the function fall back to guessing
-from the observed codes, and it then \*\*warns loudly\*\* whenever the
-codes are ambiguous. \`"fips"\` is never auto-detected from numeric
-codes with a year \>= 2003 (raw files use abbreviations by then); pass
-\`scheme = "fips"\` explicitly for data you have already converted.
+\`year\` column from \`df\`) and the scheme is chosen deterministically,
+per row, so a frame spanning the 2002/2003 boundary decodes each era
+correctly. Only if no year is available does the function fall back to
+guessing from the observed codes, and it then \*\*warns loudly\*\*
+whenever the codes are ambiguous.
+
+Passing one of the FIPS columns (\`fipsctyr\`, \`fipsctyo\`) directly is
+also handled: it is recognized as already-FIPS regardless of the data
+year.
 
 narcan is US-only: the crosswalk covers the 50 states and DC, not
 territories. Any code that is not one of those – a
-territory/associated-state code, a foreign/unknown residence (\`"ZZ"\`),
-or an otherwise unrecognized code – resolves to \`NA\` state FIPS (with
-a warning for genuinely unexpected codes), and its \`county_fips\` is
-\`NA\` rather than a spurious string.
+territory/associated-state code, a foreign/unknown residence (\`"ZZ"\`
+or FIPS state \`"00"\`), a county masked on the public file (\`"999"\`),
+or an otherwise unrecognized code – resolves to \`NA\` rather than a
+spurious string.
 
 Safest usage for a subset analysis: call \`add_county_fips()\` on the
 full national frame \*first\*, then filter to the states you want.
@@ -86,10 +153,12 @@ add_county_fips(df, countyrs)
 #> 2    NY001 2019           NY           001      36       36001
 #> 3    ZZ999 2019           ZZ           999    <NA>        <NA>
 
-## Pre-2003 NCHS-numeric data -- pass the year so "06" resolves to Colorado
-old <- data.frame(countyrs = c("06031", "06005"))
-add_county_fips(old, countyrs, year = 2000)
-#>   countyrs state_substr county_substr st_fips county_fips
-#> 1    06031           06           031      08       08031
-#> 2    06005           06           005      08       08005
+## Pre-2003 data as it comes out of import_mcod_fwf(): the NCHS county code
+## and the record's own FIPS county side by side. 05019 is Los Angeles, and
+## the FIPS column is what says so -- the NCHS half alone would give 06019.
+old <- data.frame(countyrs = "05019", fipsctyr = "06037", year = 1999)
+add_county_fips(old, countyrs)$county_fips
+#> add_county_fips(): sourced pre-2003 county geography from `fipsctyr` for 1 row(s). The `countyrs` county digits are an alphabetical rank, not FIPS. This message is shown once per session; wrap the call in suppressMessages() to silence it.
+#> This message is displayed once per session.
+#> [1] "06037"
 ```

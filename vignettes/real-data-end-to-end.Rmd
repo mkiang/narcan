@@ -48,9 +48,11 @@ nrow(raw)
 #> [1] 2401400
 ```
 
-`import_mcod_fwf()` returns every column in the restricted layout order; for 2004 the
-public and restricted tiers are effectively identical (the one restricted-only field,
-`racer40`, sits past the end of the public record and comes back all-`NA`).
+`import_mcod_fwf()` returns every column in the restricted layout order. Reading this
+public 2004 file under either tier gives the same values: narcan declares no bytes at
+all for `racer40` in 2004 (see `?mcod_fwf_dicts`), and `certifier`, `tobacco_use` and
+`pregnancy_status` sit inside the record but are blank on the public file, so all four
+come back all-`NA`. Those three *are* populated in the genuine restricted 2004 file.
 
 ## Flag the records
 

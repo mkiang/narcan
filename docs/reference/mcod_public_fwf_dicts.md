@@ -41,9 +41,9 @@ A data frame with 6 columns
 - suppressed:
 
   logical; \`TRUE\` for columns not present on the public file
-  (sub-state geography, record type, certifier from 2005; tobacco and
-  pregnancy; race-recode-40 before it reaches the public file in 2013) –
-  returned as all-\`NA\` for column parity
+  (sub-state geography and record type from 2005; certifier, tobacco and
+  pregnancy from 2003; race-recode-40 before it reaches the public file
+  in 2013) – returned as all-\`NA\` for column parity
 
 ## Source
 
@@ -55,6 +55,15 @@ Verified against the raw CDC public-use bytes (identical layout to the
 NBER mirror). Effective record length by year: 440 (1979-2002; 1980 is
 variable-length and read newline-delimited), 488 (2003-2012), 490
 (2013-2019), 817 (2020-2024).
+
+## The 2013 certifier gap
+
+\`certifier\` (byte 110) and \`tobacco_use\` (byte 142) are \`suppressed
+= FALSE\` for data year 2013 yet still read as all-\`NA\`. That is
+deliberate. Both fields are blank in the restricted 2013 file as well,
+so this is a one-year gap in the NCHS source rather than a public-use
+confidentiality suppression, and flagging it as suppressed would assert
+a masking that did not happen. Either way the imported column is \`NA\`.
 
 ## See also
 

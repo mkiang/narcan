@@ -8,10 +8,7 @@ Alliance) case definitions across both the ICD-9 (1979-1998) and ICD-10
 recodes that NCHS changed over the years. This vignette maps the whole
 package; each step links to a dedicated vignette.
 
-``` r
-
-library(narcan)
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`narcan`](https://github.com/mkiang/narcan)`)`
 
 ## The pipeline
 
@@ -45,21 +42,14 @@ Public-use MCOD micro-data is distributed by NCHS and mirrored by NBER;
 the restricted All-County files require an NCHS data-use agreement
 (DUA). narcan can fetch a public-use year for you:
 
-``` r
-
-# Downloads the NBER public-use mirror into `download_dir`.
-download_mcod_csv(2019, download_dir = "raw_data")   # or download_mcod_dta()
-```
+`` # Downloads the NBER public-use mirror into `download_dir`. ``` `[`download_mcod_csv`](https://mkiang.github.io/narcan/reference/download_mcod_csv.md)`(``2019``, download_dir ``=`` ``"raw_data"``)`` ``# or download_mcod_dta()`
 
 To read a raw fixed-width file (public or restricted), use
 [`import_mcod_fwf()`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md),
 which applies narcan’s byte-verified column dictionary for the given
 year and tier:
 
-``` r
-
-raw <- import_mcod_fwf("mort2019us.dat", year = 2019, tier = "public")
-```
+`raw`` ``<-`` `[`import_mcod_fwf`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md)`(``"mort2019us.dat"``, year ``=`` ``2019``, tier ``=`` ``"public"``)`
 
 The two tiers share the within-record layout; the public tier blanks
 sub-state geography (from 2005) and a few certifier-entered items, which
@@ -77,17 +67,20 @@ with county of residence and occurrence – a DUA-free stand-in for
 developing county-level code before you obtain the restricted All-County
 files:
 
-``` r
-
-raw04 <- import_mcod_fwf("mort2004us.dat", year = 2004, tier = "public")
-```
+`raw04`` ``<-`` `[`import_mcod_fwf`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md)`(``"mort2004us.dat"``, year ``=`` ``2004``, tier ``=`` ``"public"``)`
 
 Two caveats. On the public file, county FIPS are populated only for
 counties with a 2000-Census population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code, so this
-stand-in exercises large-county behavior only. And `tier = "restricted"`
-adds nothing for 2004 – the single field it would add (`racer40`) sits
-past the end of the public record and returns all-`NA`.
+stand-in exercises large-county behavior only. And on *this* file,
+passing `tier = "restricted"` recovers nothing extra: narcan declares no
+bytes at all for `racer40` in 2004 (see
+[`?mcod_fwf_dicts`](https://mkiang.github.io/narcan/reference/mcod_fwf_dicts.md)),
+and `certifier`, `tobacco_use` and `pregnancy_status` fall inside the
+record but are blank on the public file, so all four come back all-`NA`.
+Those three *are* populated in the genuine restricted 2004 file – the
+tier argument describes the layout you are reading, not the file you
+have.
 
 ## From raw records to the flag pipeline
 
@@ -98,15 +91,7 @@ columns, so `f_records_all` is **derived**, not read directly –
 [`unite_records()`](https://mkiang.github.io/narcan/reference/unite_records.md)
 builds it:
 
-``` r
-
-records <- unite_records(raw, year = 2019)
-
-# `records` now carries `ucod` + the collapsed `f_records_all`, ready to flag:
-flagged <- records |>
-    flag_drug_deaths(year = 2019) |>
-    flag_opioid_deaths(year = 2019)
-```
+`records`` ``<-`` `[`unite_records`](https://mkiang.github.io/narcan/reference/unite_records.md)`(``raw``, year ``=`` ``2019``)`` `` ``` # `records` now carries `ucod` + the collapsed `f_records_all`, ready to flag: ``` ``flagged`` ``<-`` ``records`` ``|>`` `` `[`flag_drug_deaths`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)`(``year ``=`` ``2019``)`` ``|>`` `` `[`flag_opioid_deaths`](https://mkiang.github.io/narcan/reference/flag_opioid_deaths.md)`(``year ``=`` ``2019``)`
 
 From here you are at the start of
 [`vignette("classifying-overdose-deaths")`](https://mkiang.github.io/narcan/articles/classifying-overdose-deaths.md),

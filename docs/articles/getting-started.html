@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -170,10 +170,15 @@ you obtain the restricted All-County files:</p>
 <p>Two caveats. On the public file, county FIPS are populated only for
 counties with a 2000-Census population of at least 100,000; smaller
 (disproportionately rural) counties collapse to a residual code, so this
-stand-in exercises large-county behavior only. And
-<code>tier = "restricted"</code> adds nothing for 2004 – the single
-field it would add (<code>racer40</code>) sits past the end of the
-public record and returns all-<code>NA</code>.</p>
+stand-in exercises large-county behavior only. And on <em>this</em>
+file, passing <code>tier = "restricted"</code> recovers nothing extra:
+narcan declares no bytes at all for <code>racer40</code> in 2004 (see
+<code><a href="../reference/mcod_fwf_dicts.html">?mcod_fwf_dicts</a></code>), and <code>certifier</code>,
+<code>tobacco_use</code> and <code>pregnancy_status</code> fall inside
+the record but are blank on the public file, so all four come back
+all-<code>NA</code>. Those three <em>are</em> populated in the genuine
+restricted 2004 file – the tier argument describes the layout you are
+reading, not the file you have.</p>
 </div>
 <div class="section level2">
 <h2 id="from-raw-records-to-the-flag-pipeline">From raw records to the flag pipeline<a class="anchor" aria-label="anchor" href="#from-raw-records-to-the-flag-pipeline"></a>

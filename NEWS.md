@@ -1,3 +1,133 @@
+# narcan 0.5.4
+
+## Data corrections affecting earlier releases
+
+These change values that earlier releases returned without error. If you have
+published or cached county-level, `racer40`, or 2003 `racer2` results built on
+narcan **v0.3.0 through v0.5.3** -- every release that has ever existed -- re-derive
+them.
+
+* **`add_county_fips()` returned the wrong county for pre-2003 data in every
+  prior release.** Before 2003 the last 3 digits of `countyrs`/`countyoc` are the
+  county's *alphabetical rank within its state*, not its FIPS code. The old code
+  translated the state prefix and pasted the rank back untouched, so NCHS
+  `05019` (Los Angeles) came back as `06019` -- Fresno. The result was a real,
+  valid-looking FIPS code, with no error, no warning and no `NA`.
+
+  **It was wrong for about 97% of pre-2003 records.** FIPS county codes step by
+  two (001, 003, 005 ...) while an alphabetical rank steps by one, so the two
+  coincide only at rank 001 -- the first county alphabetically in each state.
+  Measured on the restricted 1999 file, the old path returned the correct county
+  for **2.8%** of records; 0.5.4 returns it for **99.9%**. (An earlier draft of
+  this entry said "roughly half", conflating this with the separate and much
+  weaker question of how often the wrong code happened to name *some* real
+  county, which was 49.9%.)
+
+  Affected data years for the county half are **1979-2002**. Two smaller changes
+  reach other years and are listed under Bug fixes below: the `"00"`/`"999"`
+  resolution affects public 2003-2004 output, and passing a FIPS column directly
+  was mis-decoded for any pre-2003 year.
+
+  The fix sources pre-2003 geography from the record's own FIPS block --
+  `fipsctyr` (residence) and `fipsctyo` (occurrence) -- which `import_mcod_fwf()`
+  has always read and which every 1982-2002 import already carried unused. Those
+  fields exist for **1982-2002** and are used by default across that whole span.
+  Data years **1979-1981 are not fixed and cannot be**: they carry no FIPS county
+  at all, so there is nothing to source from. They still return the rank -- but
+  now say so rather than doing it silently. Tracked as issue #25. Sourcing needs a data year. A row without one inherits
+  the frame's era only when every year-bearing row agrees on one *and* that era is
+  the sourced 1982-2002 span; otherwise it is reported rather than guessed, since a
+  numeric state half cannot by itself distinguish a pre-2003 NCHS code from a frame
+  already converted to FIPS.
+
+  Measured on the full restricted 1999-2002 files, the correction is large and
+  consistent across all four years. Taking 1999 as the example: the share of
+  returned county codes that are odd-numbered rises from 52.2% to 98.4% (real
+  FIPS county codes are odd by construction -- 001, 003, 005 -- while an
+  alphabetical rank is a dense sequence and so roughly half odd), and the share
+  of distinct returned codes that name a county on a current roster rises from
+  49.9% (1,564 of 3,136) to 99.5% (3,123 of 3,140). In 1999 the 17 codes that
+  still do not match are all real 1990s geography that has since been renumbered:
+  eight pre-2022 Connecticut counties, five Alaska boroughs, Dade before
+  Miami-Dade, Shannon SD before Oglala Lakota, Bedford City, and Clifton Forge.
+  (The set shifts slightly by year -- 2002 has 17 as well, but a different one of
+  them.) County of occurrence behaves the same (odd-share 98.0%).
+
+* **`racer40` returned state codes, not race, for restricted data years
+  2003-2007.** narcan declared Race Recode 40 at bytes 489-490 from 2003 and
+  documented those years as "documented-but-empty". They are not empty: for
+  2003-2007 those bytes carry the expanded state of occurrence in legacy NCHS
+  numeric coding. `racer40` is now declared with no position for 2003-2007 and
+  imports as all-`NA`; 2008 onward are unchanged. Discard any `racer40` values
+  you have for 2003-2007.
+
+## Dictionary fixes (2003 and 2004)
+
+* Added `certifier` (col 110), `tobacco_use` (col 142) and `pregnancy_status`
+  (col 143) to the **restricted** 2003 and 2004 layouts. All three are present
+  and in-domain in the raw records and are documented in the 2003 layout doc;
+  narcan simply never declared them. The restricted column set is now uniform at
+  138 columns from 2003 through 2019. They are blank in the public tier for those
+  years and are marked suppressed there.
+* **Breaking column rename, and a third silent wrong-values defect.** Any code
+  that selected `racer2` for restricted 2003 was reading Race Recode 5 values
+  under a name that means a 2-category recode in every other year, in every
+  release through v0.5.3. Recheck any 2003 analysis that used `racer2`.
+  Restricted 2003 col 450 was labelled `racer2`; the
+  2003 layout doc and the observed distribution both say it is Race Recode 5. It
+  is now `racer5`, matching 2004 onward. Code selecting `racer2` for 2003 must be
+  updated.
+* Dropped the phantom `rnifla_20` (col 440) from 2003. It sat inside
+  `record_20` (cols 439-442) and was always blank.
+* Documented that `certifier` and `tobacco_use` are **100% blank in the
+  restricted NCHS 2013 file** -- a one-year upstream dropout, not a narcan bug
+  and not a confidentiality mask (2012 and 2014 are populated normally, and
+  `pregnancy_status` is populated in 2013). narcan declares the real positions
+  for 2013 and returns `NA`. This is distinct from the public tier, where both
+  fields are blanked in *every* year as a confidentiality mask, which is why the
+  public dictionary marks them suppressed throughout -- 2013 excepted, since
+  there the blankness is upstream rather than a mask.
+
+## New features
+
+* `add_county_fips()` gains `use_fips_cols`, controlling whether pre-2003
+  geography is sourced from `fipsctyr`/`fipsctyo`: `"auto"` (default; do it
+  wherever they are present and the year is in 1982-2002), `"yes"` (same span,
+  but error rather than fall back when a row cannot be resolved) or `"no"`
+  (reproduce the pre-0.5.4 behavior). `scheme` and `use_fips_cols` are
+  independent -- `scheme` selects how the state half is decoded, `use_fips_cols`
+  where the county half comes from.
+* `add_county_fips()` reports which path it took -- geography sourced from the
+  FIPS block, or a county half left as an NCHS rank -- so a wrong county is not
+  returned without saying so. Each notice fires once per session, so in a loop
+  over data years only the first offending call reports. Use
+  `suppressMessages()` to quiet it.
+
+## Bug fixes
+
+* `add_county_fips()`: a `year` vector whose length is neither 1 nor `nrow(df)`
+  is now an error. It was previously used as a frame-level set, which silently
+  decoded the state under the wrong scheme.
+* `add_county_fips()`: the foreign/unknown state `"00"` and the public-file
+  masked county `"999"` now resolve to `NA` on every path, not only when
+  geography was sourced from the FIPS block. 18% of public 2004 residence
+  records carry a `999` suffix and were being returned as codes like `"48999"`.
+  The `state_substr`/`county_substr` columns keep the literal code, so a mask
+  stays distinguishable from a blank field.
+* `add_county_fips()`: row order, row count, class, row names and grouping are
+  now preserved for every input shape, including grouped and zero-row frames.
+* `add_county_fips()`: passing a FIPS column (`fipsctyr`, `fipsctyo`) directly as
+  `county_vector` with a pre-2003 year used to send it down the NCHS path, so
+  `06037` (Los Angeles) came back as `08037` (Colorado) -- wrong state and wrong
+  county, silently. Such a column is now recognized as already-FIPS regardless of
+  the data year, and an explicit `scheme=` that contradicts it warns rather than
+  being obeyed.
+* `add_county_fips()`: a character county code that is not 5 characters wide (or
+  2, for the state-only `fipsstr`/`fipssto`) is now refused with a warning and
+  returns `NA`. A 4-digit code has usually lost its leading zero, and `substr()`
+  read it as a different state -- `"1001"` (Alabama 01001) parsed as state
+  `"10"`, Delaware.
+
 # narcan 0.5.3
 
 ## New vignettes and documentation

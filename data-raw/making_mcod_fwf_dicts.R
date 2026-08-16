@@ -37,9 +37,19 @@ mcod_public_fwf_dicts <- public
     stopifnot(all(d$type %in% c("c", "n")))
     stopifnot(all(d$year >= 1979L & d$year <= 2024L))
     stopifnot(!anyNA(d$name), !anyNA(d$type), !anyNA(d$year))
-    present <- if (tiered) filter(d, !suppressed) else d
+    ## A row with no position is a declared-but-unavailable field: the public tier flags those
+    ## with `suppressed`, and the restricted tier carries a few (racer40 2003-2007, where the
+    ## bytes hold a different field entirely). Both import as all-NA, so both are excluded from
+    ## the position checks -- but start and end must be missing together either way.
+    present <- if (tiered) filter(d, !suppressed) else filter(d, !is.na(start))
     stopifnot(all(present$start >= 1L), all(present$start <= present$end))
-    if (tiered) stopifnot(all(is.na(filter(d, suppressed)$start)))
+    stopifnot(identical(is.na(d$start), is.na(d$end)))
+    ## public: suppressed <=> no position, both directions.
+    ## restricted: no flag column, so a missing position IS the signal.
+    if (tiered) {
+        stopifnot(all(is.na(filter(d, suppressed)$start)))
+        stopifnot(all(!is.na(present$start)))
+    }
     invisible(TRUE)
 }
 stopifnot(.valid_dict(mcod_fwf_dicts))

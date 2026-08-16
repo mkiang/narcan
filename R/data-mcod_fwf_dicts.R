@@ -15,10 +15,17 @@
 #'   \item{name}{string, variable name (NBER short names, kept stable for
 #'     backward compatibility)}
 #'   \item{type}{string, single-letter readr column type ("c" character, "n" numeric)}
-#'   \item{start}{integer, 1-indexed starting byte position}
-#'   \item{end}{integer, ending byte position}
+#'   \item{start}{integer, 1-indexed starting byte position; `NA` if the field is
+#'     named for that year but has no readable bytes (see below)}
+#'   \item{end}{integer, ending byte position; `NA` under the same condition}
 #'   \item{year}{integer, data year of this dictionary}
 #' }
+#'
+#' A few field-years are named but carry no position (`start` and `end` both
+#' `NA`), so the column exists for parity across years but imports as all-`NA`.
+#' `start` and `end` are always missing together. This is the restricted-tier
+#' counterpart of the public tier's `suppressed` flag; see
+#' [mcod_public_fwf_dicts].
 #'
 #' @section Position notes:
 #' A few columns keep their historical NBER names but change meaning across a
@@ -27,12 +34,38 @@
 #'   \item `ucr130` is a general all-ages recode in 1999-2001 and becomes
 #'     infant-only only from data year 2002; do not filter it as infant-only for
 #'     1999-2001.
-#'   \item `racer5` at byte 450 holds the bridged Race Recode 5 through 2020 but
-#'     the single-race (1997-OMB) Race Recode 6 from 2022; the two are not
-#'     comparable across the 2021 boundary.
-#'   \item `hspanicr` (Hispanic Origin/Race Recode) is 1 byte at 488 through 2020
-#'     and 2 bytes at 487-488 from 2022 (14-category scheme).
-#'   \item `racer40` (single-race detail) is documented-but-empty before 2012.
+#'   \item `racer5` at byte 450 holds the bridged Race Recode 5 from 2003
+#'     through 2020 but the single-race (1997-OMB) Race Recode 6 from 2022; the
+#'     two are not comparable across the 2021 boundary. Before the 2003/2004 layout fix the 2003
+#'     entry was mislabeled `racer2`; the byte was always right, the name was
+#'     not. `racer2` proper is a different field and ends at data year 2002.
+#'   \item `certifier` (110), `tobacco_use` (142) and `pregnancy_status` (143)
+#'     run from data year 2003, not 2005. Before that same fix the dictionary omitted
+#'     them for 2003-2004 even though the bytes are populated.
+#'   \item `certifier` and `tobacco_use` are blank for data year 2013 in the
+#'     **restricted** tier -- a one-year gap in the NCHS source, not a coding
+#'     change (2012 and 2014 are populated). The positions stay declared and the
+#'     columns import as `NA`. The public tier blanks both fields in *every*
+#'     year as a standing suppression, so 2013 reads `NA` there for a different
+#'     reason.
+#'   \item `hspanicr` (Hispanic Origin/Race Recode) is 1 byte at 488 through
+#'     **2021** and 2 bytes at 487-488 from 2022 (14-category scheme). 2021 is
+#'     declared at 488 like the years before it; an earlier version of this note
+#'     said "through 2020" and omitted 2021 entirely.
+#'   \item `racer40` (single-race detail) appears to carry real data from data
+#'     year **2011**, though that onset is established only by exclusion -- the
+#'     bytes are neither blank nor a state distribution from 2011 -- which is a
+#'     weaker standard than the 2003-2007 finding below, and 2012-2017 has not
+#'     been probed at all. Bytes 489-490 are blank 2008-2010, and for
+#'     **2003-2007** they
+#'     hold the expanded state of occurrence in the legacy NCHS numeric coding,
+#'     not race at all. Those five years are therefore named but carry no
+#'     position and import as all-`NA`; keeping the name preserves a single
+#'     column set across 2003-2019. Published narcan versions through 0.5.3
+#'     declared 489-490 for 2003-2011 and so returned state codes under
+#'     `racer40` for 2003-2007 -- discard that column for those years. Note the
+#'     NCHS 2003-latest restricted layout dates the field to 2018, which the
+#'     data contradicts in the other direction.
 #' }
 #'
 #' @source \url{https://www.cdc.gov/nchs/nvss/mortality_public_use_data.htm}

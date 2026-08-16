@@ -15,10 +15,7 @@ see the note on
 in
 [`vignette("getting-started")`](https://mkiang.github.io/narcan/articles/getting-started.md).
 
-``` r
-
-library(narcan)
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`narcan`](https://github.com/mkiang/narcan)`)`
 
 The heavy steps – reading the ~1.2 GB fixed-width file and flagging all
 2.4 million records – are shown with `eval = FALSE`, because the file is
@@ -42,18 +39,16 @@ unzip produces. narcan’s
 fetch the CSV/Stata versions instead, which are a different on-ramp not
 used here.
 
-``` r
-
-raw <- import_mcod_fwf("mort2004us.dat", year = 2004, tier = "public")
-nrow(raw)
-#> [1] 2401400
-```
+`raw`` ``<-`` `[`import_mcod_fwf`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md)`(``"mort2004us.dat"``, year ``=`` ``2004``, tier ``=`` ``"public"``)`` `[`nrow`](https://rdrr.io/r/base/nrow.html)`(``raw``)`` ``#> [1] 2401400`
 
 [`import_mcod_fwf()`](https://mkiang.github.io/narcan/reference/import_mcod_fwf.md)
-returns every column in the restricted layout order; for 2004 the public
-and restricted tiers are effectively identical (the one restricted-only
-field, `racer40`, sits past the end of the public record and comes back
-all-`NA`).
+returns every column in the restricted layout order. Reading this public
+2004 file under either tier gives the same values: narcan declares no
+bytes at all for `racer40` in 2004 (see
+[`?mcod_fwf_dicts`](https://mkiang.github.io/narcan/reference/mcod_fwf_dicts.md)),
+and `certifier`, `tobacco_use` and `pregnancy_status` sit inside the
+record but are blank on the public file, so all four come back all-`NA`.
+Those three *are* populated in the genuine restricted 2004 file.
 
 ## Flag the records
 
@@ -61,34 +56,12 @@ Keep US residents, collapse the 20 contributory-cause columns into
 `f_records_all`, then run the ISW7 flag pipeline. Each step keys on
 `year = 2004` to select the ICD-10 coding era.
 
-``` r
-
-flagged <- raw |>
-    subset_residents() |>                    # restatus 1-3; drops non-residents
-    unite_records(year = 2004) |>            # builds f_records_all
-    flag_drug_deaths(year = 2004) |>
-    flag_opioid_deaths(year = 2004) |>
-    flag_opioid_types(year = 2004)
-```
+`flagged`` ``<-`` ``raw`` ``|>`` `` `[`subset_residents`](https://mkiang.github.io/narcan/reference/subset_residents.md)`(``)`` ``|>`` ``# restatus 1-3; drops non-residents`` `` `[`unite_records`](https://mkiang.github.io/narcan/reference/unite_records.md)`(``year ``=`` ``2004``)`` ``|>`` ``# builds f_records_all`` `` `[`flag_drug_deaths`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)`(``year ``=`` ``2004``)`` ``|>`` `` `[`flag_opioid_deaths`](https://mkiang.github.io/narcan/reference/flag_opioid_deaths.md)`(``year ``=`` ``2004``)`` ``|>`` `` `[`flag_opioid_types`](https://mkiang.github.io/narcan/reference/flag_opioid_types.md)`(``year ``=`` ``2004``)`
 
 Here are the national totals that pipeline produces on the real 2004
 file:
 
-``` r
-
-totals <- data.frame(
-    quantity = c("US resident deaths", "drug deaths (ISW7)",
-                 "opioid deaths (ISW7)", "heroin, T40.1", "synthetic, T40.4"),
-    n = c(2397615L, 27393L, 13756L, 1878L, 1664L)
-)
-totals
-#>               quantity       n
-#> 1   US resident deaths 2397615
-#> 2   drug deaths (ISW7)   27393
-#> 3 opioid deaths (ISW7)   13756
-#> 4        heroin, T40.1    1878
-#> 5     synthetic, T40.4    1664
-```
+`totals`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`` `` quantity ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"US resident deaths"``, ``"drug deaths (ISW7)"``,`` `` ``"opioid deaths (ISW7)"``, ``"heroin, T40.1"``, ``"synthetic, T40.4"``)``,`` `` n ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``2397615L``, ``27393L``, ``13756L``, ``1878L``, ``1664L``)`` ``)`` ``totals`` ``#> quantity n`` ``#> 1 US resident deaths 2397615`` ``#> 2 drug deaths (ISW7) 27393`` ``#> 3 opioid deaths (ISW7) 13756`` ``#> 4 heroin, T40.1 1878`` ``#> 5 synthetic, T40.4 1664`
 
 narcan’s `drug_death` is the ISW7 multiple-cause definition – a
 drug-poisoning underlying cause **and** a drug T-code – so it runs a
@@ -110,11 +83,7 @@ needs no year – the 1-27 AGER27 scheme is stable across eras;
 [`vignette("demographic-recodes")`](https://mkiang.github.io/narcan/articles/demographic-recodes.md)
 covers both in full.
 
-``` r
-
-flagged$sex <- categorize_sex(flagged$sex, year = 2004)   # "M"/"F" -> male/female
-flagged <- convert_ager27(flagged)                        # ager27 -> 5-year `age`
-```
+`flagged``$``sex`` ``<-`` `[`categorize_sex`](https://mkiang.github.io/narcan/reference/categorize_sex.md)`(``flagged``$``sex``, year ``=`` ``2004``)`` ``# "M"/"F" -> male/female`` ``flagged`` ``<-`` `[`convert_ager27`](https://mkiang.github.io/narcan/reference/convert_ager27.md)`(``flagged``)`` ``` # ager27 -> 5-year `age` ``
 
 ## Aggregate to counts
 
@@ -122,13 +91,7 @@ Collapse the flagged records to opioid-death counts by
 `year x age x sex`. In a real script this is the line that turns 2.4
 million records into the 36-row table below.
 
-``` r
-
-agg <- flagged |>
-    dplyr::filter(!is.na(age), !is.na(sex)) |>
-    dplyr::group_by(year, age, sex) |>
-    dplyr::summarize(opioid_deaths = sum(opioid_death), .groups = "drop")
-```
+`agg`` ``<-`` ``flagged`` ``|>`` `` ``dplyr``::`[`filter`](https://dplyr.tidyverse.org/reference/filter.html)`(``!`[`is.na`](https://rdrr.io/r/base/NA.html)`(``age``)``, ``!`[`is.na`](https://rdrr.io/r/base/NA.html)`(``sex``)``)`` ``|>`` `` ``dplyr``::`[`group_by`](https://dplyr.tidyverse.org/reference/group_by.html)`(``year``, ``age``, ``sex``)`` ``|>`` `` ``dplyr``::`[`summarize`](https://dplyr.tidyverse.org/reference/summarise.html)`(``opioid_deaths ``=`` `[`sum`](https://rdrr.io/r/base/sum.html)`(``opioid_death``)``, .groups ``=`` ``"drop"``)`
 
 The `!is.na()` filter drops the four opioid deaths with an unstated age
 (none had an unstated sex in this file), so the stratified table sums to
@@ -138,25 +101,7 @@ missing stratifier cannot be placed in an age-sex cell.
 That aggregate is small enough to reproduce verbatim – these are the
 **real 2004 opioid-death counts** by 5-year age group and sex:
 
-``` r
-
-agg <- tibble::tribble(
-    ~age, ~sex,       ~opioid_deaths,
-      0L, "female",     11L,   5L, "female",      1L,  10L, "female",     12L,
-     15L, "female",     86L,  20L, "female",    247L,  25L, "female",    301L,
-     30L, "female",    408L,  35L, "female",    587L,  40L, "female",    910L,
-     45L, "female",    910L,  50L, "female",    569L,  55L, "female",    293L,
-     60L, "female",    139L,  65L, "female",     63L,  70L, "female",     36L,
-     75L, "female",     35L,  80L, "female",     19L,  85L, "female",     14L,
-      0L, "male",       15L,   5L, "male",        1L,  10L, "male",       16L,
-     15L, "male",      368L,  20L, "male",      895L,  25L, "male",      948L,
-     30L, "male",      916L,  35L, "male",     1139L,  40L, "male",     1593L,
-     45L, "male",     1538L,  50L, "male",      984L,  55L, "male",      432L,
-     60L, "male",      141L,  65L, "male",       60L,  70L, "male",       27L,
-     75L, "male",       16L,  80L, "male",        9L,  85L, "male",       13L
-)
-agg$year <- 2004L
-```
+`agg`` ``<-`` ``tibble``::`[`tribble`](https://tibble.tidyverse.org/reference/tribble.html)`(`` `` ``~``age``, ``~``sex``, ``~``opioid_deaths``,`` `` ``0L``, ``"female"``, ``11L``, ``5L``, ``"female"``, ``1L``, ``10L``, ``"female"``, ``12L``,`` `` ``15L``, ``"female"``, ``86L``, ``20L``, ``"female"``, ``247L``, ``25L``, ``"female"``, ``301L``,`` `` ``30L``, ``"female"``, ``408L``, ``35L``, ``"female"``, ``587L``, ``40L``, ``"female"``, ``910L``,`` `` ``45L``, ``"female"``, ``910L``, ``50L``, ``"female"``, ``569L``, ``55L``, ``"female"``, ``293L``,`` `` ``60L``, ``"female"``, ``139L``, ``65L``, ``"female"``, ``63L``, ``70L``, ``"female"``, ``36L``,`` `` ``75L``, ``"female"``, ``35L``, ``80L``, ``"female"``, ``19L``, ``85L``, ``"female"``, ``14L``,`` `` ``0L``, ``"male"``, ``15L``, ``5L``, ``"male"``, ``1L``, ``10L``, ``"male"``, ``16L``,`` `` ``15L``, ``"male"``, ``368L``, ``20L``, ``"male"``, ``895L``, ``25L``, ``"male"``, ``948L``,`` `` ``30L``, ``"male"``, ``916L``, ``35L``, ``"male"``, ``1139L``, ``40L``, ``"male"``, ``1593L``,`` `` ``45L``, ``"male"``, ``1538L``, ``50L``, ``"male"``, ``984L``, ``55L``, ``"male"``, ``432L``,`` `` ``60L``, ``"male"``, ``141L``, ``65L``, ``"male"``, ``60L``, ``70L``, ``"male"``, ``27L``,`` `` ``75L``, ``"male"``, ``16L``, ``80L``, ``"male"``, ``9L``, ``85L``, ``"male"``, ``13L`` ``)`` ``agg``$``year`` ``<-`` ``2004L`
 
 One subtlety matters for standardization. The standard population spans
 all 18 age groups, so every age-sex cell needs its denominator even when
@@ -165,15 +110,7 @@ truncated. (In 2004 every cell happens to have at least one opioid
 death, but this step is what protects the rate when one does not.) Build
 the full grid and fill any empty cells with 0:
 
-``` r
-
-counts <- expand.grid(year = 2004L, age = seq(0L, 85L, 5L),
-                      sex = c("male", "female"), stringsAsFactors = FALSE)
-counts <- merge(counts, agg, all.x = TRUE)
-counts$opioid_deaths[is.na(counts$opioid_deaths)] <- 0L
-nrow(counts)   # 36 = 18 age groups x 2 sexes
-#> [1] 36
-```
+`counts`` ``<-`` `[`expand.grid`](https://rdrr.io/r/base/expand.grid.html)`(``year ``=`` ``2004L``, age ``=`` `[`seq`](https://rdrr.io/r/base/seq.html)`(``0L``, ``85L``, ``5L``)``,`` `` sex ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"male"``, ``"female"``)``, stringsAsFactors ``=`` ``FALSE``)`` ``counts`` ``<-`` `[`merge`](https://rdrr.io/r/base/merge.html)`(``counts``, ``agg``, all.x ``=`` ``TRUE``)`` ``counts``$``opioid_deaths``[`[`is.na`](https://rdrr.io/r/base/NA.html)`(``counts``$``opioid_deaths``)``]`` ``<-`` ``0L`` `[`nrow`](https://rdrr.io/r/base/nrow.html)`(``counts``)`` ``# 36 = 18 age groups x 2 sexes`` ``#> [1] 36`
 
 ## Denominators and the rate
 
@@ -184,40 +121,14 @@ running live on the real counts. Use the SEER bridged-race denominators
 consistent series; race is not a `by_var`, so `pop` is the all-race
 total per `year x age x sex`.
 
-``` r
-
-counts <- add_pop_counts(counts, by_vars = c("year", "age", "sex"),
-                         race_scheme = "bridged")
-counts <- add_std_pop(counts, std_cat = "s204", by_vars = "age")
-counts <- calc_asrate_var(counts, new_name = opioid,
-                          death_col = opioid_deaths, pop_col = pop)
-head(counts[order(counts$age, counts$sex),
-            c("age", "sex", "opioid_deaths", "pop", "opioid_rate")])
-#>    age    sex opioid_deaths      pop opioid_rate
-#> 1    0 female            11  9675391  0.11369050
-#> 2    0   male            15 10110494  0.14836070
-#> 19   5 female             1  9503231  0.01052274
-#> 20   5   male             1  9951006  0.01004924
-#> 3   10 female            12 10443706  0.11490174
-#> 4   10   male            16 10967974  0.14587927
-```
+`counts`` ``<-`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``counts``, by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``)``,`` `` race_scheme ``=`` ``"bridged"``)`` ``counts`` ``<-`` `[`add_std_pop`](https://mkiang.github.io/narcan/reference/add_std_pop.md)`(``counts``, std_cat ``=`` ``"s204"``, by_vars ``=`` ``"age"``)`` ``counts`` ``<-`` `[`calc_asrate_var`](https://mkiang.github.io/narcan/reference/calc_asrate_var.md)`(``counts``, new_name ``=`` ``opioid``,`` `` death_col ``=`` ``opioid_deaths``, pop_col ``=`` ``pop``)`` `[`head`](https://rdrr.io/r/utils/head.html)`(``counts``[`[`order`](https://rdrr.io/r/base/order.html)`(``counts``$``age``, ``counts``$``sex``)``,`` `` `[`c`](https://rdrr.io/r/base/c.html)`(``"age"``, ``"sex"``, ``"opioid_deaths"``, ``"pop"``, ``"opioid_rate"``)``]``)`` ``#> age sex opioid_deaths pop opioid_rate`` ``#> 1 0 female 11 9675391 0.11369050`` ``#> 2 0 male 15 10110494 0.14836070`` ``#> 19 5 female 1 9503231 0.01052274`` ``#> 20 5 male 1 9951006 0.01004924`` ``#> 3 10 female 12 10443706 0.11490174`` ``#> 4 10 male 16 10967974 0.14587927`
 
 [`calc_stdrate_var()`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md)
 collapses the 18 age bins into one age-standardized rate per sex,
 reweighting to the US 2000 standard. A 95% Wald interval follows from
 the returned variance.
 
-``` r
-
-std <- calc_stdrate_var(counts, opioid_rate, opioid_var, year, sex)
-std <- as.data.frame(std)
-std$lower <- std$opioid_rate - 1.96 * sqrt(std$opioid_var)
-std$upper <- std$opioid_rate + 1.96 * sqrt(std$opioid_var)
-std[, c("year", "sex", "opioid_rate", "lower", "upper")]
-#>   year    sex opioid_rate    lower    upper
-#> 1 2004 female    3.123972 3.033772 3.214171
-#> 2 2004   male    6.249828 6.121136 6.378520
-```
+`std`` ``<-`` `[`calc_stdrate_var`](https://mkiang.github.io/narcan/reference/calc_stdrate_var.md)`(``counts``, ``opioid_rate``, ``opioid_var``, ``year``, ``sex``)`` ``std`` ``<-`` `[`as.data.frame`](https://rdrr.io/r/base/as.data.frame.html)`(``std``)`` ``std``$``lower`` ``<-`` ``std``$``opioid_rate`` ``-`` ``1.96`` ``*`` `[`sqrt`](https://rdrr.io/r/base/MathFun.html)`(``std``$``opioid_var``)`` ``std``$``upper`` ``<-`` ``std``$``opioid_rate`` ``+`` ``1.96`` ``*`` `[`sqrt`](https://rdrr.io/r/base/MathFun.html)`(``std``$``opioid_var``)`` ``std``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"sex"``, ``"opioid_rate"``, ``"lower"``, ``"upper"``)``]`` ``#> year sex opioid_rate lower upper`` ``#> 1 2004 female 3.123972 3.033772 3.214171`` ``#> 2 2004 male 6.249828 6.121136 6.378520`
 
 In 2004 the age-standardized opioid death rate was about **6.2 per
 100,000 among men and 3.1 among women** – roughly a two-to-one gap,
@@ -226,18 +137,7 @@ rates and not in age composition. These are the real figures the
 pipeline recovers from the public-use file, computed live in the chunk
 above.
 
-``` r
-
-library(ggplot2)
-
-ggplot(std, aes(x = sex, y = opioid_rate, fill = sex)) +
-    geom_col(width = 0.6) +
-    geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
-    labs(x = NULL, y = "Age-standardized rate per 100,000",
-         title = "Opioid death rate by sex, 2004") +
-    theme_minimal() +
-    theme(legend.position = "none")
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`ggplot2`](https://ggplot2.tidyverse.org)`)`` `` `[`ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)`(``std``, `[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``x ``=`` ``sex``, y ``=`` ``opioid_rate``, fill ``=`` ``sex``)``)`` ``+`` `` `[`geom_col`](https://ggplot2.tidyverse.org/reference/geom_bar.html)`(``width ``=`` ``0.6``)`` ``+`` `` `[`geom_errorbar`](https://ggplot2.tidyverse.org/reference/geom_linerange.html)`(`[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``ymin ``=`` ``lower``, ymax ``=`` ``upper``)``, width ``=`` ``0.2``)`` ``+`` `` `[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``x ``=`` ``NULL``, y ``=`` ``"Age-standardized rate per 100,000"``,`` `` title ``=`` ``"Opioid death rate by sex, 2004"``)`` ``+`` `` `[`theme_minimal`](https://ggplot2.tidyverse.org/reference/ggtheme.html)`(``)`` ``+`` `` `[`theme`](https://ggplot2.tidyverse.org/reference/theme.html)`(``legend.position ``=`` ``"none"``)`
 
 ![Bar chart of the age-standardized opioid death rate per 100,000 in
 2004 by sex. The male rate is about 6.2 and the female rate about 3.1,

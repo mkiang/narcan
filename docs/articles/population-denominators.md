@@ -22,10 +22,7 @@ All data here are public (bundled Census/SEER estimates, or a small
 bundled county fixture) plus synthetic death counts; no restricted NCHS
 records are used, and no chunk downloads anything.
 
-``` r
-
-library(narcan)
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`narcan`](https://github.com/mkiang/narcan)`)`
 
 Across every scheme,
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
@@ -47,13 +44,7 @@ exactly – it is not the official NCHS bridged-race series. For a
 coherent bridged-race denominator use `"bridged"`; for 2000+ single-race
 deaths use `"single"`.
 
-``` r
-
-legacy <- data.frame(year = 1999L, age = 25L, sex = "male", race = "white")
-add_pop_counts(legacy)                    # default scheme; adds `pop`
-#>   year age  sex  race     pop
-#> 1 1999  25 male white 7289220
-```
+`legacy`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``1999L``, age ``=`` ``25L``, sex ``=`` ``"male"``, race ``=`` ``"white"``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``legacy``)`` ``` # default scheme; adds `pop` ``` ``#> year age sex race pop`` ``#> 1 1999 25 male white 7289220`
 
 For 2000-2020 the legacy denominator is single-race-alone, which
 undercounts the multiple-race population and so inflates race-specific
@@ -71,38 +62,12 @@ deaths coded 101-106
 Islander). It is strict: out-of-domain age/sex/race and any unmatched
 key hard-error, so a denominator is never silently `NA`.
 
-``` r
-
-deaths <- expand.grid(
-    year = 2024L, age = seq(0, 85, 5), sex = c("male", "female"),
-    race = "asian_only", stringsAsFactors = FALSE
-)
-deaths$deaths <- rep(c(1, 2, 5, 12, 30, 55), length.out = nrow(deaths))
-head(deaths)
-#>   year age  sex       race deaths
-#> 1 2024   0 male asian_only      1
-#> 2 2024   5 male asian_only      2
-#> 3 2024  10 male asian_only      5
-#> 4 2024  15 male asian_only     12
-#> 5 2024  20 male asian_only     30
-#> 6 2024  25 male asian_only     55
-```
+`deaths`` ``<-`` `[`expand.grid`](https://rdrr.io/r/base/expand.grid.html)`(`` `` year ``=`` ``2024L``, age ``=`` `[`seq`](https://rdrr.io/r/base/seq.html)`(``0``, ``85``, ``5``)``, sex ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"male"``, ``"female"``)``,`` `` race ``=`` ``"asian_only"``, stringsAsFactors ``=`` ``FALSE`` ``)`` ``deaths``$``deaths`` ``<-`` `[`rep`](https://rdrr.io/r/base/rep.html)`(`[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``, ``5``, ``12``, ``30``, ``55``)``, length.out ``=`` `[`nrow`](https://rdrr.io/r/base/nrow.html)`(``deaths``)``)`` `[`head`](https://rdrr.io/r/utils/head.html)`(``deaths``)`` ``#> year age sex race deaths`` ``#> 1 2024 0 male asian_only 1`` ``#> 2 2024 5 male asian_only 2`` ``#> 3 2024 10 male asian_only 5`` ``#> 4 2024 15 male asian_only 12`` ``#> 5 2024 20 male asian_only 30`` ``#> 6 2024 25 male asian_only 55`
 
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
 adds the matched `pop` column:
 
-``` r
-
-rated <- add_pop_counts(deaths, race_scheme = "single")
-head(rated)
-#>   year age  sex       race deaths    pop pop_scheme
-#> 1 2024   0 male asian_only      1 600728     single
-#> 2 2024   5 male asian_only      2 678658     single
-#> 3 2024  10 male asian_only      5 659666     single
-#> 4 2024  15 male asian_only     12 666097     single
-#> 5 2024  20 male asian_only     30 760220     single
-#> 6 2024  25 male asian_only     55 826163     single
-```
+`rated`` ``<-`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``deaths``, race_scheme ``=`` ``"single"``)`` `[`head`](https://rdrr.io/r/utils/head.html)`(``rated``)`` ``#> year age sex race deaths pop pop_scheme`` ``#> 1 2024 0 male asian_only 1 600728 single`` ``#> 2 2024 5 male asian_only 2 678658 single`` ``#> 3 2024 10 male asian_only 5 659666 single`` ``#> 4 2024 15 male asian_only 12 666097 single`` ``#> 5 2024 20 male asian_only 30 760220 single`` ``#> 6 2024 25 male asian_only 55 826163 single`
 
 From the matched `pop`, the rate pipeline
 ([`add_std_pop()`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
@@ -131,37 +96,17 @@ bridged-race-coded death series to pair with the 2021-2024 population –
 use `"single"` for 2021+ deaths. Treat `"bridged"` as a coherent race
 series **through 2020**.
 
-``` r
-
-api <- data.frame(year = 2019L, age = 40L, sex = "female", race = "api")
-add_pop_counts(api, race_scheme = "bridged",
-               by_vars = c("year", "age", "sex", "race"))
-#>   year age    sex race    pop pop_scheme
-#> 1 2019  40 female  api 874749    bridged
-```
+`api`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2019L``, age ``=`` ``40L``, sex ``=`` ``"female"``, race ``=`` ``"api"``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``api``, race_scheme ``=`` ``"bridged"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``)``)`` ``#> year age sex race pop pop_scheme`` ``#> 1 2019 40 female api 874749 bridged`
 
 Omitting `year` from `by_vars` is an error – the valid race set is
 era-dependent:
 
-``` r
-
-add_pop_counts(api, race_scheme = "bridged",
-               by_vars = c("age", "sex", "race"))
-#> Error:
-#> ! add_pop_counts(): `df` carries population-dimension column(s) `year` not in `by_vars`; under a strict race_scheme ("single"/"bridged") the denominator would be silently summed over them. Add them to `by_vars`, or drop them from `df` to aggregate that dimension.
-```
+[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``api``, race_scheme ``=`` ``"bridged"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"age"``, ``"sex"``, ``"race"``)``)`` ``#> ``Error``:`` ``#> ``!```  add_pop_counts(): `df` carries population-dimension column(s) `year` not in `by_vars`; under a strict race_scheme ("single"/"bridged") the denominator would be silently summed over them. Add them to `by_vars`, or drop them from `df` to aggregate that dimension. ``
 
 And an `api` row before 1990 errors, because SEER has no AIAN/API split
 yet:
 
-``` r
-
-old_api <- data.frame(year = 1985L, age = 40L, sex = "female", race = "api")
-add_pop_counts(old_api, race_scheme = "bridged",
-               by_vars = c("year", "age", "sex", "race"))
-#> Error:
-#> ! add_pop_counts(): race value(s) 'api' are not denominable under race_scheme = "bridged" before 1990 (SEER pre-1990 race = white/black/other only; the AIAN/API split begins in 1990). Valid pre-1990: white, black, other (or "total"). Restrict to year >= 1990, or collapse to `other`.
-```
+`old_api`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``1985L``, age ``=`` ``40L``, sex ``=`` ``"female"``, race ``=`` ``"api"``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``old_api``, race_scheme ``=`` ``"bridged"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``)``)`` ``#> ``Error``:`` ``#> ``!```  add_pop_counts(): race value(s) 'api' are not denominable under race_scheme = "bridged" before 1990 (SEER pre-1990 race = white/black/other only; the AIAN/API split begins in 1990). Valid pre-1990: white, black, other (or "total"). Restrict to year >= 1990, or collapse to `other`. ``
 
 ## Strictness guards
 
@@ -170,25 +115,14 @@ mis-set `race_scheme` cannot always be detected. But single-race labels
 under a non-single scheme always can be – passing them to the default is
 a hard error, a guard against forgetting `race_scheme = "single"`:
 
-``` r
-
-bad <- data.frame(year = 2024L, age = 25L, sex = "male", race = "asian_only")
-add_pop_counts(bad)                       # default is "legacy" -> error
-#> Error:
-#> ! add_pop_counts(): `race` holds single-race values (101-106 or *_only/multiracial) but race_scheme is not "single". Pass race_scheme = "single" to use single-race denominators.
-```
+`bad`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2024L``, age ``=`` ``25L``, sex ``=`` ``"male"``, race ``=`` ``"asian_only"``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``bad``)`` ``# default is "legacy" -> error`` ``#> ``Error``:`` ``#> ``!```  add_pop_counts(): `race` holds single-race values (101-106 or *_only/multiracial) but race_scheme is not "single". Pass race_scheme = "single" to use single-race denominators. ``
 
 A frame already summed over a dimension uses a reserved token –
 `race = "total"`, `sex = "both"`, `hispanic_origin = "all"`. The
 matching marginal is synthesized on demand (finest cells summed; no
 marginal is stored, so it cannot double-count):
 
-``` r
-
-both_sex <- data.frame(year = 2024L, age = 65L, sex = "both", race = "asian_only")
-add_pop_counts(both_sex, race_scheme = "single")$pop        # male + female
-#> [1] 1042672
-```
+`both_sex`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2024L``, age ``=`` ``65L``, sex ``=`` ``"both"``, race ``=`` ``"asian_only"``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``both_sex``, race_scheme ``=`` ``"single"``)``$``pop`` ``# male + female`` ``#> [1] 1042672`
 
 ## State and county grains
 
@@ -199,26 +133,12 @@ state join needs no extra package. See
 for how to derive harmonized `state_fips`/`county_fips` columns from raw
 NCHS fields.
 
-``` r
-
-ca <- data.frame(state_fips = "06", year = 2024L, age = 40L, sex = "female",
-                 race = "asian_only", deaths = 20)
-add_pop_counts(ca, race_scheme = "single",
-               by_vars = c("state_fips", "year", "age", "sex", "race"))
-#>   state_fips year age    sex       race deaths    pop pop_scheme
-#> 1         06 2024  40 female asian_only     20 269078     single
-```
+`ca`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``state_fips ``=`` ``"06"``, year ``=`` ``2024L``, age ``=`` ``40L``, sex ``=`` ``"female"``,`` `` race ``=`` ``"asian_only"``, deaths ``=`` ``20``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``ca``, race_scheme ``=`` ``"single"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"state_fips"``, ``"year"``, ``"age"``, ``"sex"``, ``"race"``)``)`` ``#> state_fips year age sex race deaths pop pop_scheme`` ``#> 1 06 2024 40 female asian_only 20 269078 single`
 
 A geography column that is in the frame but absent from `by_vars` is an
 error, never a silent national join:
 
-``` r
-
-add_pop_counts(ca, race_scheme = "single",
-               by_vars = c("year", "age", "sex", "race"))
-#> Error:
-#> ! add_pop_counts(): `df` carries population-dimension column(s) `state_fips` not in `by_vars`; under a strict race_scheme ("single"/"bridged") the denominator would be silently summed over them. Add them to `by_vars`, or drop them from `df` to aggregate that dimension.
-```
+[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``ca``, race_scheme ``=`` ``"single"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``)``)`` ``#> ``Error``:`` ``#> ``!```  add_pop_counts(): `df` carries population-dimension column(s) `state_fips` not in `by_vars`; under a strict race_scheme ("single"/"bridged") the denominator would be silently summed over them. Add them to `by_vars`, or drop them from `df` to aggregate that dimension. ``
 
 Public MCOD carries state/county geographic detail only through data
 year 2004 (2005+ county detail needs restricted NCHS files). The county
@@ -229,34 +149,7 @@ This example needs the optional `duckdb` package
 (`install.packages("duckdb")`); with it absent, the chunk below simply
 produces no output.
 
-``` r
-
-fx <- system.file("extdata", "pop_singlerace_county_fixture.parquet",
-                  package = "narcan")
-
-wy_deaths <- data.frame(
-    county_fips = "56013", year = 1999:2004, age = 40L, sex = "male",
-    race = "white_only", deaths = c(1, 2, 4, 3, 5, 2)
-)
-wy_deaths
-#>   county_fips year age  sex       race deaths
-#> 1       56013 1999  40 male white_only      1
-#> 2       56013 2000  40 male white_only      2
-#> 3       56013 2001  40 male white_only      4
-#> 4       56013 2002  40 male white_only      3
-#> 5       56013 2003  40 male white_only      5
-#> 6       56013 2004  40 male white_only      2
-
-options(narcan.pop_single_county_parquet = fx)   # normally a downloaded parquet
-add_pop_counts(subset(wy_deaths, year >= 2000), race_scheme = "single",
-               by_vars = c("county_fips", "year", "age", "sex", "race"))
-#>   county_fips year age  sex       race deaths  pop pop_scheme
-#> 1       56013 2000  40 male white_only      2 1198     single
-#> 2       56013 2001  40 male white_only      4 1195     single
-#> 3       56013 2002  40 male white_only      3 1201     single
-#> 4       56013 2003  40 male white_only      5 1180     single
-#> 5       56013 2004  40 male white_only      2 1106     single
-```
+`fx`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata"``, ``"pop_singlerace_county_fixture.parquet"``,`` `` package ``=`` ``"narcan"``)`` `` ``wy_deaths`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`` `` county_fips ``=`` ``"56013"``, year ``=`` ``1999``:``2004``, age ``=`` ``40L``, sex ``=`` ``"male"``,`` `` race ``=`` ``"white_only"``, deaths ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``, ``4``, ``3``, ``5``, ``2``)`` ``)`` ``wy_deaths`` ``#> county_fips year age sex race deaths`` ``#> 1 56013 1999 40 male white_only 1`` ``#> 2 56013 2000 40 male white_only 2`` ``#> 3 56013 2001 40 male white_only 4`` ``#> 4 56013 2002 40 male white_only 3`` ``#> 5 56013 2003 40 male white_only 5`` ``#> 6 56013 2004 40 male white_only 2`` `` `[`options`](https://rdrr.io/r/base/options.html)`(``narcan.pop_single_county_parquet ``=`` ``fx``)`` ``# normally a downloaded parquet`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(`[`subset`](https://rdrr.io/r/base/subset.html)`(``wy_deaths``, ``year`` ``>=`` ``2000``)``, race_scheme ``=`` ``"single"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"county_fips"``, ``"year"``, ``"age"``, ``"sex"``, ``"race"``)``)`` ``#> county_fips year age sex race deaths pop pop_scheme`` ``#> 1 56013 2000 40 male white_only 2 1198 single`` ``#> 2 56013 2001 40 male white_only 4 1195 single`` ``#> 3 56013 2002 40 male white_only 3 1201 single`` ``#> 4 56013 2003 40 male white_only 5 1180 single`` ``#> 5 56013 2004 40 male white_only 2 1106 single`
 
 Single-race denominators start in 2000, so the 1999 row is dropped
 before the join above – death-side coverage (public MCOD geography) and
@@ -279,12 +172,7 @@ to a local copy via the `narcan.pop_single_<grain>_parquet` option, as
 in the county chunk above. A request for a year the resolved data does
 not cover hard-errors – never a silent 0-row or `NA`:
 
-``` r
-
-get_pop_state(scheme = "single", years = 2025)
-#> Error:
-#> ! get_pop_state(): single-race state denominators cover 2020-2024; year(s) 2025 were requested (pre-2020 years route to the backfill; there is no coverage past 2024).
-```
+[`get_pop_state`](https://mkiang.github.io/narcan/reference/get_pop_state.md)`(``scheme ``=`` ``"single"``, years ``=`` ``2025``)`` ``#> ``Error``:`` ``#> ``!`` get_pop_state(): single-race state denominators cover 2020-2024; year(s) 2025 were requested (pre-2020 years route to the backfill; there is no coverage past 2024).`
 
 ## Provenance
 
@@ -294,12 +182,7 @@ every single-race and bridged dataset (the frozen legacy `pop_est`
 predates this download-manifest system). Check a bundled dataset’s
 vintage before mixing it with a freshly downloaded file.
 
-``` r
-
-invisible(utils::capture.output(src <- pop_sources()))
-knitr::kable(src[, c("dataset", "scheme", "grain", "vintage",
-                     "year_min", "year_max")])
-```
+[`invisible`](https://rdrr.io/r/base/invisible.html)`(``utils``::`[`capture.output`](https://rdrr.io/r/utils/capture.output.html)`(``src`` ``<-`` `[`pop_sources`](https://mkiang.github.io/narcan/reference/pop_sources.md)`(``)``)``)`` ``knitr``::`[`kable`](https://rdrr.io/pkg/knitr/man/kable.html)`(``src``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"dataset"``, ``"scheme"``, ``"grain"``, ``"vintage"``,`` `` ``"year_min"``, ``"year_max"``)``]``)`
 
 | dataset | scheme | grain | vintage | year_min | year_max |
 |:---|:---|:---|:---|:---|:---|
@@ -322,31 +205,9 @@ The two answer different questions – and origin-unknown deaths belong
 only in the all-origin numerator, because there is no “unknown-origin”
 population to divide by.
 
-``` r
+`# All-origin: one row, every death counts (the 3 origin-unknown deaths are here).`` ``all_origin`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2024L``, age ``=`` ``30L``, sex ``=`` ``"female"``,`` `` race ``=`` ``"white_only"``, deaths ``=`` ``12`` ``+`` ``210`` ``+`` ``3``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``all_origin``, race_scheme ``=`` ``"single"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``)``)``$``pop`` ``#> [1] 8373814`
 
-# All-origin: one row, every death counts (the 3 origin-unknown deaths are here).
-all_origin <- data.frame(year = 2024L, age = 30L, sex = "female",
-                         race = "white_only", deaths = 12 + 210 + 3)
-add_pop_counts(all_origin, race_scheme = "single",
-               by_vars = c("year", "age", "sex", "race"))$pop
-#> [1] 8373814
-```
-
-``` r
-
-# Origin-stratified: the non-denominable unknowns are dropped; origin is a key.
-# ('denominable' means it has a matching population to divide by.)
-strat <- data.frame(
-    year = 2024L, age = 30L, sex = "female", race = "white_only",
-    hispanic_origin = c("hispanic", "non_hispanic"), deaths = c(12, 210)
-)
-add_pop_counts(strat, race_scheme = "single",
-               by_vars = c("year", "age", "sex", "race", "hispanic_origin")
-)[, c("hispanic_origin", "deaths", "pop")]
-#>   hispanic_origin deaths     pop
-#> 1        hispanic     12 2199747
-#> 2    non_hispanic    210 6174067
-```
+`# Origin-stratified: the non-denominable unknowns are dropped; origin is a key.`` ``# ('denominable' means it has a matching population to divide by.)`` ``strat`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`` `` year ``=`` ``2024L``, age ``=`` ``30L``, sex ``=`` ``"female"``, race ``=`` ``"white_only"``,`` `` hispanic_origin ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"hispanic"``, ``"non_hispanic"``)``, deaths ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``12``, ``210``)`` ``)`` `[`add_pop_counts`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)`(``strat``, race_scheme ``=`` ``"single"``,`` `` by_vars ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"year"``, ``"age"``, ``"sex"``, ``"race"``, ``"hispanic_origin"``)`` ``)``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"hispanic_origin"``, ``"deaths"``, ``"pop"``)``]`` ``#> hispanic_origin deaths pop`` ``#> 1 hispanic 12 2199747`` ``#> 2 non_hispanic 210 6174067`
 
 The two stratified denominators sum to the all-origin one; the
 difference is only which deaths sit in the numerator. Leaving a

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,49 @@
       <small>Source: <a href="https://github.com/mkiang/narcan/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.4" id="narcan-054">narcan 0.5.4<a class="anchor" aria-label="anchor" href="#narcan-054"></a></h2>
+<div class="section level3">
+<h3 id="data-corrections-affecting-earlier-releases-0-5-4">Data corrections affecting earlier releases<a class="anchor" aria-label="anchor" href="#data-corrections-affecting-earlier-releases-0-5-4"></a></h3>
+<p>These change values that earlier releases returned without error. If you have published or cached county-level, <code>racer40</code>, or 2003 <code>racer2</code> results built on narcan <strong>v0.3.0 through v0.5.3</strong> – every release that has ever existed – re-derive them.</p>
+<ul><li>
+<p><strong><code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> returned the wrong county for pre-2003 data in every prior release.</strong> Before 2003 the last 3 digits of <code>countyrs</code>/<code>countyoc</code> are the county’s <em>alphabetical rank within its state</em>, not its FIPS code. The old code translated the state prefix and pasted the rank back untouched, so NCHS <code>05019</code> (Los Angeles) came back as <code>06019</code> – Fresno. The result was a real, valid-looking FIPS code, with no error, no warning and no <code>NA</code>.</p>
+<p><strong>It was wrong for about 97% of pre-2003 records.</strong> FIPS county codes step by two (001, 003, 005 …) while an alphabetical rank steps by one, so the two coincide only at rank 001 – the first county alphabetically in each state. Measured on the restricted 1999 file, the old path returned the correct county for <strong>2.8%</strong> of records; 0.5.4 returns it for <strong>99.9%</strong>. (An earlier draft of this entry said “roughly half”, conflating this with the separate and much weaker question of how often the wrong code happened to name <em>some</em> real county, which was 49.9%.)</p>
+<p>Affected data years for the county half are <strong>1979-2002</strong>. Two smaller changes reach other years and are listed under Bug fixes below: the <code>"00"</code>/<code>"999"</code> resolution affects public 2003-2004 output, and passing a FIPS column directly was mis-decoded for any pre-2003 year.</p>
+<p>The fix sources pre-2003 geography from the record’s own FIPS block – <code>fipsctyr</code> (residence) and <code>fipsctyo</code> (occurrence) – which <code><a href="../reference/import_mcod_fwf.html">import_mcod_fwf()</a></code> has always read and which every 1982-2002 import already carried unused. Those fields exist for <strong>1982-2002</strong> and are used by default across that whole span. Data years <strong>1979-1981 are not fixed and cannot be</strong>: they carry no FIPS county at all, so there is nothing to source from. They still return the rank – but now say so rather than doing it silently. Tracked as issue <a href="https://github.com/mkiang/narcan/issues/25" class="external-link">#25</a>. Sourcing needs a data year. A row without one inherits the frame’s era only when every year-bearing row agrees on one <em>and</em> that era is the sourced 1982-2002 span; otherwise it is reported rather than guessed, since a numeric state half cannot by itself distinguish a pre-2003 NCHS code from a frame already converted to FIPS.</p>
+<p>Measured on the full restricted 1999-2002 files, the correction is large and consistent across all four years. Taking 1999 as the example: the share of returned county codes that are odd-numbered rises from 52.2% to 98.4% (real FIPS county codes are odd by construction – 001, 003, 005 – while an alphabetical rank is a dense sequence and so roughly half odd), and the share of distinct returned codes that name a county on a current roster rises from 49.9% (1,564 of 3,136) to 99.5% (3,123 of 3,140). In 1999 the 17 codes that still do not match are all real 1990s geography that has since been renumbered: eight pre-2022 Connecticut counties, five Alaska boroughs, Dade before Miami-Dade, Shannon SD before Oglala Lakota, Bedford City, and Clifton Forge. (The set shifts slightly by year – 2002 has 17 as well, but a different one of them.) County of occurrence behaves the same (odd-share 98.0%).</p>
+</li>
+<li><p><strong><code>racer40</code> returned state codes, not race, for restricted data years 2003-2007.</strong> narcan declared Race Recode 40 at bytes 489-490 from 2003 and documented those years as “documented-but-empty”. They are not empty: for 2003-2007 those bytes carry the expanded state of occurrence in legacy NCHS numeric coding. <code>racer40</code> is now declared with no position for 2003-2007 and imports as all-<code>NA</code>; 2008 onward are unchanged. Discard any <code>racer40</code> values you have for 2003-2007.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="dictionary-fixes-and-0-5-4">Dictionary fixes (2003 and 2004)<a class="anchor" aria-label="anchor" href="#dictionary-fixes-and-0-5-4"></a></h3>
+<ul><li>Added <code>certifier</code> (col 110), <code>tobacco_use</code> (col 142) and <code>pregnancy_status</code> (col 143) to the <strong>restricted</strong> 2003 and 2004 layouts. All three are present and in-domain in the raw records and are documented in the 2003 layout doc; narcan simply never declared them. The restricted column set is now uniform at 138 columns from 2003 through 2019. They are blank in the public tier for those years and are marked suppressed there.</li>
+<li>
+<strong>Breaking column rename, and a third silent wrong-values defect.</strong> Any code that selected <code>racer2</code> for restricted 2003 was reading Race Recode 5 values under a name that means a 2-category recode in every other year, in every release through v0.5.3. Recheck any 2003 analysis that used <code>racer2</code>. Restricted 2003 col 450 was labelled <code>racer2</code>; the 2003 layout doc and the observed distribution both say it is Race Recode 5. It is now <code>racer5</code>, matching 2004 onward. Code selecting <code>racer2</code> for 2003 must be updated.</li>
+<li>Dropped the phantom <code>rnifla_20</code> (col 440) from 2003. It sat inside <code>record_20</code> (cols 439-442) and was always blank.</li>
+<li>Documented that <code>certifier</code> and <code>tobacco_use</code> are <strong>100% blank in the restricted NCHS 2013 file</strong> – a one-year upstream dropout, not a narcan bug and not a confidentiality mask (2012 and 2014 are populated normally, and <code>pregnancy_status</code> is populated in 2013). narcan declares the real positions for 2013 and returns <code>NA</code>. This is distinct from the public tier, where both fields are blanked in <em>every</em> year as a confidentiality mask, which is why the public dictionary marks them suppressed throughout – 2013 excepted, since there the blankness is upstream rather than a mask.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-0-5-4">New features<a class="anchor" aria-label="anchor" href="#new-features-0-5-4"></a></h3>
+<ul><li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> gains <code>use_fips_cols</code>, controlling whether pre-2003 geography is sourced from <code>fipsctyr</code>/<code>fipsctyo</code>: <code>"auto"</code> (default; do it wherever they are present and the year is in 1982-2002), <code>"yes"</code> (same span, but error rather than fall back when a row cannot be resolved) or <code>"no"</code> (reproduce the pre-0.5.4 behavior). <code>scheme</code> and <code>use_fips_cols</code> are independent – <code>scheme</code> selects how the state half is decoded, <code>use_fips_cols</code> where the county half comes from.</li>
+<li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> reports which path it took – geography sourced from the FIPS block, or a county half left as an NCHS rank – so a wrong county is not returned without saying so. Each notice fires once per session, so in a loop over data years only the first offending call reports. Use <code><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages()</a></code> to quiet it.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-5-4">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-4"></a></h3>
+<ul><li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code>: a <code>year</code> vector whose length is neither 1 nor <code>nrow(df)</code> is now an error. It was previously used as a frame-level set, which silently decoded the state under the wrong scheme.</li>
+<li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code>: the foreign/unknown state <code>"00"</code> and the public-file masked county <code>"999"</code> now resolve to <code>NA</code> on every path, not only when geography was sourced from the FIPS block. 18% of public 2004 residence records carry a <code>999</code> suffix and were being returned as codes like <code>"48999"</code>. The <code>state_substr</code>/<code>county_substr</code> columns keep the literal code, so a mask stays distinguishable from a blank field.</li>
+<li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code>: row order, row count, class, row names and grouping are now preserved for every input shape, including grouped and zero-row frames.</li>
+<li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code>: passing a FIPS column (<code>fipsctyr</code>, <code>fipsctyo</code>) directly as <code>county_vector</code> with a pre-2003 year used to send it down the NCHS path, so <code>06037</code> (Los Angeles) came back as <code>08037</code> (Colorado) – wrong state and wrong county, silently. Such a column is now recognized as already-FIPS regardless of the data year, and an explicit <code>scheme=</code> that contradicts it warns rather than being obeyed.</li>
+<li>
+<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code>: a character county code that is not 5 characters wide (or 2, for the state-only <code>fipsstr</code>/<code>fipssto</code>) is now refused with a warning and returns <code>NA</code>. A 4-digit code has usually lost its leading zero, and <code><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr()</a></code> read it as a different state – <code>"1001"</code> (Alabama 01001) parsed as state <code>"10"</code>, Delaware.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.3" id="narcan-053">narcan 0.5.3<a class="anchor" aria-label="anchor" href="#narcan-053"></a></h2>
 <div class="section level3">

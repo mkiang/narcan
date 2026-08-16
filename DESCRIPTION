@@ -1,7 +1,7 @@
 Package: narcan
 Type: Package
 Title: Tools for Working with Multiple Cause of Death Data
-Version: 0.5.3
+Version: 0.5.4
 Authors@R: c(
     person("Mathew", "Kiang", email = "mathew.kiang@gmail.com",
            role = c("aut", "cre")),
@@ -23,7 +23,8 @@ Imports:
     readr,
     rlang,
     tibble,
-    tidyr
+    tidyr,
+    tidyselect
 Depends:
     R (>= 4.2)
 Suggests:

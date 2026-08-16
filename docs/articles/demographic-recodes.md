@@ -10,10 +10,7 @@ age, sex, and race – and shows where each one breaks.
 Every input below is a small illustrative vector, not an NCHS record,
 and every chunk runs.
 
-``` r
-
-library(narcan)
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`narcan`](https://github.com/mkiang/narcan)`)`
 
 ## Age: two recodes, two outputs
 
@@ -27,13 +24,7 @@ new `age_years` column. The encoding changed at 2003 (a 3-digit code
 before, 4-digit after), so pass `year`. Sub-year ages (months, weeks,
 days, hours, minutes) collapse to 0; not-stated codes become `NA`.
 
-``` r
-
-remap_age(data.frame(year = 2000, age = c(37, 206, 999)))$age_years    # pre-2003
-#> [1] 37  0 NA
-remap_age(data.frame(year = 2019, age = c(1037, 2006, 1999, 9999)))$age_years  # 2003+
-#> [1] 37  0 NA NA
-```
+[`remap_age`](https://mkiang.github.io/narcan/reference/remap_age.md)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2000``, age ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``37``, ``206``, ``999``)``)``)``$``age_years`` ``# pre-2003`` ``#> [1] 37 0 NA`` `[`remap_age`](https://mkiang.github.io/narcan/reference/remap_age.md)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2019``, age ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1037``, ``2006``, ``1999``, ``9999``)``)``)``$``age_years`` ``# 2003+`` ``#> [1] 37 0 NA NA`
 
 Pre-2003, a years-unit code is the age itself (37 -\> 37) and `206` is 6
 months -\> 0. From 2003 a leading `1` marks years, so `1037` -\> 37 and
@@ -46,16 +37,7 @@ stated” -\> `NA`) to 5-year-bin starts (0, 5, …, 85). The finer under-5
 categories collapse into the 0-4 bin, and everything 85 and older into
 85.
 
-``` r
-
-convert_ager27(data.frame(ager27 = c(1, 7, 10, 23, 27)))
-#>   age
-#> 1   0
-#> 2   5
-#> 3  20
-#> 4  85
-#> 5  NA
-```
+[`convert_ager27`](https://mkiang.github.io/narcan/reference/convert_ager27.md)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``ager27 ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``7``, ``10``, ``23``, ``27``)``)``)`` ``#> age`` ``#> 1 0`` ``#> 2 5`` ``#> 3 20`` ``#> 4 85`` ``#> 5 NA`
 
 **Label the bins.**
 [`categorize_age_5()`](https://mkiang.github.io/narcan/reference/categorize_age_5.md)
@@ -64,25 +46,14 @@ the form
 [`tidyr::complete()`](https://tidyr.tidyverse.org/reference/complete.html)
 and ggplot2 expect.
 
-``` r
-
-categorize_age_5(seq(0, 85, 5))
-#>  [1] 0-4   5-9   10-14 15-19 20-24 25-29 30-34 35-39 40-44 45-49 50-54 55-59
-#> [13] 60-64 65-69 70-74 75-79 80-84 85+  
-#> 18 Levels: 0-4 < 5-9 < 10-14 < 15-19 < 20-24 < 25-29 < 30-34 < ... < 85+
-```
+[`categorize_age_5`](https://mkiang.github.io/narcan/reference/categorize_age_5.md)`(`[`seq`](https://rdrr.io/r/base/seq.html)`(``0``, ``85``, ``5``)``)`` ``#> [1] 0-4 5-9 10-14 15-19 20-24 25-29 30-34 35-39 40-44 45-49 50-54 55-59`` ``#> [13] 60-64 65-69 70-74 75-79 80-84 85+ `` ``#> 18 Levels: 0-4 < 5-9 < 10-14 < 15-19 < 20-24 < 25-29 < 30-34 < ... < 85+`
 
 The two age outputs are **not** interchangeable. `age_years` is single
 completed years; the AGER27 path – and the standard populations
 [`add_std_pop()`](https://mkiang.github.io/narcan/reference/add_std_pop.md)
 uses – are 5-year bins. To bin `age_years` yourself:
 
-``` r
-
-age_years <- c(0, 3, 37, 88)
-pmin(floor(age_years / 5) * 5, 85)     # -> 0, 0, 35, 85
-#> [1]  0  0 35 85
-```
+`age_years`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``0``, ``3``, ``37``, ``88``)`` `[`pmin`](https://rdrr.io/r/base/Extremes.html)`(`[`floor`](https://rdrr.io/r/base/Round.html)`(``age_years`` ``/`` ``5``)`` ``*`` ``5``, ``85``)`` ``# -> 0, 0, 35, 85`` ``#> [1] 0 0 35 85`
 
 ## Sex: numeric before 2003, character after
 
@@ -92,32 +63,14 @@ maps either coding – numeric `1`/`2` (1979-2002) or character
 [`add_pop_counts()`](https://mkiang.github.io/narcan/reference/add_pop_counts.md)
 joins on. Pass `year`; it is authoritative.
 
-``` r
-
-categorize_sex(c(1, 2, 9), year = 2000)       # pre-2003 numeric
-#> [1] "male"   "female" NA
-categorize_sex(c("M", "F", "U"), year = 2019) # 2003+ character
-#> [1] "male"   "female" NA
-categorize_female(c(1, 2), year = 2000)       # -> 0 1 (male = 0, female = 1)
-#> [1] 0 1
-```
+[`categorize_sex`](https://mkiang.github.io/narcan/reference/categorize_sex.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``, ``9``)``, year ``=`` ``2000``)`` ``# pre-2003 numeric`` ``#> [1] "male" "female" NA`` `[`categorize_sex`](https://mkiang.github.io/narcan/reference/categorize_sex.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``"M"``, ``"F"``, ``"U"``)``, year ``=`` ``2019``)`` ``# 2003+ character`` ``#> [1] "male" "female" NA`` `[`categorize_female`](https://mkiang.github.io/narcan/reference/categorize_female.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``)``, year ``=`` ``2000``)`` ``# -> 0 1 (male = 0, female = 1)`` ``#> [1] 0 1`
 
 The trap: omit `year` and the era is guessed from the column type. A
 pre-2003 sex column re-read from a CSV as the **characters** `"1"`/`"2"`
 is guessed to be the modern `"M"`/`"F"` scheme and maps to all-`NA` –
 loudly, with warnings.
 
-``` r
-
-categorize_sex(c("1", "2"), year = NULL)     # guesses modern -> NA (with warnings)
-#> Warning: categorize_sex(): `year` not supplied; inferring the coding era from
-#> the column type (2003+ 'M'/'F'). Pass `year` to be explicit.
-#> Warning: categorize_sex(): every value mapped to NA -- this usually means the
-#> `year`/era does not match the column's coding (numeric 1/2 vs character M/F).
-#> [1] NA NA
-categorize_sex(c("1", "2"), year = 2000)     # year fixes it -> male, female
-#> [1] "male"   "female"
-```
+[`categorize_sex`](https://mkiang.github.io/narcan/reference/categorize_sex.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``"1"``, ``"2"``)``, year ``=`` ``NULL``)`` ``# guesses modern -> NA (with warnings)`` ``` #> Warning: categorize_sex(): `year` not supplied; inferring the coding era from ``` ``` #> the column type (2003+ 'M'/'F'). Pass `year` to be explicit. ``` ``#> Warning: categorize_sex(): every value mapped to NA -- this usually means the`` ``` #> `year`/era does not match the column's coding (numeric 1/2 vs character M/F). ``` ``#> [1] NA NA`` `[`categorize_sex`](https://mkiang.github.io/narcan/reference/categorize_sex.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``"1"``, ``"2"``)``, year ``=`` ``2000``)`` ``# year fixes it -> male, female`` ``#> [1] "male" "female"`
 
 ## Race: the most-revised field
 
@@ -131,16 +84,7 @@ evolving list.
 **1992-2020 (bridged race).** Detailed codes 1-7, plus a family of
 “other” codes that all collapse to 99.
 
-``` r
-
-r <- remap_race(data.frame(year = 2004, race = c(1, 2, 3, 6, 18)), year = 2004)
-r$race                          # 1 2 3 6 99
-#> [1]  1  2  3  6 99
-categorize_race(r$race)         # white, black, american_indian, hawaiian, other
-#> [1] white           black           american_indian hawaiian       
-#> [5] other          
-#> 9 Levels: total < white < black < american_indian < chinese < ... < other
-```
+`r`` ``<-`` `[`remap_race`](https://mkiang.github.io/narcan/reference/remap_race.md)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2004``, race ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``, ``3``, ``6``, ``18``)``)``, year ``=`` ``2004``)`` ``r``$``race`` ``# 1 2 3 6 99`` ``#> [1] 1 2 3 6 99`` `[`categorize_race`](https://mkiang.github.io/narcan/reference/categorize_race.md)`(``r``$``race``)`` ``# white, black, american_indian, hawaiian, other`` ``#> [1] white black american_indian hawaiian `` ``#> [5] other `` ``#> 9 Levels: total < white < black < american_indian < chinese < ... < other`
 
 The Asian and Pacific Islander subgroups (Chinese, Japanese, Hawaiian,
 Filipino) are resolved separately in this era but have no matching
@@ -154,25 +98,14 @@ mapped to 7) but “other” (99) in 1989-1991. This is exactly why
 [`remap_race()`](https://mkiang.github.io/narcan/reference/remap_race.md)
 refuses to run without a year.
 
-``` r
-
-remap_race(data.frame(year = 1985, race = c(0, 1, 7, 8)), year = 1985)$race  # 99 1 99 7
-#> [1] 99  1 99  7
-```
+[`remap_race`](https://mkiang.github.io/narcan/reference/remap_race.md)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``1985``, race ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``0``, ``1``, ``7``, ``8``)``)``, year ``=`` ``1985``)``$``race`` ``# 99 1 99 7`` ``#> [1] 99 1 99 7`
 
 **2021 is a gap.** The bridged race fields were dropped and the
 single-race recodes were not yet populated, so
 [`remap_race()`](https://mkiang.github.io/narcan/reference/remap_race.md)
 sets race to `NA` (with a warning).
 
-``` r
-
-remap_race(data.frame(year = 2021, race = c(1, 2)), year = 2021)$race
-#> Warning in remap_race(data.frame(year = 2021, race = c(1, 2)), year = 2021):
-#> race is retired in 2021 (bridged race dropped; single-race recodes not
-#> populated until 2022); setting race to NA.
-#> [1] NA NA
-```
+[`remap_race`](https://mkiang.github.io/narcan/reference/remap_race.md)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2021``, race ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``)``)``, year ``=`` ``2021``)``$``race`` ``#> Warning in remap_race(data.frame(year = 2021, race = c(1, 2)), year = 2021):`` ``#> race is retired in 2021 (bridged race dropped; single-race recodes not`` ``#> populated until 2022); setting race to NA.`` ``#> [1] NA NA`
 
 **2022+ (single race).** From 2022 the bridged column is gone;
 [`remap_race()`](https://mkiang.github.io/narcan/reference/remap_race.md)
@@ -182,21 +115,7 @@ silently mixed.
 [`categorize_race()`](https://mkiang.github.io/narcan/reference/categorize_race.md)
 labels these with an `_only` suffix (except code 106, `multiracial`).
 
-``` r
-
-r22 <- remap_race(data.frame(year = 2022, racer5 = c(1, 2, 4, 6)), year = 2022)
-#> Warning in remap_race(data.frame(year = 2022, racer5 = c(1, 2, 4, 6)), year =
-#> 2022): 2022+ race uses the single-race Race Recode 6 mapped to codes 101-106;
-#> these are NOT comparable to the bridged race scheme (2020 and earlier).
-r22$race                                # 101 102 104 106
-#> [1] 101 102 104 106
-categorize_race(c(101, 102, 104, 106))  # white_only, black_only, asian_only, multiracial
-#> Warning in categorize_race(c(101, 102, 104, 106)): single-race codes (101-106)
-#> are not comparable to the bridged race scheme (2020 and earlier); do not
-#> combine the two into a single trend.
-#> [1] white_only  black_only  asian_only  multiracial
-#> 6 Levels: white_only < black_only < american_indian_only < ... < multiracial
-```
+`r22`` ``<-`` `[`remap_race`](https://mkiang.github.io/narcan/reference/remap_race.md)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``year ``=`` ``2022``, racer5 ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``, ``4``, ``6``)``)``, year ``=`` ``2022``)`` ``#> Warning in remap_race(data.frame(year = 2022, racer5 = c(1, 2, 4, 6)), year =`` ``#> 2022): 2022+ race uses the single-race Race Recode 6 mapped to codes 101-106;`` ``#> these are NOT comparable to the bridged race scheme (2020 and earlier).`` ``r22``$``race`` ``# 101 102 104 106`` ``#> [1] 101 102 104 106`` `[`categorize_race`](https://mkiang.github.io/narcan/reference/categorize_race.md)`(`[`c`](https://rdrr.io/r/base/c.html)`(``101``, ``102``, ``104``, ``106``)``)`` ``# white_only, black_only, asian_only, multiracial`` ``#> Warning in categorize_race(c(101, 102, 104, 106)): single-race codes (101-106)`` ``#> are not comparable to the bridged race scheme (2020 and earlier); do not`` ``#> combine the two into a single trend.`` ``#> [1] white_only black_only asian_only multiracial`` ``#> 6 Levels: white_only < black_only < american_indian_only < ... < multiracial`
 
 Both
 [`remap_race()`](https://mkiang.github.io/narcan/reference/remap_race.md)

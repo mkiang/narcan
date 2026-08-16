@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -127,51 +127,114 @@ refused, because numeric input has already dropped the leading zero
 parse as a different state). Pass <code>year</code> – a scalar or a
 <code>year</code> column – so the coding scheme is chosen
 deterministically.</p>
+<div class="section level3">
+<h3 id="both-halves-of-the-code-change-not-just-the-state">Both halves of the code change, not just the state<a class="anchor" aria-label="anchor" href="#both-halves-of-the-code-change-not-just-the-state"></a>
+</h3>
+<p>The state prefix is the obvious half. The county half is the one that
+bites.</p>
+<p>Before 2003 the last three digits of <code>countyrs</code> are the
+county’s <strong>alphabetical rank within its state</strong>, not its
+FIPS code. NCHS <code>05019</code> is Los Angeles; FIPS
+<code>06019</code> is Fresno. Translating the state prefix and keeping
+the rank produces a code that looks like a county and is not the right
+one, for about 97% of pre-2003 records, with no error and no
+<code>NA</code>.</p>
+<p>The raw record settles it. From data year 1982 the MCOD file carries
+a genuine FIPS geography block next to the NCHS one –
+<code>fipsctyr</code> for residence and <code>fipsctyo</code> for
+occurrence, each a complete 5-digit state + county – and
+<code><a href="../reference/import_mcod_fwf.html">import_mcod_fwf()</a></code> reads both. When you pass
+<code>countyrs</code> for a pre-2003 year and <code>fipsctyr</code> is
+present, <code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> takes the geography from it.</p>
 <p>Start with a small synthetic frame that straddles the 2002/2003
-boundary. The 1999-2002 rows carry NCHS numeric state codes; the
-2003-2004 rows carry postal abbreviations, exactly as the public files
-do:</p>
+boundary, shaped the way <code><a href="../reference/import_mcod_fwf.html">import_mcod_fwf()</a></code> returns one. The
+1999-2002 rows carry NCHS numeric state codes plus the record’s own FIPS
+county; the 2003-2004 rows carry postal abbreviations and a county half
+that is already FIPS, so they need no companion column:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">deaths</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>    id       <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,</span>
 <span>    year     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1999L</span>, <span class="fl">2001L</span>, <span class="fl">2002L</span>, <span class="fl">2003L</span>, <span class="fl">2004L</span><span class="op">)</span>,</span>
-<span>    countyrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"06031"</span>, <span class="st">"36061"</span>, <span class="st">"48059"</span>, <span class="st">"CA075"</span>, <span class="st">"TX201"</span><span class="op">)</span></span>
+<span>    countyrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"05019"</span>, <span class="st">"33031"</span>, <span class="st">"44057"</span>, <span class="st">"CA075"</span>, <span class="st">"TX201"</span><span class="op">)</span>,</span>
+<span>    fipsctyr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"06037"</span>, <span class="st">"36061"</span>, <span class="st">"48113"</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">deaths</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 3</span></span></span>
-<span><span class="co">#&gt;      id  year countyrs</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1  <span style="text-decoration: underline;">1</span>999 06031   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2  <span style="text-decoration: underline;">2</span>001 36061   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3  <span style="text-decoration: underline;">2</span>002 48059   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>     4  <span style="text-decoration: underline;">2</span>003 CA075   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>     5  <span style="text-decoration: underline;">2</span>004 TX201</span></span></code></pre></div>
-<p>Now harmonize. The call adds two columns – <code>st_fips</code>
-(2-digit state) and <code>county_fips</code> (5-digit state + county) –
-decoding each row under its own era’s scheme:</p>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 4</span></span></span>
+<span><span class="co">#&gt;      id  year countyrs fipsctyr</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1  <span style="text-decoration: underline;">1</span>999 05019    06037   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2  <span style="text-decoration: underline;">2</span>001 33031    36061   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3  <span style="text-decoration: underline;">2</span>002 44057    48113   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>     4  <span style="text-decoration: underline;">2</span>003 CA075    <span style="color: #BB0000;">NA</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>     5  <span style="text-decoration: underline;">2</span>004 TX201    <span style="color: #BB0000;">NA</span></span></span></code></pre></div>
+<p>Now harmonize. The call adds four columns – <code>state_substr</code>
+and <code>county_substr</code> (the two halves actually decoded),
+<code>st_fips</code> (2-digit state) and <code>county_fips</code>
+(5-digit state + county) – decoding each row under its own era’s scheme.
+It also reports, once per session, that it took the pre-2003 geography
+from <code>fipsctyr</code>; that notice appears in the output below:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">harmonized</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_county_fips.html">add_county_fips</a></span><span class="op">(</span><span class="va">deaths</span>, <span class="va">countyrs</span><span class="op">)</span></span>
+<span><span class="co">#&gt; add_county_fips(): sourced pre-2003 county geography from `fipsctyr` for 3 row(s). The `countyrs` county digits are an alphabetical rank, not FIPS. This message is shown once per session; wrap the call in suppressMessages() to silence it.</span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This message is displayed once per session.</span></span></span>
 <span><span class="va">harmonized</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"year"</span>, <span class="st">"countyrs"</span>, <span class="st">"st_fips"</span>, <span class="st">"county_fips"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 5</span></span></span>
 <span><span class="co">#&gt;      id  year countyrs st_fips county_fips</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1  <span style="text-decoration: underline;">1</span>999 06031    08      08031      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2  <span style="text-decoration: underline;">2</span>001 36061    39      39061      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3  <span style="text-decoration: underline;">2</span>002 48059    53      53059      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1  <span style="text-decoration: underline;">1</span>999 05019    06      06037      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2  <span style="text-decoration: underline;">2</span>001 33031    36      36061      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3  <span style="text-decoration: underline;">2</span>002 44057    48      48113      </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>     4  <span style="text-decoration: underline;">2</span>003 CA075    06      06075      </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>     5  <span style="text-decoration: underline;">2</span>004 TX201    48      48201</span></span></code></pre></div>
-<p>Read the before/after together. The raw <code>countyrs</code> string
-<code>"06031"</code> (1999) maps to <code>st_fips</code>
-<code>"08"</code> and <code>county_fips</code> <code>"08031"</code> –
-NCHS <code>"06"</code> is <strong>Colorado</strong>, not California. In
-2003, California enters instead through the abbreviation
-<code>"CA"</code>, giving <code>"06075"</code>. A single numeric code
-like <code>"06..."</code> is therefore ambiguous on its own;
-<code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> resolves it row by row from the year, so
-one frame spanning both eras comes out on a consistent 5-digit FIPS
-grain. Codes it cannot place – <code>"ZZ"</code> foreign residence, or
-the ambiguous NCHS code <code>"62"</code> – yield <code>NA</code> rather
-than a spurious string.</p>
+<p>Read the before/after together. Row 1’s raw <code>countyrs</code> is
+<code>"05019"</code>: NCHS state <code>05</code> is California, and
+<code>019</code> is the nineteenth California county alphabetically –
+Los Angeles. The answer is <code>"06037"</code>, taken from
+<code>fipsctyr</code>. Had the rank been carried through, the result
+would have been <code>"06019"</code>, which is a real county (Fresno)
+and the wrong one. In 2003 California enters instead through the
+abbreviation <code>"CA"</code>, giving <code>"06075"</code>, and no
+companion column is needed because the county half is already FIPS.
+Codes that cannot be placed – <code>"ZZ"</code> foreign residence, FIPS
+state <code>"00"</code>, a county masked to <code>"999"</code> on the
+public file, or a territory code such as NCHS <code>"62"</code>, which
+narcan does not cover – yield <code>NA</code> in
+<code>st_fips</code>/<code>county_fips</code> rather than a spurious
+string. The <code>state_substr</code> and <code>county_substr</code>
+columns keep the literal code, so you can still count how much of a
+public extract is masked.</p>
+<p>Note also that <code>county_substr</code> reads <code>"037"</code>,
+not the <code>"019"</code> in the input: on a row sourced this way, both
+halves come from <code>fipsctyr</code>. The same is true of the other
+two pre-2003 rows – in every one of them the county digits change, which
+is the point. A rank and a FIPS county code agree only when a county’s
+alphabetical position happens to equal its FIPS number, and since FIPS
+county codes step by two (001, 003, 005 …) while ranks step by one, that
+happens only at rank <code>001</code> – the first county alphabetically
+in each state. Roughly 97% of pre-2003 records got a wrong county from
+the old code.</p>
+<p>If you are working with a frame that has no
+<code>fipsctyr</code>/<code>fipsctyo</code> – a hand-built extract, say
+– <code><a href="../reference/add_county_fips.html">add_county_fips()</a></code> reports the opposite thing, once per
+session: that the county half is a rank and the result is not usable for
+county-level work. <code>use_fips_cols = "no"</code> restores the old
+behavior but does <strong>not</strong> buy you silence; it swaps the
+first notice for the second, because the returned county is then the one
+the notice is warning about. Use <code><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages()</a></code> if you
+want a quiet call. Data years 1979-1981 are the one span with no remedy
+at all – no FIPS county was recorded, so the true county cannot be
+recovered from the file and only <code>st_fips</code> is usable. Those
+years report it too – but both notices share one once-per-session
+identifier, so if an earlier call in the same session already raised the
+rank notice, a later 1979-1981 frame will be silent. Do not rely on the
+message to tell you which years you are looking at; check the data
+years.</p>
+<p>Neither notice depends on <code>scheme</code>. That argument selects
+how the <em>state</em> half is decoded; <code>use_fips_cols</code>
+selects where the <em>county</em> half comes from. Pinning
+<code>scheme = "nchs"</code> on 1999 data still sources the county from
+<code>fipsctyr</code>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="the-bundled-crosswalks">The bundled crosswalks<a class="anchor" aria-label="anchor" href="#the-bundled-crosswalks"></a>

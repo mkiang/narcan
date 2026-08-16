@@ -49,35 +49,14 @@ site](https://mkiang.github.io/narcan/articles/).
 
 ## Installation
 
-``` r
-
-# install.packages("remotes")
-remotes::install_github("mkiang/narcan")
-```
+`# install.packages("remotes")`` ``remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"mkiang/narcan"``)`
 
 ## Example
 
 Flag drug- and opioid-involved deaths from a set of cause-of-death
 records:
 
-``` r
-
-library(narcan)
-
-deaths <- data.frame(
-  year = 2019,
-  ucod = c("X42", "I250", "X44"),
-  f_records_all = c("T401 T402", "I250", "T436")
-)
-
-deaths |>
-  flag_drug_deaths(year = 2019) |>
-  flag_opioid_deaths(year = 2019)
-#>  year ucod f_records_all drug_death opioid_death
-#>  2019  X42     T401 T402          1            1
-#>  2019 I250          I250          0            0
-#>  2019  X44          T436          1            0
-```
+[`library`](https://rdrr.io/r/base/library.html)`(`[`narcan`](https://github.com/mkiang/narcan)`)`` `` ``deaths`` ``<-`` `[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(`` `` year ``=`` ``2019``,`` `` ucod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"X42"``, ``"I250"``, ``"X44"``)``,`` `` f_records_all ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"T401 T402"``, ``"I250"``, ``"T436"``)`` ``)`` `` ``deaths`` ``|>`` `` `[`flag_drug_deaths`](https://mkiang.github.io/narcan/reference/flag_drug_deaths.md)`(``year ``=`` ``2019``)`` ``|>`` `` `[`flag_opioid_deaths`](https://mkiang.github.io/narcan/reference/flag_opioid_deaths.md)`(``year ``=`` ``2019``)`` ``#> year ucod f_records_all drug_death opioid_death`` ``#> 2019 X42 T401 T402 1 1`` ``#> 2019 I250 I250 0 0`` ``#> 2019 X44 T436 1 0`
 
 The X42 death is drug- and opioid-involved (heroin, T40.1); the X44
 death is a drug poisoning but not an opioid (psychostimulant, T43.6);

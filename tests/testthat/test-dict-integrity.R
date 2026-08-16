@@ -39,9 +39,15 @@ test_that("public effective record length matches the verified profile", {
     expect_equal(max_end(2024), 817L)
 })
 
-test_that("restricted record reaches 490 (2003-2019) and 817 (2020+ via declared occ/ind)", {
-    max_end <- function(y) max(mcod_fwf_dicts$end[mcod_fwf_dicts$year == y])
-    expect_equal(max_end(2003), 490L)
+test_that("restricted record reaches 490 (2008-2019) and 817 (2020+ via declared occ/ind)", {
+    max_end <- function(y) max(mcod_fwf_dicts$end[mcod_fwf_dicts$year == y], na.rm = TRUE)
+    ## 2003-2007 stop at 488 by design. The files are still 490 bytes, but bytes 489-490 there
+    ## hold the expanded state of occurrence rather than racer40, and narcan deliberately
+    ## declares no field over them -- exstatoc@26-27 already carries that information.
+    for (y in 2003:2007) {
+        expect_equal(max_end(y), 488L, info = paste("year", y))
+    }
+    expect_equal(max_end(2008), 490L)
     expect_equal(max_end(2019), 490L)
     ## restricted 2020 declares occupation/industry @806-817 (populated on public
     ## 2020, read as NA on the 490-byte restricted 2020 file); wide record from 2021

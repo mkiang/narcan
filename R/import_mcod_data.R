@@ -3,10 +3,15 @@
 #' Reads a raw NCHS Multiple Cause of Death fixed-width file into a data frame
 #' using the byte-verified column dictionary for the given year and tier. The
 #' restricted and public files share the within-record layout; the public file
-#' suppresses (blanks) sub-state geography from 2005 and never carries a few
-#' certifier-entered items (tobacco, pregnancy). Those suppressed columns are
+#' suppresses (blanks) sub-state geography from 2005 and the certifier-entered
+#' items (certifier, tobacco, pregnancy) from 2003. Those suppressed columns are
 #' returned as all-\code{NA} so the public output is column-compatible with the
-#' restricted output.
+#' restricted output. Data year 2013 is a separate case: \code{certifier} and
+#' \code{tobacco_use} are blank in the \emph{restricted} 2013 file, which is an
+#' upstream NCHS source gap rather than a suppression (2012 and 2014 are
+#' populated, and \code{pregnancy_status} is populated in 2013). Both fields read
+#' as \code{NA} from either tier that year, but for different reasons -- the
+#' public tier blanks them in every year as a standing suppression.
 #'
 #' @param file path to the raw MCOD plaintext (or unzipped) fixed-width file
 #' @param year year of the MCOD data (integer)

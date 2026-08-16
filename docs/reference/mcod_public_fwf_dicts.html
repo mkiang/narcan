@@ -19,7 +19,7 @@ column-compatible with the restricted output.'></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">narcan</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,9 +91,9 @@ column-compatible with the restricted output.</p>
 
   <dt>suppressed</dt>
 <dd><p>logical; `TRUE` for columns not present on the public file
-    (sub-state geography, record type, certifier from 2005; tobacco and
-    pregnancy; race-recode-40 before it reaches the public file in 2013) –
-    returned as all-`NA` for column parity</p></dd>
+    (sub-state geography and record type from 2005; certifier, tobacco and
+    pregnancy from 2003; race-recode-40 before it reaches the public file in
+    2013) – returned as all-`NA` for column parity</p></dd>
 
 
 </dl></div>
@@ -107,6 +107,17 @@ column-compatible with the restricted output.</p>
 mirror). Effective record length by year: 440 (1979-2002; 1980 is
 variable-length and read newline-delimited), 488 (2003-2012), 490 (2013-2019),
 817 (2020-2024).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="the-certifier-gap">The 2013 certifier gap<a class="anchor" aria-label="anchor" href="#the-certifier-gap"></a></h2>
+
+
+<p>`certifier` (byte 110) and `tobacco_use` (byte 142) are `suppressed = FALSE`
+for data year 2013 yet still read as all-`NA`. That is deliberate. Both
+fields are blank in the restricted 2013 file as well, so this is a
+one-year gap in the NCHS source rather than a public-use confidentiality
+suppression, and flagging it as suppressed would assert a masking that did
+not happen. Either way the imported column is `NA`.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
